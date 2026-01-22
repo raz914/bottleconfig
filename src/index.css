@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@font-face {
+  font-family: 'BeFit';
+  src: url('/fonts/BeFit.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'BeFit';
+  src: url('/fonts/BEFIT-Bold Italic.otf') format('opentype');
+  font-weight: bold;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'BeFit Slim';
+  src: url('/fonts/BeFit-Slim.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Burns Drift';
+  src: url('/monogram/BurnsDriftDemo-R91Kl.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Janda Stylish Monogram';
+  src: url('/monogram/JandaStylishMonogram-1RqZ.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Kg Modern Monogram';
+  src: url('/monogram/KgModernMonogram-R1L3.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Mending';
+  src: url('/monogram/Mending.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'ITC Modern';
+  src: url('/monogram/itc-modern.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Nexa Script';
+  src: url('/monogram/nexa-script.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Roman';
+  src: url('/monogram/roman.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Three Character Circle';
+  src: url('/monogram/three-character-circle.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Three Character N-Gram';
+  src: url('/monogram/three-character-n-gram.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Two Character Circle';
+  src: url('/monogram/two-character-circle.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Two Character N-Gram';
+  src: url('/monogram/two-character-n-gram.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Vine';
+  src: url('/monogram/vine.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Proxima Nova';
+  src: url('/monogram/proxima-nova.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Rockwell Bold';
+  src: url('/monogram/rockwell-bold.woff') format('woff');
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: 'Sackers Gothic';
+  src: url('/monogram/sackers-gothic.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Two Character Circle 2';
+  src: url('/monogram/2-character-circle2.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Three Character Circle 2';
+  src: url('/monogram/3-character-circle2.woff') format('woff');
+}
