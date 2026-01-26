@@ -1,21 +1,21 @@
 import React from 'react';
 
-const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSelectedFont }) => {
+const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSelectedFont, activeTab }) => {
     return (
         <div className="w-full max-w-2xl">
             {/* Mini Nav for Tools - Hidden on mobile */}
             <div className="hidden md:flex items-center justify-center space-x-4 mb-8">
                 <button onClick={() => setView('main')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
-                    <img src="/UI/icons/upload.svg" className="w-10 h-10" alt="Upload" />
+                    <img src="UI/icons/upload.svg" className="w-10 h-10" alt="Upload" />
                 </button>
                 <button className="p-4 bg-white rounded-xl shadow-sm border-2 border-black">
-                    <img src="/UI/icons/text.png" className="w-10 h-10 object-contain" alt="Text" />
+                    <img src="UI/icons/text.png" className="w-10 h-10 object-contain" alt="Text" />
                 </button>
                 <button onClick={() => setView('monogram')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
-                    <img src="/UI/icons/monogram.svg" className="w-10 h-10" alt="Monogram" />
+                    <img src="UI/icons/monogram.svg" className="w-10 h-10" alt="Monogram" />
                 </button>
                 <button onClick={() => setView('main')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
-                    <img src="/UI/icons/gallery.svg" className="w-10 h-10" alt="Gallery" />
+                    <img src="UI/icons/gallery.svg" className="w-10 h-10" alt="Gallery" />
                 </button>
             </div>
 
@@ -35,14 +35,14 @@ const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSe
             </button>
 
             {/* Text Input */}
-            <div className="bg-white rounded-lg shadow-sm p-2 mb-6 border border-gray-200 flex items-center">
-                <input
-                    type="text"
+            <div className="bg-white rounded-lg shadow-sm p-2 mb-6 border border-gray-200 flex items-start">
+                <textarea
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
                     placeholder="TYPE TEXT HERE"
-                    maxLength={15}
-                    className="flex-1 w-full px-2 md:px-4 py-2 text-center text-sm md:text-base text-gray-700 placeholder-gray-300 focus:outline-none"
+                    maxLength={activeTab === 'FRONT' ? 150 : 800}
+                    rows={3}
+                    className="flex-1 w-full px-2 md:px-4 py-2 text-center text-sm md:text-base text-gray-700 placeholder-gray-300 focus:outline-none resize-none"
                     onFocus={() => {
                         setTimeout(() => {
                             const target = document.getElementById('mobile-color-trigger');
@@ -53,7 +53,7 @@ const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSe
                     }}
                     style={fonts.find(f => f.name === selectedFont)?.style}
                 />
-                <div className="text-green-500 px-2">
+                <div className="text-green-500 px-2 pt-2">
                     {textInput && (
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />

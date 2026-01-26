@@ -6,16 +6,16 @@ const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles
             {/* Mini Nav for Tools - Hidden on mobile */}
             <div className="hidden md:flex items-center justify-center space-x-4 mb-8">
                 <button onClick={() => setView('main')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
-                    <img src="/UI/icons/upload.svg" className="w-10 h-10" alt="Upload" />
+                    <img src="UI/icons/upload.svg" className="w-10 h-10" alt="Upload" />
                 </button>
                 <button onClick={() => setView('text')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
-                    <img src="/UI/icons/text.png" className="w-10 h-10 object-contain" alt="Text" />
+                    <img src="UI/icons/text.png" className="w-10 h-10 object-contain" alt="Text" />
                 </button>
                 <button className="p-4 bg-white rounded-xl shadow-sm border-2 border-black">
-                    <img src="/UI/icons/monogram.svg" className="w-10 h-10" alt="Monogram" />
+                    <img src="UI/icons/monogram.svg" className="w-10 h-10" alt="Monogram" />
                 </button>
                 <button onClick={() => setView('main')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
-                    <img src="/UI/icons/gallery.svg" className="w-10 h-10" alt="Gallery" />
+                    <img src="UI/icons/gallery.svg" className="w-10 h-10" alt="Gallery" />
                 </button>
             </div>
 

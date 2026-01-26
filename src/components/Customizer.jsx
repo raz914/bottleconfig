@@ -96,24 +96,24 @@ const Customizer = () => {
     ];
 
     const fonts = [
-        { name: 'BeFit', css: 'font-sans', style: { fontFamily: 'BeFit' } },
-        { name: 'BeFit Slim', css: 'font-sans', style: { fontFamily: 'BeFit Slim' } },
-        { name: 'BeFit Bold Italic', css: 'font-sans font-bold italic', style: { fontFamily: 'BeFit', fontWeight: 'bold', fontStyle: 'italic' } },
-        { name: 'Sackers Gothic', css: 'font-sans uppercase tracking-widest', style: { fontFamily: 'Oswald, sans-serif' } },
-        { name: 'Yearbook Solid', css: 'font-serif uppercase font-black', style: { fontFamily: 'Bebas Neue, sans-serif' } },
-        { name: 'VAG Rounded Next', css: 'font-sans', style: { fontFamily: 'Nunito, sans-serif' } },
-        { name: 'Samantha Script', css: 'font-cursive', style: { fontFamily: 'Dancing Script, cursive' } },
+        { name: 'BeFit', css: 'font-sans', style: { fontFamily: 'BeFit, "Noto Emoji", sans-serif' } },
+        { name: 'BeFit Slim', css: 'font-sans', style: { fontFamily: 'BeFit Slim, "Noto Emoji", sans-serif' } },
+        { name: 'BeFit Bold Italic', css: 'font-sans font-bold italic', style: { fontFamily: 'BeFit, "Noto Emoji", sans-serif', fontWeight: 'bold', fontStyle: 'italic' } },
+        { name: 'Sackers Gothic', css: 'font-sans uppercase tracking-widest', style: { fontFamily: 'Oswald, "Noto Emoji", sans-serif' } },
+        { name: 'Yearbook Solid', css: 'font-serif uppercase font-black', style: { fontFamily: 'Bebas Neue, "Noto Emoji", sans-serif' } },
+        { name: 'VAG Rounded Next', css: 'font-sans', style: { fontFamily: 'Nunito, "Noto Emoji", sans-serif' } },
+        { name: 'Samantha Script', css: 'font-cursive', style: { fontFamily: 'Dancing Script, "Noto Emoji", cursive' } },
         // { name: 'Nexa Script', css: 'font-cursive', style: { fontFamily: 'Pacifico, cursive' } },
-        { name: 'Cotford', css: 'font-serif', style: { fontFamily: 'Merriweather, serif' } },
-        { name: 'Arial Bold', css: 'font-sans font-bold', style: { fontFamily: 'Arial, sans-serif', fontWeight: 'bold' } },
-        { name: 'ITC Modern No 216', css: 'font-serif font-bold', style: { fontFamily: 'Bodoni Moda, serif' } },
-        { name: 'Benguiat Pro ITC Bold', css: 'font-serif font-bold', style: { fontFamily: 'Playfair Display, serif', fontWeight: 'bold' } },
-        { name: 'Rockwell Bold', css: 'font-serif font-bold', style: { fontFamily: 'Alfa Slab One, serif' } },
-        { name: 'WHIPHAND', css: 'font-display uppercase', style: { fontFamily: 'Permanent Marker, cursive', fontStyle: 'italic' } },
-        { name: 'WOOD TYPE', css: 'font-display uppercase tracking-wide', style: { fontFamily: 'Bungee, sans-serif' } },
-        { name: 'Futura Bold', css: 'font-sans font-bold uppercase', style: { fontFamily: 'Oswald, sans-serif', fontWeight: 'bold' } },
-        { name: 'Script MT Bold', css: 'font-cursive font-bold', style: { fontFamily: 'Dancing Script, cursive', fontWeight: 'bold' } },
-        { name: 'Times New Roman', css: 'font-serif', style: { fontFamily: 'Times New Roman, serif' } },
+        { name: 'Cotford', css: 'font-serif', style: { fontFamily: 'Merriweather, "Noto Emoji", serif' } },
+        { name: 'Arial Bold', css: 'font-sans font-bold', style: { fontFamily: 'Arial, "Noto Emoji", sans-serif', fontWeight: 'bold' } },
+        { name: 'ITC Modern No 216', css: 'font-serif font-bold', style: { fontFamily: 'Bodoni Moda, "Noto Emoji", serif' } },
+        { name: 'Benguiat Pro ITC Bold', css: 'font-serif font-bold', style: { fontFamily: 'Playfair Display, "Noto Emoji", serif', fontWeight: 'bold' } },
+        { name: 'Rockwell Bold', css: 'font-serif font-bold', style: { fontFamily: 'Alfa Slab One, "Noto Emoji", serif' } },
+        { name: 'WHIPHAND', css: 'font-display uppercase', style: { fontFamily: 'Permanent Marker, "Noto Emoji", cursive', fontStyle: 'italic' } },
+        { name: 'WOOD TYPE', css: 'font-display uppercase tracking-wide', style: { fontFamily: 'Bungee, "Noto Emoji", sans-serif' } },
+        { name: 'Futura Bold', css: 'font-sans font-bold uppercase', style: { fontFamily: 'Oswald, "Noto Emoji", sans-serif', fontWeight: 'bold' } },
+        { name: 'Script MT Bold', css: 'font-cursive font-bold', style: { fontFamily: 'Dancing Script, "Noto Emoji", cursive', fontWeight: 'bold' } },
+        { name: 'Times New Roman', css: 'font-serif', style: { fontFamily: 'Times New Roman, "Noto Emoji", serif' } },
     ];
 
     const SIDE_CONFIG = {
@@ -142,7 +142,7 @@ const Customizer = () => {
                 <div className="max-w-[1920px] mx-auto px-4 md:px-6 h-14 md:h-16 flex items-center justify-between">
                     {/* Logo */}
                     <div className="flex-shrink-0">
-                        <img src="/logo.png" alt="YETI" loading="lazy" className="h-8 md:h-10 w-auto object-contain" />
+                        <img src="logo.png" alt="YETI" loading="lazy" className="h-8 md:h-10 w-auto object-contain" />
                     </div>
 
                     {/* Navigation Tabs */}
@@ -186,7 +186,7 @@ const Customizer = () => {
                         // ${view !== 'main' ? currentConfig.zoom : ''}
                         >
                             <img
-                                src={`/bottle/${activeTab === 'FRONT' ? 'front' : 'back'}/${selectedColor}${activeTab === 'BACK' ? 'back' : ''}.webp`}
+                                src={`bottle/${activeTab === 'FRONT' ? 'front' : 'back'}/${selectedColor}${activeTab === 'BACK' ? 'back' : ''}.webp`}
                                 alt="Yeti Bottle"
                                 loading="lazy"
                                 className={`w-full h-full object-contain mix-blend-multiply drop-shadow-2xl transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
@@ -211,13 +211,27 @@ const Customizer = () => {
                                     style={{ containerType: 'inline-size' }}
                                 >
                                     <span
-                                        className="text-center whitespace-nowrap block"
+                                        className="text-center block overflow-hidden"
                                         style={{
                                             ...fonts.find(f => f.name === selectedFont)?.style,
                                             color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(216, 216, 216, 0.73)',
-                                            fontSize: `max(4px, min(${100 / Math.max(1, textInput.length)}cqi, 22cqi))`,
+                                            fontSize: activeTab === 'FRONT'
+                                                ? `max(4px, min(${100 / Math.max(1, textInput.length)}cqi, 18cqi))`
+                                                : `max(8px, min(${100 / Math.max(1, textInput.length)}cqi, 34cqi))`,
                                             letterSpacing: '0.5px',
                                             mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
+                                            wordBreak: 'break-word',
+                                            whiteSpace: 'pre-wrap',
+                                            lineHeight: 1.2,
+                                            fontVariantEmoji: 'text',
+                                            verticalAlign: 'middle',
+                                            textRendering: 'geometricPrecision',
+                                            filter: 'grayscale(1)',
+                                            ...(activeTab === 'FRONT' && {
+                                                display: '-webkit-box',
+                                                WebkitLineClamp: 4,
+                                                WebkitBoxOrient: 'vertical',
+                                            }),
                                         }}
                                     >
                                         {textInput}
@@ -231,18 +245,20 @@ const Customizer = () => {
                                     className={`absolute ${currentConfig.graphic} flex items-center justify-center z-20 pointer-events-none overflow-hidden`}
                                     style={{ containerType: 'inline-size' }}
                                 >
-                                    <svg
-                                        viewBox={graphicInput.viewBox}
-                                        className="w-full h-full text-slate-800"
+                                    <img
+                                        src={graphicInput.src}
+                                        alt={graphicInput.name}
+                                        className="w-full h-full object-contain"
                                         style={{
-                                            color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(255, 255, 255, 0.73)',
+                                            filter: selectedColor === 'white'
+                                                ? 'brightness(0) saturate(100%) invert(15%) sepia(5%) saturate(0%) hue-rotate(0deg)'
+                                                : 'brightness(0) saturate(100%) invert(95%) sepia(0%) saturate(0%) hue-rotate(0deg)',
+                                            opacity: selectedColor === 'white' ? 0.85 : 0.73,
                                             mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
-                                            maxHeight: isMobile ? '38%' : '80%',
-                                            maxWidth: isMobile ? '38%' : '80%'
+                                            maxHeight: isMobile ? '32%' : '70%',
+                                            maxWidth: isMobile ? '32%' : '70%'
                                         }}
-                                    >
-                                        {graphicInput.path}
-                                    </svg>
+                                    />
                                 </div>
                             )}
 
@@ -379,6 +395,7 @@ const Customizer = () => {
                             fonts={fonts}
                             selectedFont={selectedFont}
                             setSelectedFont={setSelectedFont}
+                            activeTab={activeTab}
                         />
                     )}
 

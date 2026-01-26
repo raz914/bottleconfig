@@ -60,13 +60,11 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
                             >
                                 {/* Category Preview Icon (using the defined 'icon' string to find a sample) */}
                                 <div className="text-gray-400 group-hover:text-[#002C5F] mb-3 transition-colors">
-                                    <svg viewBox="0 0 24 24" className="w-12 h-12" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                        {/* Simple dynamic rendering or placeholder based on cat.icon. 
-                                            For simplicity, we'll try to find an icon named similar or just generic folder 
-                                        */}
-                                        {/* Actually, let's just grab the first icon from that category to show as preview */}
-                                        {galleryIcons[cat.id]?.[0]?.path}
-                                    </svg>
+                                    <img
+                                        src={galleryIcons[cat.id]?.[0]?.src}
+                                        alt={cat.name}
+                                        className="w-12 h-12 object-contain"
+                                    />
                                 </div>
                                 <span className="text-sm font-bold text-gray-600 group-hover:text-[#002C5F] uppercase tracking-wider">
                                     {cat.name}
@@ -94,9 +92,11 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
                                         }
                                     `}
                                 >
-                                    <svg viewBox={icon.viewBox} className="w-full h-full text-slate-800">
-                                        {icon.path}
-                                    </svg>
+                                    <img
+                                        src={icon.src}
+                                        alt={icon.name}
+                                        className="w-full h-full object-contain"
+                                    />
                                 </button>
                             ))}
                         </div>
@@ -104,7 +104,7 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
                 )}
             </div>
 
-            <style jsx>{`
+            <style>{`
                 .custom-scrollbar::-webkit-scrollbar {
                     width: 6px;
                 }

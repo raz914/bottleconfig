@@ -10,28 +10,28 @@ const MainView = ({ setView }) => {
 
             <div className="grid grid-cols-3 gap-3 md:gap-6">
                 <OptionCard
-                    icon="/UI/icons/upload.svg"
+                    icon="UI/icons/upload.svg"
                     label="UPLOAD YOUR OWN IMAGE"
                     onClick={() => { }}
                 />
                 <OptionCard
-                    icon="/UI/icons/text.png"
+                    icon="UI/icons/text.png"
                     label="TEXT"
                     isImage={true}
                     onClick={() => setView('text')}
                 />
                 <OptionCard
-                    icon="/UI/icons/monogram.svg"
+                    icon="UI/icons/monogram.svg"
                     label="MONOGRAM"
                     onClick={() => setView('monogram')}
                 />
                 <OptionCard
-                    icon="/UI/icons/snow.svg"
+                    icon="UI/icons/snow.svg"
                     label="HOLIDAY DESIGNS"
                     onClick={() => { }}
                 />
                 <OptionCard
-                    icon="/UI/icons/gallery.svg"
+                    icon="UI/icons/gallery.svg"
                     label="GALLERY"
                     onClick={() => setView('gallery')}
                 />

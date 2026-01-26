@@ -1,0 +1,214 @@
+/**
+ * Bottle Customizer Frontend Styles
+ */
+
+/* Personalize Button */
+.bottle-customizer-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    margin-top: 15px;
+    width: 100%;
+}
+
+.bottle-customizer-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.bottle-customizer-btn:active {
+    transform: translateY(0);
+}
+
+.bottle-customizer-btn .btn-icon {
+    font-size: 18px;
+}
+
+/* Modal Overlay */
+.bottle-customizer-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2147483647;
+    background-color: rgba(0, 0, 0, 0.9);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.bottle-customizer-modal.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Disable sticky headers while the configurator is open (common theme selectors) */
+body.bottle-customizer-open header,
+body.bottle-customizer-open #masthead,
+body.bottle-customizer-open .site-header,
+body.bottle-customizer-open .sticky-header,
+body.bottle-customizer-open .header-sticky,
+body.bottle-customizer-open .is-sticky,
+body.bottle-customizer-open .elementor-sticky--active,
+body.bottle-customizer-open .ast-sticky-active,
+body.bottle-customizer-open .ast-header-sticked,
+body.bottle-customizer-open .wp-block-template-part,
+body.bottle-customizer-open .hfe-sticky-header,
+body.bottle-customizer-open .storefront-sticky-header {
+    position: static !important;
+    top: auto !important;
+    transform: none !important;
+}
+
+body.bottle-customizer-open {
+    overflow: hidden;
+}
+
+/* Modal Content */
+.bottle-customizer-modal-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Close Button */
+.bottle-customizer-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    color: #ffffff;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1000001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bottle-customizer-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #ffffff;
+    transform: rotate(90deg);
+}
+
+/* Iframe */
+.bottle-customizer-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #000;
+}
+
+/* Loading State */
+.bottle-customizer-modal.loading .bottle-customizer-iframe {
+    opacity: 0;
+}
+
+.bottle-customizer-modal.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50px;
+    height: 50px;
+    margin: -25px 0 0 -25px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Cart Preview Images */
+.bottle-customizer-cart-images {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.bottle-preview-thumb {
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background: #f5f5f5;
+}
+
+/* Customization Details in Cart */
+.woocommerce-cart-form .product-name dl.variation {
+    margin-bottom: 10px;
+}
+
+.woocommerce-cart-form .product-name dt {
+    font-weight: 600;
+    color: #333;
+}
+
+.woocommerce-cart-form .product-name dd {
+    margin-left: 0;
+    color: #666;
+}
+
+/* Order Details Customization */
+.bottle-customization-details {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.bottle-customization-details p {
+    margin: 5px 0;
+}
+
+.bottle-customization-details img {
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .bottle-customizer-btn {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+
+    .bottle-customizer-close {
+        top: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+    }
+
+    .bottle-preview-thumb {
+        max-width: 60px !important;
+    }
+}
