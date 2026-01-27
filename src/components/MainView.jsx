@@ -12,7 +12,7 @@ const MainView = ({ setView }) => {
                 <OptionCard
                     icon="UI/icons/upload.svg"
                     label="UPLOAD YOUR OWN IMAGE"
-                    onClick={() => { }}
+                    onClick={() => setView('upload')}
                 />
                 <OptionCard
                     icon="UI/icons/text.png"

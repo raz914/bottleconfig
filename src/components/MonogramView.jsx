@@ -5,7 +5,7 @@ const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles
         <div className="w-full max-w-2xl">
             {/* Mini Nav for Tools - Hidden on mobile */}
             <div className="hidden md:flex items-center justify-center space-x-4 mb-8">
-                <button onClick={() => setView('main')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
+                <button onClick={() => setView('upload')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
                     <img src="UI/icons/upload.svg" className="w-10 h-10" alt="Upload" />
                 </button>
                 <button onClick={() => setView('text')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">

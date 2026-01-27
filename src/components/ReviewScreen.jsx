@@ -134,22 +134,56 @@ const ReviewScreen = ({ onClose, customization, selectedColor, selectedFont, sel
                 {graphicInput && (
                     <div
                         className={`absolute ${currentConfig.graphic} flex items-center justify-center z-20 pointer-events-none overflow-hidden`}
-                        style={{ containerType: 'inline-size' }}
+                        style={{
+                            containerType: 'inline-size',
+                            transform: graphicInput.isUpload && graphicInput.scale ? `scale(${graphicInput.scale})` : 'none',
+                            transformOrigin: 'center center'
+                        }}
                     >
                         <img
                             src={graphicInput.src}
                             alt={graphicInput.name}
                             className="w-full h-full object-contain"
                             style={{
-                                filter: selectedColor === 'white'
-                                    ? 'brightness(0) saturate(100%) invert(15%) sepia(5%) saturate(0%) hue-rotate(0deg)'
-                                    : 'brightness(0) saturate(100%) invert(95%) sepia(0%) saturate(0%) hue-rotate(0deg)',
-                                opacity: selectedColor === 'white' ? 0.85 : 0.73,
-                                mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
-                                maxHeight: isMobile ? '38%' : '80%',
-                                maxWidth: isMobile ? '38%' : '80%'
+                                filter: graphicInput.isUpload
+                                    ? 'grayscale(100%) contrast(1.2) brightness(1.2)'
+                                    : selectedColor === 'white'
+                                        ? 'brightness(0) saturate(100%) invert(15%) sepia(5%) saturate(0%) hue-rotate(0deg)'
+                                        : 'brightness(0) saturate(100%) invert(95%) sepia(0%) saturate(0%) hue-rotate(0deg)',
+                                opacity: graphicInput.isUpload
+                                    ? 0.9
+                                    : selectedColor === 'white' ? 0.85 : 0.73,
+                                mixBlendMode: graphicInput.isUpload
+                                    ? 'normal'
+                                    : selectedColor === 'white' ? 'multiply' : 'overlay',
+                                maxHeight: isMobile ? '60%' : '80%',
+                                maxWidth: isMobile ? '60%' : '80%'
                             }}
                         />
+                        {/* Uploaded Image Gradient Overlay */}
+                        {graphicInput.isUpload && (
+                            <div
+                                className="absolute w-full h-full pointer-events-none"
+                                style={{
+                                    left: '50%',
+                                    top: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    maxHeight: isMobile ? '60%' : '80%',
+                                    maxWidth: isMobile ? '60%' : '80%',
+                                    maskImage: `url(${graphicInput.src})`,
+                                    WebkitMaskImage: `url(${graphicInput.src})`,
+                                    maskSize: 'contain',
+                                    WebkitMaskSize: 'contain',
+                                    maskPosition: 'center',
+                                    WebkitMaskPosition: 'center',
+                                    maskRepeat: 'no-repeat',
+                                    WebkitMaskRepeat: 'no-repeat',
+                                    background: 'linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.3) 100%)',
+                                    mixBlendMode: 'overlay',
+                                    zIndex: 21
+                                }}
+                            />
+                        )}
                     </div>
                 )}
 

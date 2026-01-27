@@ -16,7 +16,7 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
     };
 
     const handleIconClick = (icon) => {
-        setGraphic(icon); // Pass the entire icon object
+        setGraphic({ ...icon, scale: 1 }); // Default scale 1
         // Scroll to header on mobile
         const target = document.getElementById('mobile-color-trigger');
         if (target && window.innerWidth < 768) {
@@ -35,6 +35,26 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
 
     return (
         <div className="flex flex-col h-full w-full">
+            {/* Mini Nav for Tools - Hidden on mobile */}
+            <div className="hidden md:flex items-center justify-center space-x-4 mb-4">
+                <button onClick={() => setView('upload')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
+                    <img src="UI/icons/upload.svg" className="w-10 h-10" alt="Upload" />
+                </button>
+                <button onClick={() => setView('text')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
+                    <img src="UI/icons/text.png" className="w-10 h-10 object-contain" alt="Text" />
+                </button>
+                <button onClick={() => setView('monogram')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
+                    <img src="UI/icons/monogram.svg" className="w-10 h-10" alt="Monogram" />
+                </button>
+                <button className="p-4 bg-white rounded-xl shadow-sm border-2 border-black">
+                    <img src="UI/icons/gallery.svg" className="w-10 h-10" alt="Gallery" />
+                </button>
+            </div>
+
+            <div className="hidden md:block text-center mb-8">
+                <span className="text-xs font-bold tracking-wider text-gray-900 uppercase block mb-1">GALLERY</span>
+            </div>
+
             {/* Header / Navigation */}
             <button
                 onClick={handleBackClick}
@@ -45,6 +65,25 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
                 </svg>
                 {view === 'categories' ? 'BACK' : 'BACK TO CATEGORIES'}
             </button>
+
+            {/* Selected Graphic Controls */}
+            {selectedGraphic && !selectedGraphic.isUpload && (
+                <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">SELECTED: {selectedGraphic.name}</span>
+                        <span className="text-xs font-bold text-gray-500">{Math.round((selectedGraphic.scale || 1) * 100)}%</span>
+                    </div>
+                    <input
+                        type="range"
+                        min="0.2"
+                        max="1.0"
+                        step="0.05"
+                        value={selectedGraphic.scale || 1}
+                        onChange={(e) => setGraphic({ ...selectedGraphic, scale: parseFloat(e.target.value) })}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#002C5F]"
+                    />
+                </div>
+            )}
 
             {/* Content Area */}
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">

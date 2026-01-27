@@ -6,6 +6,7 @@ import GalleryView from './GalleryView';
 import ColorSelector from './ColorSelector';
 import BottomBar from './BottomBar';
 import ReviewScreen from './ReviewScreen';
+import UploadView from './UploadView';
 import { monogramStyles, getMonogramFontSize, shouldDisplayMonogram, convertToCircleGlyphs, getCircleFontFamily, usesCircleGlyphs, convertToNGramGlyphs, getNGramFontFamily, usesNGramGlyphs } from '../data/monogramConfig';
 
 const Customizer = () => {
@@ -243,22 +244,56 @@ const Customizer = () => {
                             {graphicInput && (
                                 <div
                                     className={`absolute ${currentConfig.graphic} flex items-center justify-center z-20 pointer-events-none overflow-hidden`}
-                                    style={{ containerType: 'inline-size' }}
+                                    style={{
+                                        containerType: 'inline-size',
+                                        transform: graphicInput.scale ? `scale(${graphicInput.scale})` : 'none',
+                                        transformOrigin: 'center center'
+                                    }}
                                 >
                                     <img
                                         src={graphicInput.src}
                                         alt={graphicInput.name}
                                         className="w-full h-full object-contain"
                                         style={{
-                                            filter: selectedColor === 'white'
-                                                ? 'brightness(0) saturate(100%) invert(15%) sepia(5%) saturate(0%) hue-rotate(0deg)'
-                                                : 'brightness(0) saturate(100%) invert(95%) sepia(0%) saturate(0%) hue-rotate(0deg)',
-                                            opacity: selectedColor === 'white' ? 0.85 : 0.73,
-                                            mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
-                                            maxHeight: isMobile ? '32%' : '70%',
-                                            maxWidth: isMobile ? '32%' : '70%'
+                                            filter: graphicInput.isUpload
+                                                ? 'grayscale(100%) contrast(1.2) brightness(1.2)'
+                                                : selectedColor === 'white'
+                                                    ? 'brightness(0) saturate(100%) invert(15%) sepia(5%) saturate(0%) hue-rotate(0deg)'
+                                                    : 'brightness(0) saturate(100%) invert(95%) sepia(0%) saturate(0%) hue-rotate(0deg)',
+                                            opacity: graphicInput.isUpload
+                                                ? 0.9
+                                                : selectedColor === 'white' ? 0.85 : 0.73,
+                                            mixBlendMode: graphicInput.isUpload
+                                                ? 'normal'
+                                                : selectedColor === 'white' ? 'multiply' : 'overlay',
+                                            maxHeight: isMobile ? '45%' : '75%',
+                                            maxWidth: isMobile ? '45%' : '75%'
                                         }}
                                     />
+                                    {/* Uploaded Image Gradient Overlay */}
+                                    {graphicInput.isUpload && (
+                                        <div
+                                            className="absolute w-full h-full pointer-events-none"
+                                            style={{
+                                                left: '50%',
+                                                top: '50%',
+                                                transform: 'translate(-50%, -50%)',
+                                                maxHeight: isMobile ? '45%' : '75%',
+                                                maxWidth: isMobile ? '45%' : '75%',
+                                                maskImage: `url(${graphicInput.src})`,
+                                                WebkitMaskImage: `url(${graphicInput.src})`,
+                                                maskSize: 'contain',
+                                                WebkitMaskSize: 'contain',
+                                                maskPosition: 'center',
+                                                WebkitMaskPosition: 'center',
+                                                maskRepeat: 'no-repeat',
+                                                WebkitMaskRepeat: 'no-repeat',
+                                                background: 'linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.3) 100%)',
+                                                mixBlendMode: 'overlay',
+                                                zIndex: 21
+                                            }}
+                                        />
+                                    )}
                                 </div>
                             )}
 
@@ -384,7 +419,7 @@ const Customizer = () => {
                 </div>
 
                 {/* Right Panel - Customization Options */}
-                <div className="w-full md:w-1/2 bg-white md:bg-[#f3f4f6] p-4 md:p-12 flex flex-col items-center justify-start flex-1 mb-16 md:mb-0">
+                <div className="w-full md:w-1/2 bg-white md:bg-[#f3f4f6] p-4 md:p-12 flex flex-col items-center justify-start flex-1 mb-16 md:mb-0 md:overflow-y-auto md:pb-32">
                     {view === 'main' && <MainView setView={setView} />}
 
                     {view === 'text' && (
@@ -415,6 +450,14 @@ const Customizer = () => {
                             setView={setView}
                             setGraphic={setGraphic}
                             selectedGraphic={graphicInput}
+                        />
+                    )}
+
+                    {view === 'upload' && (
+                        <UploadView
+                            setView={setView}
+                            setGraphic={setGraphic}
+                            graphicInput={graphicInput}
                         />
                     )}
                 </div>
