@@ -6,13 +6,13 @@ export const galleryCategories = [
 
 export const galleryIcons = {
     nature: [
-        { id: 'forest', name: 'Forest', src: '/gallery/nature/forest-svgrepo-com.svg' },
-        { id: 'grass', name: 'Grass Patch', src: '/gallery/nature/grass-patch-svgrepo-com.svg' },
-        { id: 'moon', name: 'Misty Moon', src: '/gallery/nature/misty-moon-svgrepo-com.svg' },
-        { id: 'mountains', name: 'Mountains', src: '/gallery/nature/mountains-svgrepo-com.svg' },
-        { id: 'woods-badge', name: 'Woods Badge', src: '/gallery/nature/nature-badge-woods-svgrepo-com.svg' },
-        { id: 'rainbow', name: 'Rainbow', src: '/gallery/nature/nature-rainbow-svgrepo-com.svg' },
-        { id: 'nature', name: 'Nature', src: '/gallery/nature/nature-svgrepo-com.svg' }
+        { id: 'forest', name: 'Forest', src: 'gallery/nature/forest-svgrepo-com.svg' },
+        { id: 'grass', name: 'Grass Patch', src: 'gallery/nature/grass-patch-svgrepo-com.svg' },
+        { id: 'moon', name: 'Misty Moon', src: 'gallery/nature/misty-moon-svgrepo-com.svg' },
+        { id: 'mountains', name: 'Mountains', src: 'gallery/nature/mountains-svgrepo-com.svg' },
+        { id: 'woods-badge', name: 'Woods Badge', src: 'gallery/nature/nature-badge-woods-svgrepo-com.svg' },
+        { id: 'rainbow', name: 'Rainbow', src: 'gallery/nature/nature-rainbow-svgrepo-com.svg' },
+        { id: 'nature', name: 'Nature', src: 'gallery/nature/nature-svgrepo-com.svg' }
     ],
     animals: [
         { id: 'pawprint', name: 'Pawprint', src: 'gallery/animals/canine-pawprint-svgrepo-com.svg' },
