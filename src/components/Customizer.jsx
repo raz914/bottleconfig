@@ -38,6 +38,14 @@ const Customizer = () => {
 
     const [showReview, setShowReview] = useState(false);
 
+    const requestParentClose = () => {
+        if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'BOTTLE_CUSTOMIZER_CLOSE' }, '*');
+            return true;
+        }
+        return false;
+    };
+
     // Derived values for the current view
     const textInput = customization[activeTab].text;
     const monogramInput = customization[activeTab].monogram;
@@ -164,7 +172,7 @@ const Customizer = () => {
                     </nav>
 
                     {/* Close Button */}
-                    <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <button onClick={requestParentClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#002C5F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -476,6 +484,7 @@ const Customizer = () => {
             {showReview && (
                 <ReviewScreen
                     onClose={() => setShowReview(false)}
+                    onRequestClose={requestParentClose}
                     customization={customization}
                     selectedColor={selectedColor}
                     selectedFont={selectedFont}

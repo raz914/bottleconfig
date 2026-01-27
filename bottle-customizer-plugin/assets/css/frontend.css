@@ -73,6 +73,10 @@ body.bottle-customizer-open .storefront-sticky-header {
     transform: none !important;
 }
 
+body.bottle-customizer-open header#masthead {
+    display: none !important;
+}
+
 body.bottle-customizer-open {
     overflow: hidden;
 }
@@ -85,33 +89,6 @@ body.bottle-customizer-open {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-/* Close Button */
-.bottle-customizer-close {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    color: #ffffff;
-    font-size: 28px;
-    line-height: 1;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 1000001;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.bottle-customizer-close:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: #ffffff;
-    transform: rotate(90deg);
 }
 
 /* Iframe */
@@ -198,14 +175,6 @@ body.bottle-customizer-open {
     .bottle-customizer-btn {
         padding: 12px 20px;
         font-size: 14px;
-    }
-
-    .bottle-customizer-close {
-        top: 10px;
-        right: 10px;
-        width: 40px;
-        height: 40px;
-        font-size: 24px;
     }
 
     .bottle-preview-thumb {

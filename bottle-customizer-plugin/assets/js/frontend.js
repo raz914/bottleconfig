@@ -74,6 +74,9 @@
 
         var modal = $('#bottle-customizer-modal');
         var iframe = $('#bottle-customizer-iframe');
+        if (modal && modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
         var closeBtn = modal ? $('.bottle-customizer-close', modal) : null;
         var config = getConfig(button);
 
@@ -131,7 +134,13 @@
 
         window.addEventListener('message', function (event) {
             var payload = event.data;
-            if (!payload || payload.type !== 'BOTTLE_CUSTOMIZER_ADD_TO_CART') return;
+            if (!payload || !payload.type) return;
+
+            if (payload.type === 'BOTTLE_CUSTOMIZER_CLOSE') {
+                closeModal();
+                return;
+            }
+            if (payload.type !== 'BOTTLE_CUSTOMIZER_ADD_TO_CART') return;
 
             if (!config.ajaxUrl || !config.nonce || !config.productId) {
                 showNotification('Cart config missing. Please contact support.', 'error');

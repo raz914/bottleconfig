@@ -4,7 +4,7 @@
  * Plugin URI: https://example.com
  * Description: Adds a "Personalize" button to bottle products that opens a fullscreen customizer and adds customized products to WooCommerce cart.
  * Version: 1.0.0
- * Author: Your Name
+ * Author: razi ul hassan
  * Author URI: https://example.com
  * License: GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
@@ -353,15 +353,45 @@ function bottle_customizer_add_personalize_button() {
         <span class="btn-text">PERSONALIZE</span>
     </button>';
     
-    // Add the modal container
-    echo '<div id="bottle-customizer-modal" class="bottle-customizer-modal">
-        <div class="bottle-customizer-modal-content">
-            <button type="button" class="bottle-customizer-close" aria-label="Close">&times;</button>
+}
+add_action('woocommerce_after_add_to_cart_button', 'bottle_customizer_add_personalize_button');
+
+/**
+ * Render the modal at body level to avoid stacking context issues with sticky headers.
+ */
+function bottle_customizer_render_modal() {
+    static $rendered = false;
+    if ($rendered) {
+        return;
+    }
+    $rendered = true;
+
+    if (!bottle_customizer_is_woocommerce_active()) {
+        return;
+    }
+    if (!bottle_customizer_is_enabled()) {
+        return;
+    }
+    if (!function_exists('is_product') || !is_product()) {
+        return;
+    }
+    if (!function_exists('wc_get_product')) {
+        return;
+    }
+
+    $product_id = function_exists('get_queried_object_id') ? absint(get_queried_object_id()) : 0;
+    $product = $product_id ? wc_get_product($product_id) : null;
+    if (!$product || !bottle_customizer_is_target_product($product)) {
+        return;
+    }
+
+    echo '<div id="bottle-customizer-modal" class="bottle-customizer-modal" aria-hidden="true">
+        <div class="bottle-customizer-modal-content" role="dialog" aria-modal="true">
             <iframe id="bottle-customizer-iframe" class="bottle-customizer-iframe" src="" frameborder="0"></iframe>
         </div>
     </div>';
 }
-add_action('woocommerce_after_add_to_cart_button', 'bottle_customizer_add_personalize_button');
+add_action('wp_footer', 'bottle_customizer_render_modal', 5);
 
 /**
  * Handle AJAX request to add customized product to cart
