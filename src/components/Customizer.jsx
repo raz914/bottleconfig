@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { toPng } from 'html-to-image';
 import MainView from './MainView';
 import TextView from './TextView';
 import MonogramView from './MonogramView';
@@ -7,10 +8,15 @@ import ColorSelector from './ColorSelector';
 import BottomBar from './BottomBar';
 import ReviewScreen from './ReviewScreen';
 import UploadView from './UploadView';
+import BottlePreview from './BottlePreview';
 import { monogramStyles, getMonogramFontSize, shouldDisplayMonogram, convertToCircleGlyphs, getCircleFontFamily, usesCircleGlyphs, convertToNGramGlyphs, getNGramFontFamily, usesNGramGlyphs } from '../data/monogramConfig';
 
 const Customizer = () => {
     const [activeTab, setActiveTab] = useState('FRONT');
+    const bottlePreviewRef = useRef(null);
+    const frontCaptureRef = useRef(null);
+    const backCaptureRef = useRef(null);
+
     const [selectedColor, setSelectedColor] = useState('black');
     const [view, setView] = useState('main'); // 'main' | 'text' | 'monogram'
     const [isMobile, setIsMobile] = useState(false);
@@ -20,7 +26,30 @@ const Customizer = () => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
         handleResize(); // Initial check
         window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+
+        // Expose snapshot function
+        window.takeSnapshot = async () => {
+            if (bottlePreviewRef.current) {
+                try {
+                    const dataUrl = await toPng(bottlePreviewRef.current, { cacheBust: true });
+
+                    const link = document.createElement('a');
+                    link.download = `bottle-snapshot-${Date.now()}.png`;
+                    link.href = dataUrl;
+                    link.click();
+                    console.log('Snapshot taken with html-to-image!');
+                } catch (err) {
+                    console.error('Snapshot failed:', err);
+                }
+            } else {
+                console.warn('Bottle preview ref not found');
+            }
+        };
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            delete window.takeSnapshot;
+        };
     }, []);
 
     // Show loader when color or tab changes
@@ -37,6 +66,7 @@ const Customizer = () => {
     const [selectedMonogram, setSelectedMonogram] = useState('Circle');
 
     const [showReview, setShowReview] = useState(false);
+    const [capturedImages, setCapturedImages] = useState({ front: null, back: null });
 
     const requestParentClose = () => {
         if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
@@ -95,6 +125,77 @@ const Customizer = () => {
         }));
     };
 
+    // Helper to wait for image to load inside a ref
+    const waitForImagesToLoad = (ref) => {
+        return new Promise((resolve) => {
+            if (!ref.current) {
+                resolve();
+                return;
+            }
+            const images = ref.current.querySelectorAll('img');
+            if (images.length === 0) {
+                resolve();
+                return;
+            }
+            let loadedCount = 0;
+            const checkAllLoaded = () => {
+                loadedCount++;
+                if (loadedCount >= images.length) {
+                    resolve();
+                }
+            };
+            images.forEach((img) => {
+                if (img.complete) {
+                    checkAllLoaded();
+                } else {
+                    img.addEventListener('load', checkAllLoaded);
+                    img.addEventListener('error', checkAllLoaded); // Resolve even on error
+                }
+            });
+            // Timeout fallback in case images take too long
+            setTimeout(resolve, 2000);
+        });
+    };
+
+    const handleReview = async () => {
+        try {
+            setIsImageLoading(true); // Show loader
+
+            // Wait a frame for React to render the hidden components
+            await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+            // Wait for images to load in hidden capture areas
+            await Promise.all([
+                waitForImagesToLoad(frontCaptureRef),
+                waitForImagesToLoad(backCaptureRef)
+            ]);
+
+            // Small additional delay to ensure paint
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Capture Front
+            let frontImg = null;
+            if (frontCaptureRef.current) {
+                frontImg = await toPng(frontCaptureRef.current, { cacheBust: true, skipAutoScale: true });
+            }
+
+            // Capture Back
+            let backImg = null;
+            if (backCaptureRef.current) {
+                backImg = await toPng(backCaptureRef.current, { cacheBust: true, skipAutoScale: true });
+            }
+
+            setCapturedImages({ front: frontImg, back: backImg });
+            setIsImageLoading(false);
+            setShowReview(true);
+
+        } catch (error) {
+            console.error("Failed to capture review images", error);
+            setIsImageLoading(false);
+            setShowReview(true);
+        }
+    };
+
     const hasContent = textInput || monogramInput || graphicInput;
 
     const colors = [
@@ -124,25 +225,6 @@ const Customizer = () => {
         { name: 'Script MT Bold', css: 'font-cursive font-bold', style: { fontFamily: 'Dancing Script, "Noto Emoji", cursive', fontWeight: 'bold' } },
         { name: 'Times New Roman', css: 'font-serif', style: { fontFamily: 'Times New Roman, "Noto Emoji", serif' } },
     ];
-
-    const SIDE_CONFIG = {
-        FRONT: {
-            text: "top-[27.3%] md:top-[32.4%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[62%] md:bottom-[62%]",
-            monogram: "top-[25.2%] md:top-[32.4%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[60%] md:bottom-[61%]",
-            graphic: "top-[27%] md:top-[33%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[61%] md:bottom-[62%]",
-            boundary: "top-[29%] md:top-[32.5%] left-[35%] md:left-[35%] right-[34%] md:right-[34%] bottom-[63%] md:bottom-[61%]",
-            zoom: "scale-[1.5] translate-y-[3%] md:scale-[2] md:translate-y-[5%]"
-        },
-        BACK: {
-            text: "top-[38%] md:top-[39%] left-[38%] md:left-[36%] right-[38%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
-            monogram: "top-[37%] md:top-[33%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
-            graphic: "top-[33%] md:top-[33%] left-[20%] md:left-[36%] right-[20%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
-            boundary: "top-[39.5%] md:top-[40.5%] left-[36%] md:left-[35.5%] right-[36%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
-            zoom: "scale-[1.5] translate-y-[2%] md:scale-[2] md:translate-y-[5%]"
-        }
-    };
-
-    const currentConfig = SIDE_CONFIG[activeTab];
 
     return (
         <div className="flex flex-col h-screen bg-gray-100 font-sans text-slate-900 overflow-y-auto">
@@ -184,202 +266,21 @@ const Customizer = () => {
             <main className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden relative">
                 {/* Left Panel - Bottle Preview */}
                 <div id="bottle-canvas" className="w-full md:w-1/2 flex items-center justify-center bg-[#f3f4f6] relative py-6 md:py-0 overflow-hidden min-h-[300px] md:min-h-0">
-                    <div className="flex flex-col items-center">
-                        {/* Bottle Image Container - scales entire container when zoomed */}
-                        <div
-                            className={`relative mb-4 md:mb-12 transition-transform duration-300 ease-in-out
-                                w-[200px] h-[280px] md:w-[300px] md:h-[500px]
-                                ${view !== 'main' ? currentConfig.zoom : ''}
-                            `}
+                    <div ref={bottlePreviewRef} className="flex flex-col items-center">
 
-                        // ${view !== 'main' ? currentConfig.zoom : ''}
-                        >
-                            <img
-                                src={`bottle/${activeTab === 'FRONT' ? 'front' : 'back'}/${selectedColor}${activeTab === 'BACK' ? 'back' : ''}.webp`}
-                                alt="Yeti Bottle"
-                                loading="lazy"
-                                className={`w-full h-full object-contain mix-blend-multiply drop-shadow-2xl transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
-                                onLoad={() => setIsImageLoading(false)}
-                                onError={(e) => {
-                                    console.warn("Image load error", e.target.src);
-                                    setIsImageLoading(false);
-                                }}
-                            />
-
-                            {/* Loading Spinner */}
-                            {isImageLoading && (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="w-10 h-10 border-4 border-gray-300 border-t-[#002C5F] rounded-full animate-spin"></div>
-                                </div>
-                            )}
-
-                            {/* Text Overlay - positioned within customization area */}
-                            {textInput && (
-                                <div
-                                    className={`absolute ${currentConfig.text} flex items-center justify-center z-20 pointer-events-none overflow-hidden`}
-                                    style={{ containerType: 'inline-size' }}
-                                >
-                                    <span
-                                        className="text-center block overflow-hidden"
-                                        style={{
-                                            ...fonts.find(f => f.name === selectedFont)?.style,
-                                            color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(216, 216, 216, 0.73)',
-                                            fontSize: activeTab === 'FRONT'
-                                                ? `max(4px, min(${100 / Math.max(1, textInput.length)}cqi, 18cqi))`
-                                                : `max(8px, min(${100 / Math.max(1, textInput.length)}cqi, 34cqi))`,
-                                            letterSpacing: '0.5px',
-                                            mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
-                                            wordBreak: 'break-word',
-                                            whiteSpace: 'pre-wrap',
-                                            lineHeight: 1.2,
-                                            fontVariantEmoji: 'text',
-                                            verticalAlign: 'middle',
-                                            textRendering: 'geometricPrecision',
-                                            filter: 'grayscale(1)',
-                                            ...(activeTab === 'FRONT' && {
-                                                display: '-webkit-box',
-                                                WebkitLineClamp: 4,
-                                                WebkitBoxOrient: 'vertical',
-                                            }),
-                                        }}
-                                    >
-                                        {textInput}
-                                    </span>
-                                </div>
-                            )}
-
-                            {/* Graphic Overlay */}
-                            {graphicInput && (
-                                <div
-                                    className={`absolute ${currentConfig.graphic} flex items-center justify-center z-20 pointer-events-none overflow-hidden`}
-                                    style={{
-                                        containerType: 'inline-size',
-                                        transform: graphicInput.scale ? `scale(${graphicInput.scale})` : 'none',
-                                        transformOrigin: 'center center'
-                                    }}
-                                >
-                                    <img
-                                        src={graphicInput.src}
-                                        alt={graphicInput.name}
-                                        className="w-full h-full object-contain"
-                                        style={{
-                                            filter: graphicInput.isUpload
-                                                ? 'grayscale(100%) contrast(1.2) brightness(1.2)'
-                                                : selectedColor === 'white'
-                                                    ? 'brightness(0) saturate(100%) invert(15%) sepia(5%) saturate(0%) hue-rotate(0deg)'
-                                                    : 'brightness(0) saturate(100%) invert(95%) sepia(0%) saturate(0%) hue-rotate(0deg)',
-                                            opacity: graphicInput.isUpload
-                                                ? 0.9
-                                                : selectedColor === 'white' ? 0.85 : 0.73,
-                                            mixBlendMode: graphicInput.isUpload
-                                                ? 'normal'
-                                                : selectedColor === 'white' ? 'multiply' : 'overlay',
-                                            maxHeight: isMobile ? '45%' : '75%',
-                                            maxWidth: isMobile ? '45%' : '75%'
-                                        }}
-                                    />
-                                    {/* Uploaded Image Gradient Overlay */}
-                                    {graphicInput.isUpload && (
-                                        <div
-                                            className="absolute w-full h-full pointer-events-none"
-                                            style={{
-                                                left: '50%',
-                                                top: '50%',
-                                                transform: 'translate(-50%, -50%)',
-                                                maxHeight: isMobile ? '45%' : '75%',
-                                                maxWidth: isMobile ? '45%' : '75%',
-                                                maskImage: `url(${graphicInput.src})`,
-                                                WebkitMaskImage: `url(${graphicInput.src})`,
-                                                maskSize: 'contain',
-                                                WebkitMaskSize: 'contain',
-                                                maskPosition: 'center',
-                                                WebkitMaskPosition: 'center',
-                                                maskRepeat: 'no-repeat',
-                                                WebkitMaskRepeat: 'no-repeat',
-                                                background: 'linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.3) 100%)',
-                                                mixBlendMode: 'overlay',
-                                                zIndex: 21
-                                            }}
-                                        />
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Monogram Overlay */}
-                            {monogramInput && shouldDisplayMonogram(selectedMonogram, monogramInput.length) && (
-                                <div
-                                    className={`absolute ${currentConfig.monogram} flex items-center justify-center z-20 pointer-events-none overflow-hidden`}
-                                    style={{ containerType: 'inline-size' }}
-                                >
-                                    {usesCircleGlyphs(selectedMonogram) ? (
-                                        // Circle glyph fonts (2-char or 3-char based on input)
-                                        <span
-                                            className="text-center whitespace-nowrap block"
-                                            style={{
-                                                fontFamily: getCircleFontFamily(monogramInput.length),
-                                                color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(255, 255, 255, 0.73)',
-                                                fontSize: getMonogramFontSize(selectedMonogram, activeTab, monogramInput.length, isMobile),
-                                                lineHeight: 1,
-                                                mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
-                                            }}
-                                        >
-                                            {convertToCircleGlyphs(monogramInput, selectedMonogram)}
-                                        </span>
-                                    ) : usesNGramGlyphs(selectedMonogram) ? (
-                                        // N-Gram glyph fonts (2-char or 3-char based on input)
-                                        <span
-                                            className="text-center whitespace-nowrap block"
-                                            style={{
-                                                ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
-                                                fontFamily: getNGramFontFamily(monogramInput.length),
-                                                color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(255, 255, 255, 0.73)',
-                                                fontSize: getMonogramFontSize(selectedMonogram, activeTab, monogramInput.length, isMobile),
-                                                lineHeight: 1,
-                                                mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
-                                            }}
-                                        >
-                                            {convertToNGramGlyphs(monogramInput)}
-                                        </span>
-                                    ) : monogramStyles.find(m => m.name === selectedMonogram)?.middleLarger && monogramInput.length === 3 ? (
-                                        // Roman style with larger middle letter
-                                        <span
-                                            className="text-center whitespace-nowrap block"
-                                            style={{
-                                                ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
-                                                color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(255, 255, 255, 0.73)',
-                                                fontSize: getMonogramFontSize(selectedMonogram, activeTab, monogramInput.length, isMobile),
-                                                lineHeight: 1,
-                                                mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
-                                            }}
-                                        >
-                                            <span style={{ fontSize: '0.75em' }}>{monogramInput[0]}</span>
-                                            <span style={{ fontSize: '1em' }}>{monogramInput[1]}</span>
-                                            <span style={{ fontSize: '0.75em' }}>{monogramInput[2]}</span>
-                                        </span>
-                                    ) : (
-                                        <span
-                                            className="text-center whitespace-nowrap block"
-                                            style={{
-                                                ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
-                                                color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(255, 255, 255, 0.73)',
-                                                fontSize: getMonogramFontSize(selectedMonogram, activeTab, monogramInput.length, isMobile),
-                                                lineHeight: 1,
-                                                mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
-                                            }}
-                                        >
-                                            {monogramStyles.find(m => m.name === selectedMonogram)?.maxLength === 1
-                                                ? monogramInput.charAt(0)
-                                                : monogramInput
-                                            }
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Dashed Box Overlay for Customization Area - FIXED position */}
-                            <div className={`absolute ${currentConfig.boundary} border border-dashed border-gray-400/60 rounded-sm pointer-events-none transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}></div>
-                        </div>
-
+                        {/* Using Clean Component for Preview */}
+                        <BottlePreview
+                            side={activeTab}
+                            customization={customization}
+                            selectedColor={selectedColor}
+                            selectedFont={selectedFont}
+                            selectedMonogram={selectedMonogram}
+                            fonts={fonts}
+                            isMobile={isMobile}
+                            isImageLoading={isImageLoading}
+                            setIsImageLoading={setIsImageLoading}
+                            view={view}
+                        />
 
                         {/* Product Info - Hidden when editing */}
                         <div className={`text-center space-y-2 md:space-y-4 hidden md:block transition-opacity duration-300 ${view !== 'main' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
@@ -474,11 +375,41 @@ const Customizer = () => {
                 {view !== 'main' && (
                     <BottomBar
                         onRemove={handleRemove}
-                        onReview={() => setShowReview(true)}
+                        onReview={handleReview}
                         isDisabled={!hasContent}
                     />
                 )}
             </main>
+
+            {/* HIDDEN CAPTURE AREA */}
+            {/* Render both sides off-screen with fixed 'Desktop' dimensions for high-quality capture */}
+            {/* Using opacity:0 instead of visibility:hidden so html-to-image can still capture rendered content */}
+            <div style={{ position: 'fixed', top: 0, left: 0, opacity: 0, pointerEvents: 'none', zIndex: -1 }}>
+                <div ref={frontCaptureRef}>
+                    <BottlePreview
+                        side="FRONT"
+                        customization={customization}
+                        selectedColor={selectedColor}
+                        selectedFont={selectedFont}
+                        selectedMonogram={selectedMonogram}
+                        fonts={fonts}
+                        isMobile={false} // Force Desktop Mode
+                        view="capture" // Special view mode to force sizes
+                    />
+                </div>
+                <div ref={backCaptureRef}>
+                    <BottlePreview
+                        side="BACK"
+                        customization={customization}
+                        selectedColor={selectedColor}
+                        selectedFont={selectedFont}
+                        selectedMonogram={selectedMonogram}
+                        fonts={fonts}
+                        isMobile={false} // Force Desktop Mode
+                        view="capture"
+                    />
+                </div>
+            </div>
 
             {/* Review Screen Modal */}
             {showReview && (
@@ -501,6 +432,8 @@ const Customizer = () => {
                     shouldDisplayMonogram={shouldDisplayMonogram}
                     setActiveTab={setActiveTab}
                     setView={setView}
+                    frontImage={capturedImages.front}
+                    backImage={capturedImages.back}
                 />
             )}
         </div>

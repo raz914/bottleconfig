@@ -1,11 +1,11 @@
 <?php
 /**
- * Plugin Name: Bottle Customizer for WooCommerce
+ * Plugin Name: Befit Bottle Customizer
  * Plugin URI: https://example.com
  * Description: Adds a "Personalize" button to bottle products that opens a fullscreen customizer and adds customized products to WooCommerce cart.
- * Version: 1.0.0
+ * Version: 1.0.2
  * Author: razi ul hassan
- * Author URI: https://example.com
+ * Author URI: https://portfolio-razi.netlify.app/
  * License: GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain: bottle-customizer
