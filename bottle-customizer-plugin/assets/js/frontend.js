@@ -85,23 +85,46 @@
             return;
         }
 
+        var savedScrollTop = 0;
+
         function openModal() {
             if (!config.configuratorUrl) {
                 showNotification('Customizer URL missing. Please contact support.', 'error');
                 return;
             }
 
+            // Save current scroll position
+            savedScrollTop = window.scrollY || document.documentElement.scrollTop;
+
             document.body.classList.add('bottle-customizer-open');
+
+            // Standard overflow hidden
             document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+
+            // Mobile scroll lock: fix body position
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.top = '-' + savedScrollTop + 'px';
+
             modal.classList.add('active', 'loading');
             iframe.src = config.configuratorUrl;
         }
 
         function closeModal() {
+            // Restore styles
             document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.top = '';
+
             document.body.classList.remove('bottle-customizer-open');
             modal.classList.remove('active', 'loading');
             iframe.src = '';
+
+            // Restore scroll position
+            window.scrollTo(0, savedScrollTop);
         }
 
         button.addEventListener('click', function (e) {
@@ -132,6 +155,17 @@
             modal.classList.remove('loading');
         });
 
+        // Helper to send status back to iframe
+        function postStatusToIframe(status, message) {
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({
+                    type: 'BOTTLE_CUSTOMIZER_ADD_TO_CART_STATUS',
+                    status: status,
+                    message: message || ''
+                }, '*');
+            }
+        }
+
         window.addEventListener('message', function (event) {
             var payload = event.data;
             if (!payload || !payload.type) return;
@@ -143,11 +177,14 @@
             if (payload.type !== 'BOTTLE_CUSTOMIZER_ADD_TO_CART') return;
 
             if (!config.ajaxUrl || !config.nonce || !config.productId) {
+                postStatusToIframe('error', 'Cart config missing. Please contact support.');
                 showNotification('Cart config missing. Please contact support.', 'error');
                 return;
             }
 
+            // Show loading state on modal and notify iframe
             modal.classList.add('loading');
+            postStatusToIframe('loading');
 
             var fd = new FormData();
             fd.append('action', 'bottle_customizer_add_to_cart');
@@ -164,19 +201,26 @@
                 .then(function (response) {
                     console.log('[BottleCustomizer] add_to_cart response', response);
                     if (response && response.success) {
-                        closeModal();
-                        showNotification('Product added to cart!', 'success');
+                        postStatusToIframe('success');
+                        // Success notification disabled (requested).
                         if (response.data && response.data.cart_count != null) {
                             updateCartCount(response.data.cart_count);
                         }
+                        // Close modal after a brief delay so the success state feels smooth
+                        setTimeout(function () {
+                            closeModal();
+                        }, 300);
                     } else {
                         var msg = (response && response.data && response.data.message) ? response.data.message : 'Error adding to cart';
+                        postStatusToIframe('error', msg);
                         showNotification(msg, 'error');
                         modal.classList.remove('loading');
                     }
                 })
                 .catch(function () {
-                    showNotification('Error adding to cart. Please try again.', 'error');
+                    var msg = 'Error adding to cart. Please try again.';
+                    postStatusToIframe('error', msg);
+                    showNotification(msg, 'error');
                     modal.classList.remove('loading');
                 });
         });

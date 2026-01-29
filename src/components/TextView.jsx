@@ -1,8 +1,8 @@
 import React from 'react';
 
-const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSelectedFont, activeTab }) => {
+const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSelectedFont, activeTab, isVertical, setIsVertical }) => {
     return (
-        <div className="w-full max-w-2xl">
+        <div className="flex flex-col h-full w-full max-w-2xl">
             {/* Mini Nav for Tools - Hidden on mobile */}
             <div className="hidden md:flex items-center justify-center space-x-4 mb-8">
                 <button onClick={() => setView('upload')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
@@ -35,7 +35,7 @@ const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSe
             </button>
 
             {/* Text Input */}
-            <div className="bg-white rounded-lg shadow-sm p-2 mb-6 border border-gray-200 flex items-start">
+            <div className="bg-white rounded-lg shadow-sm p-2 mb-6 border border-gray-200 flex items-center flex-shrink-0">
                 <textarea
                     value={textInput}
                     onChange={(e) => {
@@ -48,8 +48,8 @@ const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSe
                     }}
                     placeholder="TYPE TEXT HERE"
                     maxLength={activeTab === 'FRONT' ? 150 : 800}
-                    rows={3}
-                    className="flex-1 w-full px-2 md:px-4 py-2 text-center text-sm md:text-base text-gray-700 placeholder-gray-300 focus:outline-none resize-none"
+                    rows={1}
+                    className="flex-1 w-full px-2 md:px-4 py-2 text-center text-sm md:text-base text-gray-700 placeholder-gray-300 focus:outline-none resize-none min-h-[44px] md:min-h-[48px]"
                     onFocus={() => {
                         setTimeout(() => {
                             const target = document.getElementById('mobile-color-trigger');
@@ -69,25 +69,62 @@ const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSe
                 </div>
             </div>
 
+            {/* Vertical Orientation Toggle - Only for Back Side */}
+            {activeTab === 'BACK' && (
+                <div className="mb-6 flex items-center justify-center flex-shrink-0">
+                    <label className="flex items-center cursor-pointer space-x-3">
+                        <span className="text-sm font-bold text-gray-700 uppercase tracking-wide">Vertical Text</span>
+                        <div className="relative">
+                            <input
+                                type="checkbox"
+                                className="sr-only"
+                                checked={!!isVertical}
+                                onChange={(e) => setIsVertical(e.target.checked)}
+                            />
+                            <div className={`block w-14 h-8 rounded-full transition-colors duration-300 ${isVertical ? 'bg-[#002C5F]' : 'bg-gray-300'}`}></div>
+                            <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300 ${isVertical ? 'transform translate-x-6' : ''}`}></div>
+                        </div>
+                    </label>
+                </div>
+            )}
+
             {/* Font Grid */}
-            <div className="grid grid-cols-2 gap-3 md:gap-4 max-h-[300px] md:max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                {fonts.map((font) => (
-                    <button
-                        key={font.name}
-                        onClick={() => setSelectedFont(font.name)}
-                        className={`p-3 md:p-6 bg-white rounded-lg border transition-all duration-200 flex items-center justify-center h-14 md:h-20
-                            ${selectedFont === font.name
-                                ? 'border-[#002C5F] ring-1 ring-[#002C5F] shadow-md'
-                                : 'border-transparent shadow-sm hover:shadow hover:border-gray-200 text-gray-400 hover:text-gray-600'
-                            }
-                        `}
-                    >
-                        <span className={`text-xs md:text-base lg:text-lg ${selectedFont === font.name ? 'text-[#002C5F]' : ''}`} style={font.style}>
-                            {font.name}
-                        </span>
-                    </button>
-                ))}
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                <div className="grid grid-cols-2 gap-3 md:gap-4">
+                    {fonts.map((font) => (
+                        <button
+                            key={font.name}
+                            onClick={() => setSelectedFont(font.name)}
+                            className={`p-3 md:p-6 bg-white rounded-lg border transition-all duration-200 flex items-center justify-center h-14 md:h-20
+                                ${selectedFont === font.name
+                                    ? 'border-[#002C5F] ring-1 ring-[#002C5F] shadow-md'
+                                    : 'border-transparent shadow-sm hover:shadow hover:border-gray-200 text-gray-400 hover:text-gray-600'
+                                }
+                            `}
+                        >
+                            <span className={`text-xs md:text-base lg:text-lg ${selectedFont === font.name ? 'text-[#002C5F]' : ''}`} style={font.style}>
+                                {font.name}
+                            </span>
+                        </button>
+                    ))}
+                </div>
             </div>
+
+            <style>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: #cbd5e1;
+                    border-radius: 3px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: #94a3b8;
+                }
+            `}</style>
         </div>
     );
 };

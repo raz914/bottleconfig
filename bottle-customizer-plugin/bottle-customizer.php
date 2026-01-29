@@ -3,7 +3,7 @@
  * Plugin Name: Befit Bottle Customizer
  * Plugin URI: https://example.com
  * Description: Adds a "Personalize" button to bottle products that opens a fullscreen customizer and adds customized products to WooCommerce cart.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: razi ul hassan
  * Author URI: https://portfolio-razi.netlify.app/
  * License: GPL-2.0+
@@ -127,6 +127,23 @@ function bottle_customizer_check_woocommerce() {
     return true;
 }
 add_action('plugins_loaded', 'bottle_customizer_check_woocommerce');
+
+/**
+ * Allow <details> and <summary> tags in wp_kses_post so the cart dropdown renders correctly.
+ */
+function bottle_customizer_allow_details_summary_tags($allowed_tags, $context) {
+    if ($context === 'post') {
+        $allowed_tags['details'] = array(
+            'class' => true,
+            'open'  => true,
+        );
+        $allowed_tags['summary'] = array(
+            'class' => true,
+        );
+    }
+    return $allowed_tags;
+}
+add_filter('wp_kses_allowed_html', 'bottle_customizer_allow_details_summary_tags', 10, 2);
 
 /**
  * Register settings + admin page
@@ -258,66 +275,63 @@ function bottle_customizer_field_target_product_id() {
  * Enqueue frontend styles and scripts
  */
 function bottle_customizer_enqueue_assets() {
-    // Avoid fatal errors if WooCommerce isn't active (e.g. is_product()).
-    if (!bottle_customizer_is_woocommerce_active() || !function_exists('is_product') || !function_exists('wc_get_product')) {
+    // Avoid fatal errors if WooCommerce isn't active.
+    if (!bottle_customizer_is_woocommerce_active()) {
         return;
     }
     if (!bottle_customizer_is_enabled()) {
         return;
     }
 
-    // Only load on the target product page
-    if (!is_product()) {
-        return;
-    }
-
-    // On some themes, global $product isn't ready yet during wp_enqueue_scripts.
-    // Using queried object ID is more reliable.
-    $product_id = function_exists('get_queried_object_id') ? absint(get_queried_object_id()) : 0;
-    $product = $product_id ? wc_get_product($product_id) : null;
-
-    if (!$product || !bottle_customizer_is_target_product($product)) {
-        return;
-    }
-    
     $css_path = BOTTLE_CUSTOMIZER_PLUGIN_DIR . 'assets/css/frontend.css';
     $js_path  = BOTTLE_CUSTOMIZER_PLUGIN_DIR . 'assets/js/frontend.js';
     $css_ver  = file_exists($css_path) ? (string) filemtime($css_path) : BOTTLE_CUSTOMIZER_VERSION;
     $js_ver   = file_exists($js_path) ? (string) filemtime($js_path) : BOTTLE_CUSTOMIZER_VERSION;
 
-    // Enqueue styles
+    // Enqueue styles site-wide (needed for cart drawer / mini-cart on any page)
     wp_enqueue_style(
         'bottle-customizer-frontend',
         BOTTLE_CUSTOMIZER_PLUGIN_URL . 'assets/css/frontend.css',
         array(),
         $css_ver
     );
-    
-    // Enqueue scripts
-    wp_enqueue_script(
-        'bottle-customizer-frontend',
-        BOTTLE_CUSTOMIZER_PLUGIN_URL . 'assets/js/frontend.js',
-        array(),
-        $js_ver,
-        true
-    );
 
-    // Helpful debug signal: confirms script loaded on the page.
-    wp_add_inline_script(
-        'bottle-customizer-frontend',
-        'console.log("[BottleCustomizer] assets loaded", { productId: ' . (int) $product->get_id() . ' });',
-        'after'
-    );
-    
-    // Pass data to JavaScript
-    wp_localize_script('bottle-customizer-frontend', 'bottleCustomizerData', array(
-        'ajaxUrl' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('bottle_customizer_nonce'),
-        'configuratorUrl' => BOTTLE_CUSTOMIZER_PLUGIN_URL . 'configurator/index.html',
-        'productId' => $product->get_id(),
-        'productName' => $product->get_name(),
-        'productPrice' => $product->get_price(),
-    ));
+    // Enqueue scripts only on the target product page
+    $is_target_product = false;
+    $product_id = 0;
+
+    if (function_exists('is_product') && is_product() && function_exists('wc_get_product')) {
+        $product_id = function_exists('get_queried_object_id') ? absint(get_queried_object_id()) : 0;
+        $product = $product_id ? wc_get_product($product_id) : null;
+        if ($product && bottle_customizer_is_target_product($product)) {
+            $is_target_product = true;
+        }
+    }
+
+    if ($is_target_product) {
+        wp_enqueue_script(
+            'bottle-customizer-frontend',
+            BOTTLE_CUSTOMIZER_PLUGIN_URL . 'assets/js/frontend.js',
+            array(),
+            $js_ver,
+            true
+        );
+
+        // Helpful debug signal
+        wp_add_inline_script(
+            'bottle-customizer-frontend',
+            'console.log("[BottleCustomizer] assets loaded", { productId: ' . (int) $product_id . ' });',
+            'after'
+        );
+
+        // Pass data to JavaScript
+        wp_localize_script('bottle-customizer-frontend', 'bottleCustomizerData', array(
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('bottle_customizer_nonce'),
+            'configuratorUrl' => BOTTLE_CUSTOMIZER_PLUGIN_URL . 'configurator/index.html',
+            'productId' => $product_id,
+        ));
+    }
 }
 add_action('wp_enqueue_scripts', 'bottle_customizer_enqueue_assets');
 
@@ -392,6 +406,13 @@ function bottle_customizer_render_modal() {
     </div>';
 }
 add_action('wp_footer', 'bottle_customizer_render_modal', 5);
+
+/**
+ * Disable WooCommerce "added to cart" notices for customizer flow.
+ */
+function bottle_customizer_disable_add_to_cart_notice($message, $products = array(), $show_qty = false) {
+    return '';
+}
 
 /**
  * Handle AJAX request to add customized product to cart
@@ -472,6 +493,17 @@ function bottle_customizer_add_to_cart() {
         $back_image_url = bottle_customizer_save_temp_image($customization_data['backImage'], 'back');
     }
     
+    $front_design_url = '';
+    $back_design_url = '';
+
+    if (!empty($customization_data['frontDesignImage'])) {
+        $front_design_url = bottle_customizer_save_temp_image($customization_data['frontDesignImage'], 'front-design');
+    }
+
+    if (!empty($customization_data['backDesignImage'])) {
+        $back_design_url = bottle_customizer_save_temp_image($customization_data['backDesignImage'], 'back-design');
+    }
+
     // Prepare cart item data
     $cart_item_data = array(
         'bottle_customization' => array(
@@ -486,12 +518,16 @@ function bottle_customizer_add_to_cart() {
             'monogram_style' => sanitize_text_field($customization_data['monogramStyle'] ?? ''),
             'front_image_url' => $front_image_url,
             'back_image_url' => $back_image_url,
+            'front_design_url' => $front_design_url,
+            'back_design_url' => $back_design_url,
         ),
         'unique_key' => md5(microtime() . rand()), // Make each customization unique
     );
     
     // Add to cart
     wc_clear_notices();
+    add_filter('wc_add_to_cart_message_html', 'bottle_customizer_disable_add_to_cart_notice', 10, 3);
+    add_filter('woocommerce_add_to_cart_message_html', 'bottle_customizer_disable_add_to_cart_notice', 10, 3);
 
     $quantity = 1;
     $variation_id = 0;
@@ -602,10 +638,12 @@ function bottle_customizer_add_to_cart() {
     }
 
     $cart_item_key = WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variation, $cart_item_data);
+    wc_clear_notices();
+    remove_filter('wc_add_to_cart_message_html', 'bottle_customizer_disable_add_to_cart_notice', 10);
+    remove_filter('woocommerce_add_to_cart_message_html', 'bottle_customizer_disable_add_to_cart_notice', 10);
     
     if ($cart_item_key) {
         wp_send_json_success(array(
-            'message' => 'Product added to cart',
             'cart_url' => wc_get_cart_url(),
             'cart_count' => WC()->cart->get_cart_contents_count(),
         ));
@@ -727,6 +765,7 @@ function bottle_customizer_cart_item_data($item_data, $cart_item) {
             }
         }
         
+        /*
         // Front customization
         $front_details = array();
         if (!empty($customization['front_text'])) {
@@ -745,6 +784,7 @@ function bottle_customizer_cart_item_data($item_data, $cart_item) {
             );
         }
         
+        /*
         // Back customization
         $back_details = array();
         if (!empty($customization['back_text'])) {
@@ -763,25 +803,89 @@ function bottle_customizer_cart_item_data($item_data, $cart_item) {
             );
         }
 
-        // Preview images (works even in mini-cart/cart templates that don't render thumbnails)
-        $front_url = !empty($customization['front_image_url']) ? esc_url($customization['front_image_url']) : '';
-        $back_url  = !empty($customization['back_image_url']) ? esc_url($customization['back_image_url']) : '';
-        if ($front_url || $back_url) {
-            $html = '<span class="bottle-customizer-cart-images">';
-            if ($front_url) {
-                $html .= '<img src="' . $front_url . '" alt="Front View" class="bottle-preview-thumb" style="max-width: 80px; margin-right: 5px;" />';
-            }
-            if ($back_url) {
-                $html .= '<img src="' . $back_url . '" alt="Back View" class="bottle-preview-thumb" style="max-width: 80px;" />';
-            }
-            $html .= '</span>';
+        */
+
+        // --- Personalized Options Dropdown ---
+        $has_front = !empty($customization['front_text']) || !empty($customization['front_monogram']) || !empty($customization['front_graphic']);
+        $has_back = !empty($customization['back_text']) || !empty($customization['back_monogram']) || !empty($customization['back_graphic']);
+        $has_front_preview = !empty($customization['front_image_url']);
+        $has_back_preview = !empty($customization['back_image_url']);
+        $has_front_design = !empty($customization['front_design_url']) && (!empty($customization['front_monogram']) || !empty($customization['front_graphic']));
+        $has_back_design = !empty($customization['back_design_url']) && (!empty($customization['back_monogram']) || !empty($customization['back_graphic']));
+
+        if ($has_front || $has_back || $has_front_preview || $has_back_preview) {
+            ob_start();
+            ?>
+            <details class="bottle-customizer-options">
+                <summary class="bc-dropdown-summary"><?php esc_html_e('Personalized Options', 'bottle-customizer'); ?></summary>
+                <div class="bc-dropdown-content">
+
+                    <?php if ($has_front_preview || $has_back_preview): ?>
+                        <div class="bc-previews">
+                            <?php if ($has_front_preview): ?>
+                                <img src="<?php echo esc_url($customization['front_image_url']); ?>" alt="<?php esc_attr_e('Front Preview', 'bottle-customizer'); ?>" class="bc-preview-img" />
+                            <?php endif; ?>
+                            <?php if ($has_back_preview): ?>
+                                <img src="<?php echo esc_url($customization['back_image_url']); ?>" alt="<?php esc_attr_e('Back Preview', 'bottle-customizer'); ?>" class="bc-preview-img" />
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($has_front || $has_back): ?>
+                        <div class="bc-sides">
+                            <?php if ($has_front): ?>
+                                <div class="bc-side">
+                                    <span class="bc-side-label"><?php esc_html_e('Front', 'bottle-customizer'); ?></span>
+                                    <div class="bc-side-row">
+                                        <?php if ($has_front_design): ?>
+                                            <img src="<?php echo esc_url($customization['front_design_url']); ?>" alt="<?php esc_attr_e('Front Design', 'bottle-customizer'); ?>" class="bc-design-thumb" />
+                                        <?php endif; ?>
+                                        <?php
+                                        $f_desc = [];
+                                        if (!empty($customization['front_text'])) $f_desc[] = $customization['front_text'];
+                                        if (!empty($customization['front_monogram'])) $f_desc[] = __('Monogram', 'bottle-customizer');
+                                        if (!empty($customization['front_graphic'])) $f_desc[] = __('Graphic', 'bottle-customizer');
+                                        if ($f_desc): ?>
+                                            <span class="bc-side-text"><?php echo esc_html(implode(', ', $f_desc)); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if ($has_back): ?>
+                                <div class="bc-side">
+                                    <span class="bc-side-label"><?php esc_html_e('Back', 'bottle-customizer'); ?></span>
+                                    <div class="bc-side-row">
+                                        <?php if ($has_back_design): ?>
+                                            <img src="<?php echo esc_url($customization['back_design_url']); ?>" alt="<?php esc_attr_e('Back Design', 'bottle-customizer'); ?>" class="bc-design-thumb" />
+                                        <?php endif; ?>
+                                        <?php
+                                        $b_desc = [];
+                                        if (!empty($customization['back_text'])) $b_desc[] = $customization['back_text'];
+                                        if (!empty($customization['back_monogram'])) $b_desc[] = __('Monogram', 'bottle-customizer');
+                                        if (!empty($customization['back_graphic'])) $b_desc[] = __('Graphic', 'bottle-customizer');
+                                        if ($b_desc): ?>
+                                            <span class="bc-side-text"><?php echo esc_html(implode(', ', $b_desc)); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+
+                </div>
+            </details>
+            <?php
+            $html = ob_get_clean();
 
             $item_data[] = array(
-                'key' => __('Preview', 'bottle-customizer'),
-                'value' => $html,
+                'key' => '',
+                'value' => '',
                 'display' => $html,
             );
         }
+
+
     }
     
     return $item_data;
@@ -972,3 +1076,77 @@ function bottle_customizer_deactivate() {
 register_deactivation_hook(__FILE__, 'bottle_customizer_deactivate');
 
 add_action('bottle_customizer_cleanup_hook', 'bottle_customizer_cleanup_temp_images');
+
+/**
+ * Helper: Get preferred custom image URL (Prioritize Back > Front)
+ */
+function bottle_customizer_get_custom_image_url($customization) {
+    if (!empty($customization['back_image_url'])) {
+        return $customization['back_image_url'];
+    }
+    if (!empty($customization['front_image_url'])) {
+        return $customization['front_image_url'];
+    }
+    return false;
+}
+
+/**
+ * Filter: Swap Cart Item Thumbnail with Custom Image(s)
+ */
+function bottle_customizer_cart_thumbnail($product_image, $cart_item, $cart_item_key) {
+    if (isset($cart_item['bottle_customization'])) {
+        $c = $cart_item['bottle_customization'];
+        $front = !empty($c['front_image_url']) ? $c['front_image_url'] : false;
+        $back  = !empty($c['back_image_url']) ? $c['back_image_url'] : false;
+
+        if ($front || $back) {
+            $product = $cart_item['data'];
+            $alt = $product->get_name();
+            
+            // Render composite thumbnail
+            $html = '<div style="display: flex; align-items: center; gap: 5px;">';
+            
+            if ($front) {
+                $html .= '<img src="' . esc_url($front) . '" alt="Front" style="width: 50px; height: auto; object-fit: contain; border: 1px solid #eee; border-radius: 4px;" />';
+            }
+            if ($back) {
+                $html .= '<img src="' . esc_url($back) . '" alt="Back" style="width: 50px; height: auto; object-fit: contain; border: 1px solid #eee; border-radius: 4px;" />';
+            }
+            
+            $html .= '</div>';
+            return $html;
+        }
+    }
+    return $product_image;
+}
+add_filter('woocommerce_cart_item_thumbnail', 'bottle_customizer_cart_thumbnail', 99, 3);
+
+/**
+ * Filter: Swap Order Item Thumbnail (Checkout/Emails) with Custom Image(s)
+ */
+function bottle_customizer_order_thumbnail($product_image, $item, $visible) {
+    if (is_a($item, 'WC_Order_Item_Product')) {
+        $c = $item->get_meta('_bottle_customization');
+        if ($c && is_array($c)) {
+            $front = !empty($c['front_image_url']) ? $c['front_image_url'] : false;
+            $back  = !empty($c['back_image_url']) ? $c['back_image_url'] : false;
+
+            if ($front || $back) {
+                // Render composite thumbnail
+                $html = '<div style="display: flex; align-items: center; gap: 5px;">';
+                
+                if ($front) {
+                    $html .= '<img src="' . esc_url($front) . '" alt="Front" style="width: 50px; height: auto; object-fit: contain; border: 1px solid #eee; border-radius: 4px;" />';
+                }
+                if ($back) {
+                    $html .= '<img src="' . esc_url($back) . '" alt="Back" style="width: 50px; height: auto; object-fit: contain; border: 1px solid #eee; border-radius: 4px;" />';
+                }
+                
+                $html .= '</div>';
+                return $html;
+            }
+        }
+    }
+    return $product_image;
+}
+add_filter('woocommerce_order_item_thumbnail', 'bottle_customizer_order_thumbnail', 10, 3);

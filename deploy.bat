@@ -31,6 +31,10 @@ echo Deploying files to %DEST%...
 xcopy /E /I /Y /Q "%DIST%\*" "%DEST%\"
 
 echo Creating Zip archive of the plugin...
-powershell -command "Compress-Archive -Path '%PLUGIN_DIR%' -DestinationPath '%ZIP_FILE%' -Force"
+:: Compress-Archive can fail on Windows when a file is locked by another process.
+:: Use tar.exe (bundled with modern Windows) which is more tolerant.
+pushd "%~dp0"
+tar -a -c -f "%ZIP_FILE%" "bottle-customizer-plugin"
+popd
 
 echo Deployment and Zipping Complete!

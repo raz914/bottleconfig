@@ -170,6 +170,105 @@ body.bottle-customizer-open {
     margin-top: 10px;
 }
 
+/* ===== Cart Personalization Dropdown ===== */
+
+/* Dropdown container */
+.bottle-customizer-options {
+    margin-top: 8px;
+}
+
+/* Summary (clickable header) */
+.bc-dropdown-summary {
+    list-style: none !important;
+    cursor: pointer;
+    font-weight: 600;
+    position: relative;
+    padding-left: 20px;
+    font-size: 0.9em;
+    color: #333;
+    user-select: none;
+}
+
+.bc-dropdown-summary::-webkit-details-marker {
+    display: none;
+}
+
+.bc-dropdown-summary::before {
+    content: '▶';
+    position: absolute;
+    left: 0;
+    top: 2px;
+    font-size: 0.8em;
+    transition: transform 0.2s;
+}
+
+details[open] .bc-dropdown-summary::before {
+    transform: rotate(90deg);
+}
+
+/* Dropdown content wrapper */
+.bc-dropdown-content {
+    padding: 10px 0 5px 0;
+}
+
+/* Preview images row (front + back bottle previews) */
+.bc-previews {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.bc-preview-img {
+    max-width: 70px;
+    height: auto;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    background: #fafafa;
+}
+
+/* Side-by-side front/back designs */
+.bc-sides {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.bc-side {
+    flex: 1 1 45%;
+    min-width: 100px;
+}
+
+.bc-side-label {
+    display: block;
+    font-size: 0.85em;
+    font-weight: 700;
+    color: #555;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.bc-side-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bc-design-thumb {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    background: #fafafa;
+    flex-shrink: 0;
+}
+
+.bc-side-text {
+    font-size: 0.9em;
+    color: #444;
+    white-space: nowrap;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .bottle-customizer-btn {
@@ -179,5 +278,35 @@ body.bottle-customizer-open {
 
     .bottle-preview-thumb {
         max-width: 60px !important;
+    }
+
+    .bc-sides {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .bc-side {
+        flex: 1 1 100%;
+    }
+
+    .bc-preview-img {
+        max-width: 55px;
+    }
+}
+
+/* Mini-cart / cart drawer narrow context */
+@media (max-width: 400px) {
+    .bc-sides {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .bc-side {
+        flex: 1 1 100%;
+    }
+
+    .bc-design-thumb {
+        width: 40px;
+        height: 40px;
     }
 }

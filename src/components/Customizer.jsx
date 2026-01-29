@@ -9,25 +9,32 @@ import BottomBar from './BottomBar';
 import ReviewScreen from './ReviewScreen';
 import UploadView from './UploadView';
 import BottlePreview from './BottlePreview';
+import DesignCapture from './DesignCapture';
 import { monogramStyles, getMonogramFontSize, shouldDisplayMonogram, convertToCircleGlyphs, getCircleFontFamily, usesCircleGlyphs, convertToNGramGlyphs, getNGramFontFamily, usesNGramGlyphs } from '../data/monogramConfig';
+import { isIOSDevice, captureBottleSnapshotCanvas, captureDesignSnapshotCanvas } from '../utils/canvasCapture';
 
 const Customizer = () => {
     const [activeTab, setActiveTab] = useState('FRONT');
     const bottlePreviewRef = useRef(null);
     const frontCaptureRef = useRef(null);
     const backCaptureRef = useRef(null);
+    const frontDesignCaptureRef = useRef(null);
+    const backDesignCaptureRef = useRef(null);
 
     const [selectedColor, setSelectedColor] = useState('black');
     const [view, setView] = useState('main'); // 'main' | 'text' | 'monogram'
     const [isMobile, setIsMobile] = useState(false);
     const [isImageLoading, setIsImageLoading] = useState(false);
 
+    // Force canvas capture flag for desktop testing of iOS code path
+    const [forceCanvasCapture, setForceCanvasCaptureState] = useState(false);
+
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
         handleResize(); // Initial check
         window.addEventListener('resize', handleResize);
 
-        // Expose snapshot function
+        // Expose snapshot function (html-to-image)
         window.takeSnapshot = async () => {
             if (bottlePreviewRef.current) {
                 try {
@@ -57,16 +64,60 @@ const Customizer = () => {
         setIsImageLoading(true);
     }, [selectedColor, activeTab]);
 
+    // Expose canvas capture testing functions for desktop iPhone simulation
+    useEffect(() => {
+        // Toggle force canvas capture mode
+        window.setForceCanvasCapture = (value) => {
+            setForceCanvasCaptureState(!!value);
+            console.log(`[Customizer] Force canvas capture: ${!!value}`);
+        };
+
+        // Get current force canvas capture state
+        window.getForceCanvasCapture = () => forceCanvasCapture;
+
+        return () => {
+            delete window.setForceCanvasCapture;
+            delete window.getForceCanvasCapture;
+        };
+    }, [forceCanvasCapture]);
+
     const [customization, setCustomization] = useState({
         FRONT: { text: '', monogram: '' },
-        BACK: { text: '', monogram: '' }
+        BACK: { text: '', monogram: '', isVertical: false }
     });
 
     const [selectedFont, setSelectedFont] = useState('BeFit');
     const [selectedMonogram, setSelectedMonogram] = useState('Circle');
 
+    // Fonts array
+    const fonts = [
+        { name: 'BeFit', css: 'font-sans', style: { fontFamily: 'BeFit, "Noto Emoji", sans-serif' } },
+        { name: 'BeFit Slim', css: 'font-sans', style: { fontFamily: 'BeFit Slim, "Noto Emoji", sans-serif' } },
+        { name: 'BeFit Bold Italic', css: 'font-sans font-bold italic', style: { fontFamily: 'BeFit, "Noto Emoji", sans-serif', fontWeight: 'bold', fontStyle: 'italic' } },
+        { name: 'Sackers Gothic', css: 'font-sans uppercase tracking-widest', style: { fontFamily: 'Oswald, "Noto Emoji", sans-serif' } },
+        { name: 'Yearbook Solid', css: 'font-serif uppercase font-black', style: { fontFamily: 'Bebas Neue, "Noto Emoji", sans-serif' } },
+        { name: 'VAG Rounded Next', css: 'font-sans', style: { fontFamily: 'Nunito, "Noto Emoji", sans-serif' } },
+        { name: 'Samantha Script', css: 'font-cursive', style: { fontFamily: 'Dancing Script, "Noto Emoji", cursive' } },
+        { name: 'Cotford', css: 'font-serif', style: { fontFamily: 'Merriweather, "Noto Emoji", serif' } },
+        { name: 'Arial Bold', css: 'font-sans font-bold', style: { fontFamily: 'Arial, "Noto Emoji", sans-serif', fontWeight: 'bold' } },
+        { name: 'ITC Modern No 216', css: 'font-serif font-bold', style: { fontFamily: 'Bodoni Moda, "Noto Emoji", serif' } },
+        { name: 'Benguiat Pro ITC Bold', css: 'font-serif font-bold', style: { fontFamily: 'Playfair Display, "Noto Emoji", serif', fontWeight: 'bold' } },
+        { name: 'Rockwell Bold', css: 'font-serif font-bold', style: { fontFamily: 'Alfa Slab One, "Noto Emoji", serif' } },
+        { name: 'WHIPHAND', css: 'font-display uppercase', style: { fontFamily: 'Permanent Marker, "Noto Emoji", cursive', fontStyle: 'italic' } },
+        { name: 'WOOD TYPE', css: 'font-display uppercase tracking-wide', style: { fontFamily: 'Bungee, "Noto Emoji", sans-serif' } },
+        { name: 'Futura Bold', css: 'font-sans font-bold uppercase', style: { fontFamily: 'Oswald, "Noto Emoji", sans-serif', fontWeight: 'bold' } },
+        { name: 'Script MT Bold', css: 'font-cursive font-bold', style: { fontFamily: 'Dancing Script, "Noto Emoji", cursive', fontWeight: 'bold' } },
+        { name: 'Times New Roman', css: 'font-serif', style: { fontFamily: 'Times New Roman, "Noto Emoji", serif' } },
+    ];
+
     const [showReview, setShowReview] = useState(false);
-    const [capturedImages, setCapturedImages] = useState({ front: null, back: null });
+    const [isPreparingReview, setIsPreparingReview] = useState(false);
+    const [capturedImages, setCapturedImages] = useState({
+        front: null,
+        back: null,
+        frontDesign: null,
+        backDesign: null
+    });
 
     const requestParentClose = () => {
         if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
@@ -85,6 +136,7 @@ const Customizer = () => {
         setCustomization(prev => ({
             ...prev,
             [activeTab]: {
+                ...prev[activeTab],
                 text: val,
                 monogram: val ? '' : prev[activeTab].monogram, // Clear monogram if text is added
                 graphic: val ? null : prev[activeTab].graphic // Clear graphic if text is added
@@ -96,6 +148,7 @@ const Customizer = () => {
         setCustomization(prev => ({
             ...prev,
             [activeTab]: {
+                ...prev[activeTab],
                 monogram: val,
                 text: val ? '' : prev[activeTab].text, // Clear text if monogram is added
                 graphic: val ? null : prev[activeTab].graphic // Clear graphic if monogram is added
@@ -107,9 +160,20 @@ const Customizer = () => {
         setCustomization(prev => ({
             ...prev,
             [activeTab]: {
+                ...prev[activeTab],
                 graphic: val,
                 text: val ? '' : prev[activeTab].text, // Clear text if graphic is selected
                 monogram: val ? '' : prev[activeTab].monogram // Clear monogram if graphic is selected
+            }
+        }));
+    }
+
+    const setIsVertical = (val) => {
+        setCustomization(prev => ({
+            ...prev,
+            [activeTab]: {
+                ...prev[activeTab],
+                isVertical: val
             }
         }));
     }
@@ -157,41 +221,234 @@ const Customizer = () => {
         });
     };
 
+    // Expose canvas snapshot function for testing iOS capture path on desktop
+    useEffect(() => {
+        window.takeSnapshotCanvas = async (side = 'FRONT') => {
+            const sideUpper = side.toUpperCase();
+            if (sideUpper !== 'FRONT' && sideUpper !== 'BACK') {
+                console.error('[takeSnapshotCanvas] Invalid side. Use "FRONT" or "BACK".');
+                return;
+            }
+
+            console.log(`[takeSnapshotCanvas] Capturing ${sideUpper} with canvas compositor...`);
+
+            try {
+                // Wait for fonts
+                if (document.fonts && document.fonts.ready) {
+                    await document.fonts.ready;
+                }
+
+                const dataUrl = await captureBottleSnapshotCanvas(
+                    sideUpper,
+                    customization,
+                    selectedColor,
+                    selectedFont,
+                    selectedMonogram,
+                    fonts
+                );
+
+                // Download
+                const link = document.createElement('a');
+                link.download = `bottle-canvas-${sideUpper.toLowerCase()}-${Date.now()}.png`;
+                link.href = dataUrl;
+                link.click();
+
+                console.log(`[takeSnapshotCanvas] ${sideUpper} snapshot saved!`);
+            } catch (err) {
+                console.error('[takeSnapshotCanvas] Failed:', err);
+            }
+        };
+
+        // Compare both capture methods side-by-side
+        window.compareSnapshots = async (side = 'FRONT') => {
+            const sideUpper = side.toUpperCase();
+            if (sideUpper !== 'FRONT' && sideUpper !== 'BACK') {
+                console.error('[compareSnapshots] Invalid side. Use "FRONT" or "BACK".');
+                return;
+            }
+
+            const ref = sideUpper === 'FRONT' ? frontCaptureRef : backCaptureRef;
+            
+            console.log(`[compareSnapshots] Capturing ${sideUpper} with both methods...`);
+
+            try {
+                // Wait for images and fonts
+                await waitForImagesToLoad(ref);
+                if (document.fonts && document.fonts.ready) {
+                    await document.fonts.ready;
+                }
+                await new Promise(r => setTimeout(r, 100));
+
+                // Capture with html-to-image
+                let htmlToImageUrl = null;
+                if (ref.current) {
+                    htmlToImageUrl = await toPng(ref.current, { cacheBust: true, skipAutoScale: true });
+                }
+
+                // Capture with canvas
+                const canvasUrl = await captureBottleSnapshotCanvas(
+                    sideUpper,
+                    customization,
+                    selectedColor,
+                    selectedFont,
+                    selectedMonogram,
+                    fonts
+                );
+
+                // Open comparison in new window
+                const compareWindow = window.open('', '_blank', 'width=700,height=600');
+                compareWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head><title>Snapshot Comparison - ${sideUpper}</title></head>
+                    <body style="margin:0;padding:20px;background:#f0f0f0;font-family:sans-serif;">
+                        <h3 style="margin:0 0 10px;">Snapshot Comparison: ${sideUpper}</h3>
+                        <div style="display:flex;gap:20px;">
+                            <div style="text-align:center;">
+                                <p style="margin:0 0 5px;font-weight:bold;">html-to-image</p>
+                                <img src="${htmlToImageUrl}" style="border:1px solid #ccc;max-width:300px;" />
+                            </div>
+                            <div style="text-align:center;">
+                                <p style="margin:0 0 5px;font-weight:bold;">Canvas Compositor</p>
+                                <img src="${canvasUrl}" style="border:1px solid #ccc;max-width:300px;" />
+                            </div>
+                        </div>
+                        <p style="margin-top:20px;font-size:12px;color:#666;">
+                            Canvas should match html-to-image. If text/position differs, adjust canvasCapture.js
+                        </p>
+                    </body>
+                    </html>
+                `);
+
+                console.log('[compareSnapshots] Comparison window opened!');
+            } catch (err) {
+                console.error('[compareSnapshots] Failed:', err);
+            }
+        };
+
+        return () => {
+            delete window.takeSnapshotCanvas;
+            delete window.compareSnapshots;
+        };
+    }, [customization, selectedColor, selectedFont, selectedMonogram]);
+
     const handleReview = async () => {
         try {
-            setIsImageLoading(true); // Show loader
+            setIsPreparingReview(true); // Show full-screen loader
+            setIsImageLoading(true);
 
-            // Wait a frame for React to render the hidden components
-            await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-            // Wait for images to load in hidden capture areas
-            await Promise.all([
-                waitForImagesToLoad(frontCaptureRef),
-                waitForImagesToLoad(backCaptureRef)
-            ]);
-
-            // Small additional delay to ensure paint
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Capture Front
             let frontImg = null;
-            if (frontCaptureRef.current) {
-                frontImg = await toPng(frontCaptureRef.current, { cacheBust: true, skipAutoScale: true });
-            }
-
-            // Capture Back
             let backImg = null;
-            if (backCaptureRef.current) {
-                backImg = await toPng(backCaptureRef.current, { cacheBust: true, skipAutoScale: true });
+            let frontDesignImg = null;
+            let backDesignImg = null;
+
+            // Check if we're on iOS OR force canvas capture is enabled - use canvas compositor instead of html-to-image
+            const useCanvasCapture = isIOSDevice() || forceCanvasCapture;
+            
+            if (useCanvasCapture) {
+                // iOS or forced: Use canvas compositor for reliable snapshot generation
+                console.log(`[Customizer] Using canvas capture (iOS: ${isIOSDevice()}, forced: ${forceCanvasCapture})`);
+                
+                // Wait for fonts to be ready
+                if (document.fonts && document.fonts.ready) {
+                    await document.fonts.ready;
+                }
+
+                // Capture using canvas compositor
+                frontImg = await captureBottleSnapshotCanvas(
+                    'FRONT',
+                    customization,
+                    selectedColor,
+                    selectedFont,
+                    selectedMonogram,
+                    fonts
+                );
+
+                backImg = await captureBottleSnapshotCanvas(
+                    'BACK',
+                    customization,
+                    selectedColor,
+                    selectedFont,
+                    selectedMonogram,
+                    fonts
+                );
+
+                // Design captures
+                frontDesignImg = await captureDesignSnapshotCanvas(
+                    'FRONT',
+                    customization,
+                    selectedColor,
+                    selectedFont,
+                    selectedMonogram,
+                    fonts
+                );
+
+                backDesignImg = await captureDesignSnapshotCanvas(
+                    'BACK',
+                    customization,
+                    selectedColor,
+                    selectedFont,
+                    selectedMonogram,
+                    fonts
+                );
+            } else {
+                // Non-iOS: Use html-to-image (works well on Android/Desktop)
+                console.log('[Customizer] Using html-to-image capture');
+
+                // Wait a frame for React to render the hidden components
+                await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+                // Wait for images to load in hidden capture areas
+                await Promise.all([
+                    waitForImagesToLoad(frontCaptureRef),
+                    waitForImagesToLoad(backCaptureRef),
+                    waitForImagesToLoad(frontDesignCaptureRef),
+                    waitForImagesToLoad(backDesignCaptureRef)
+                ]);
+
+                // Small additional delay to ensure paint
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                // Capture Front
+                if (frontCaptureRef.current) {
+                    frontImg = await toPng(frontCaptureRef.current, { cacheBust: true, skipAutoScale: true });
+                }
+
+                // Capture Back
+                if (backCaptureRef.current) {
+                    backImg = await toPng(backCaptureRef.current, { cacheBust: true, skipAutoScale: true });
+                }
+
+                // Capture Front Design (Isolated)
+                if (frontDesignCaptureRef.current) {
+                    // Only capture if there is content
+                    if (customization.FRONT.text || customization.FRONT.monogram || customization.FRONT.graphic) {
+                        frontDesignImg = await toPng(frontDesignCaptureRef.current, { cacheBust: true, backgroundColor: null });
+                    }
+                }
+
+                // Capture Back Design (Isolated)
+                if (backDesignCaptureRef.current) {
+                    if (customization.BACK.text || customization.BACK.monogram || customization.BACK.graphic) {
+                        backDesignImg = await toPng(backDesignCaptureRef.current, { cacheBust: true, backgroundColor: null });
+                    }
+                }
             }
 
-            setCapturedImages({ front: frontImg, back: backImg });
+            setCapturedImages({
+                front: frontImg,
+                back: backImg,
+                frontDesign: frontDesignImg,
+                backDesign: backDesignImg
+            });
             setIsImageLoading(false);
+            setIsPreparingReview(false);
             setShowReview(true);
 
         } catch (error) {
             console.error("Failed to capture review images", error);
             setIsImageLoading(false);
+            setIsPreparingReview(false);
             setShowReview(true);
         }
     };
@@ -203,27 +460,6 @@ const Customizer = () => {
         { id: 'white', name: 'WHITE', bg: 'bg-white', text: 'text-black', border: 'border-gray-200' },
         { id: 'aqua', name: 'NAVY', bg: 'bg-[#002C5F]', text: 'text-white' },
         { id: 'red', name: 'RED', bg: 'bg-[#C8102E]', text: 'text-white' },
-    ];
-
-    const fonts = [
-        { name: 'BeFit', css: 'font-sans', style: { fontFamily: 'BeFit, "Noto Emoji", sans-serif' } },
-        { name: 'BeFit Slim', css: 'font-sans', style: { fontFamily: 'BeFit Slim, "Noto Emoji", sans-serif' } },
-        { name: 'BeFit Bold Italic', css: 'font-sans font-bold italic', style: { fontFamily: 'BeFit, "Noto Emoji", sans-serif', fontWeight: 'bold', fontStyle: 'italic' } },
-        { name: 'Sackers Gothic', css: 'font-sans uppercase tracking-widest', style: { fontFamily: 'Oswald, "Noto Emoji", sans-serif' } },
-        { name: 'Yearbook Solid', css: 'font-serif uppercase font-black', style: { fontFamily: 'Bebas Neue, "Noto Emoji", sans-serif' } },
-        { name: 'VAG Rounded Next', css: 'font-sans', style: { fontFamily: 'Nunito, "Noto Emoji", sans-serif' } },
-        { name: 'Samantha Script', css: 'font-cursive', style: { fontFamily: 'Dancing Script, "Noto Emoji", cursive' } },
-        // { name: 'Nexa Script', css: 'font-cursive', style: { fontFamily: 'Pacifico, cursive' } },
-        { name: 'Cotford', css: 'font-serif', style: { fontFamily: 'Merriweather, "Noto Emoji", serif' } },
-        { name: 'Arial Bold', css: 'font-sans font-bold', style: { fontFamily: 'Arial, "Noto Emoji", sans-serif', fontWeight: 'bold' } },
-        { name: 'ITC Modern No 216', css: 'font-serif font-bold', style: { fontFamily: 'Bodoni Moda, "Noto Emoji", serif' } },
-        { name: 'Benguiat Pro ITC Bold', css: 'font-serif font-bold', style: { fontFamily: 'Playfair Display, "Noto Emoji", serif', fontWeight: 'bold' } },
-        { name: 'Rockwell Bold', css: 'font-serif font-bold', style: { fontFamily: 'Alfa Slab One, "Noto Emoji", serif' } },
-        { name: 'WHIPHAND', css: 'font-display uppercase', style: { fontFamily: 'Permanent Marker, "Noto Emoji", cursive', fontStyle: 'italic' } },
-        { name: 'WOOD TYPE', css: 'font-display uppercase tracking-wide', style: { fontFamily: 'Bungee, "Noto Emoji", sans-serif' } },
-        { name: 'Futura Bold', css: 'font-sans font-bold uppercase', style: { fontFamily: 'Oswald, "Noto Emoji", sans-serif', fontWeight: 'bold' } },
-        { name: 'Script MT Bold', css: 'font-cursive font-bold', style: { fontFamily: 'Dancing Script, "Noto Emoji", cursive', fontWeight: 'bold' } },
-        { name: 'Times New Roman', css: 'font-serif', style: { fontFamily: 'Times New Roman, "Noto Emoji", serif' } },
     ];
 
     return (
@@ -328,7 +564,7 @@ const Customizer = () => {
                 </div>
 
                 {/* Right Panel - Customization Options */}
-                <div className="w-full md:w-1/2 bg-white md:bg-[#f3f4f6] p-4 md:p-12 flex flex-col items-center justify-start flex-1 mb-16 md:mb-0 md:overflow-y-auto md:pb-32">
+                <div className={`w-full md:w-1/2 bg-white md:bg-[#f3f4f6] p-4 md:p-12 flex flex-col items-center justify-start flex-1 md:mb-0 md:overflow-y-auto md:pb-32 ${view !== 'main' ? 'mb-16' : ''}`}>
                     {view === 'main' && <MainView setView={setView} />}
 
                     {view === 'text' && (
@@ -340,6 +576,8 @@ const Customizer = () => {
                             selectedFont={selectedFont}
                             setSelectedFont={setSelectedFont}
                             activeTab={activeTab}
+                            isVertical={customization[activeTab].isVertical}
+                            setIsVertical={setIsVertical}
                         />
                     )}
 
@@ -377,14 +615,15 @@ const Customizer = () => {
                         onRemove={handleRemove}
                         onReview={handleReview}
                         isDisabled={!hasContent}
+                        isPreparing={isPreparingReview}
                     />
                 )}
             </main>
 
             {/* HIDDEN CAPTURE AREA */}
             {/* Render both sides off-screen with fixed 'Desktop' dimensions for high-quality capture */}
-            {/* Using opacity:0 instead of visibility:hidden so html-to-image can still capture rendered content */}
-            <div style={{ position: 'fixed', top: 0, left: 0, opacity: 0, pointerEvents: 'none', zIndex: -1 }}>
+            {/* Position offscreen (not opacity:0) for better html-to-image compatibility on non-iOS browsers */}
+            <div style={{ position: 'fixed', top: 0, left: '-9999px', pointerEvents: 'none', zIndex: -1 }}>
                 <div ref={frontCaptureRef}>
                     <BottlePreview
                         side="FRONT"
@@ -409,7 +648,37 @@ const Customizer = () => {
                         view="capture"
                     />
                 </div>
+
+                {/* VISUAL DESIGN CAPTURES (No Bottle, Just Design) */}
+                <div ref={frontDesignCaptureRef}>
+                    <DesignCapture
+                        side="FRONT"
+                        customization={customization}
+                        selectedColor={selectedColor}
+                        selectedFont={selectedFont}
+                        selectedMonogram={selectedMonogram}
+                        fonts={fonts}
+                    />
+                </div>
+                <div ref={backDesignCaptureRef}>
+                    <DesignCapture
+                        side="BACK"
+                        customization={customization}
+                        selectedColor={selectedColor}
+                        selectedFont={selectedFont}
+                        selectedMonogram={selectedMonogram}
+                        fonts={fonts}
+                    />
+                </div>
             </div>
+
+            {/* Full-screen loader while preparing review */}
+            {isPreparingReview && (
+                <div className="fixed inset-0 z-[60] bg-white/95 flex flex-col items-center justify-center">
+                    <div className="w-14 h-14 border-4 border-gray-300 border-t-[#002C5F] rounded-full animate-spin mb-4"></div>
+                    <p className="text-lg font-semibold text-[#002C5F]">Preparing your design...</p>
+                </div>
+            )}
 
             {/* Review Screen Modal */}
             {showReview && (
@@ -434,6 +703,8 @@ const Customizer = () => {
                     setView={setView}
                     frontImage={capturedImages.front}
                     backImage={capturedImages.back}
+                    frontDesignImage={capturedImages.frontDesign}
+                    backDesignImage={capturedImages.backDesign}
                 />
             )}
         </div>

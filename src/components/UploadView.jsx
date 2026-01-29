@@ -1,4 +1,13 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Set up the worker for PDF.js
+// - Dev: use Vite-served worker URL
+// - Prod: use a copied `.js` worker (some WP hosts serve `.mjs` as text/plain)
+import pdfWorkerDevUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+pdfjsLib.GlobalWorkerOptions.workerSrc = import.meta.env.PROD
+    ? new URL('./pdf.worker.min.js', import.meta.url).toString()
+    : pdfWorkerDevUrl;
 
 const UploadView = ({ setView, setGraphic, graphicInput }) => {
     const fileInputRef = useRef(null);
@@ -11,35 +20,89 @@ const UploadView = ({ setView, setGraphic, graphicInput }) => {
     const MIN_RATIO = 0.67;
     const MAX_RATIO = 1.5;
 
-    const handleFileChange = (e) => {
+    const handleFileChange = async (e) => {
         const file = e.target.files[0];
-        if (file) {
-            setUploadError(null);
-            setIsLoading(true);
-            setShowModal(false);
+        if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    const ratio = img.width / img.height;
-                    if (ratio < MIN_RATIO || ratio > MAX_RATIO) {
-                        setUploadError(`Image aspect ratio (${ratio.toFixed(2)}) is outside the allowed range. Please use an image closer to square (between 2:3 and 3:2).`);
-                        setIsLoading(false);
-                        if (fileInputRef.current) fileInputRef.current.value = '';
-                        return;
-                    }
-                    setGraphic({ src: event.target.result, name: file.name, isUpload: true, scale: 0.5 });
+        setUploadError(null);
+        setIsLoading(true);
+        setShowModal(false);
+
+        const fileType = file.type;
+        const fileName = file.name.toLowerCase();
+
+        try {
+            let src = '';
+            let isPreviewAvailable = true;
+
+            // Handle PDF
+            if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+                try {
+                    src = await renderPdfFirstPage(file);
+                } catch (err) {
+                    console.error("PDF Render error:", err);
+                    setUploadError("Failed to render PDF preview. File may be corrupted or password protected.");
                     setIsLoading(false);
-                };
-                img.onerror = () => {
-                    setUploadError('Failed to load image. Please try another file.');
+                    return;
+                }
+            }
+            // Handle Images (PNG, JPG, BMP, SVG)
+            else {
+                src = await readFileAsDataURL(file);
+            }
+
+
+
+            const img = new Image();
+            img.onload = () => {
+                const ratio = img.width / img.height;
+                if (ratio < MIN_RATIO || ratio > MAX_RATIO) {
+                    setUploadError(`Image aspect ratio (${ratio.toFixed(2)}) is outside the allowed range. Please use an image closer to square (between 2:3 and 3:2).`);
                     setIsLoading(false);
-                };
-                img.src = event.target.result;
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                    return;
+                }
+                setGraphic({ src, name: file.name, isUpload: true, scale: 0.5, fileType: fileName.split('.').pop() });
+                setIsLoading(false);
             };
-            reader.readAsDataURL(file);
+            img.onerror = () => {
+                setUploadError('Failed to load image. Please check the file.');
+                setIsLoading(false);
+            };
+            img.src = src;
+
+        } catch (error) {
+            console.error(error);
+            setUploadError('Error processing file.');
+            setIsLoading(false);
         }
+    };
+
+    const readFileAsDataURL = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = (e) => reject(e);
+            reader.readAsDataURL(file);
+        });
+    };
+
+    const renderPdfFirstPage = async (file) => {
+        const arrayBuffer = await file.arrayBuffer();
+        // Disable worker to avoid `.mjs` MIME issues on some WP hosts/CDNs.
+        // We're only rendering the first page for a preview, so main-thread rendering is acceptable.
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, disableWorker: true }).promise;
+        const page = await pdf.getPage(1);
+
+        // Render to temporary canvas
+        const viewport = page.getViewport({ scale: 2.0 }); // Higher scale for better quality
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext('2d');
+
+        await page.render({ canvasContext: ctx, viewport }).promise;
+        return canvas.toDataURL('image/png');
     };
 
     const handleRemove = () => {
@@ -53,7 +116,7 @@ const UploadView = ({ setView, setGraphic, graphicInput }) => {
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}
-                accept="image/png, image/jpeg, image/jpg"
+                accept="image/png, image/jpeg, image/jpg, image/bmp, image/svg+xml, application/pdf"
                 className="hidden"
             />
 
@@ -171,97 +234,99 @@ const UploadView = ({ setView, setGraphic, graphicInput }) => {
                         </button>
 
                         <p className="text-xs text-gray-400">
-                            Accepts .jpg and .png
+                            Accepts .jpg, .png, .bmp, .svg, .pdf
                         </p>
                     </div>
                 )}
             </div>
 
             {/* MODAL */}
-            {showModal && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col relative animate-fade-in-up">
+            {
+                showModal && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                        <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col relative animate-fade-in-up">
 
-                        {/* Modal Header */}
-                        <div className="p-6 pb-2 relative">
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-2"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                            <h2 className="text-2xl font-normal text-center text-gray-800 mb-2">Upload Guidelines For Engraving</h2>
-                            <p className="text-xs text-center text-gray-600 px-4">
-                                Laser engraving is done on the surface of your product without using ink, so there will be no colours. Follow the guidelines below for best results.
-                            </p>
-                        </div>
-
-                        {/* Modal Body */}
-                        <div className="p-6 pt-2 space-y-6 overflow-y-auto custom-scrollbar">
-                            <div>
-                                <h3 className="text-sm font-bold text-gray-800 mb-2">Tips to create a winning personalised product include:</h3>
-                                <ul className="list-disc pl-5 text-xs text-gray-600 space-y-2">
-                                    <li>For the best visual quality, upload print-ready or vector quality files for your artwork.</li>
-                                    <li>Use a PNG file with a transparent background for best results (other acceptable files include JPG, JPEG).</li>
-                                    <li>One colour artworks will work better than photos or gradients.</li>
-                                    <li>Use a clear image or graphic.</li>
-                                    <li><strong>Images should be close to square</strong> (aspect ratio between 2:3 and 3:2). Very wide or very tall images will not be accepted.</li>
-                                </ul>
+                            {/* Modal Header */}
+                            <div className="p-6 pb-2 relative">
+                                <button
+                                    onClick={() => setShowModal(false)}
+                                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-2"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                                <h2 className="text-2xl font-normal text-center text-gray-800 mb-2">Upload Guidelines For Engraving</h2>
+                                <p className="text-xs text-center text-gray-600 px-4">
+                                    Laser engraving is done on the surface of your product without using ink, so there will be no colours. Follow the guidelines below for best results.
+                                </p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            {/* Modal Body */}
+                            <div className="p-6 pt-2 space-y-6 overflow-y-auto custom-scrollbar">
                                 <div>
-                                    <h4 className="text-sm font-semibold mb-1">Simple illustrations are ideal</h4>
-                                    <p className="text-[10px] text-gray-500 leading-relaxed">
-                                        Notice the clear lines of the image. The engraving will address the darkest lines and skip transparent backgrounds.
-                                    </p>
+                                    <h3 className="text-sm font-bold text-gray-800 mb-2">Tips to create a winning personalised product include:</h3>
+                                    <ul className="list-disc pl-5 text-xs text-gray-600 space-y-2">
+                                        <li>For the best visual quality, upload print-ready or vector quality files for your artwork (SVG, PDF).</li>
+                                        <li>Use a PNG file with a transparent background for best results (other acceptable files include JPG, JPEG, BMP).</li>
+                                        <li>One colour artworks will work better than photos or gradients.</li>
+                                        <li>Use a clear image or graphic.</li>
+                                        <li><strong>Images should be close to square</strong> (aspect ratio between 2:3 and 3:2). Very wide or very tall images will not be accepted.</li>
+                                    </ul>
                                 </div>
-                                <div>
-                                    <h4 className="text-sm font-semibold mb-1">Results may vary with photographs</h4>
-                                    <p className="text-[10px] text-gray-500 leading-relaxed">
-                                        Photographs will be rendered in black and white, various gradients, and will be reduced to simple shapes with subtle details removed. Some images will work better than others.
-                                    </p>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <h4 className="text-sm font-semibold mb-1">Simple illustrations are ideal</h4>
+                                        <p className="text-[10px] text-gray-500 leading-relaxed">
+                                            Notice the clear lines of the image. The engraving will address the darkest lines and skip transparent backgrounds.
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-semibold mb-1">Results may vary with photographs</h4>
+                                        <p className="text-[10px] text-gray-500 leading-relaxed">
+                                            Photographs will be rendered in black and white, various gradients, and will be reduced to simple shapes with subtle details removed. Some images will work better than others.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Divider */}
+                                <hr className="border-gray-200" />
+
+                                {/* Terms Checkbox */}
+                                <div className="flex items-start space-x-3 bg-gray-50 p-3 rounded">
+                                    <input
+                                        type="checkbox"
+                                        id="terms-check"
+                                        checked={isAccepted}
+                                        onChange={(e) => setIsAccepted(e.target.checked)}
+                                        className="mt-1 h-4 w-4 text-[#002C5F] focus:ring-[#002C5F] border-gray-300 rounded cursor-pointer"
+                                    />
+                                    <label htmlFor="terms-check" className="text-[10px] text-gray-600 leading-snug cursor-pointer select-none">
+                                        I confirm that my content complies with all requirements of BeFit's Customised-Product Terms of Sale. I understand that my upload may be rejected, or my order cancelled if BeFit determines or reasonably suspects I may have violated these terms.
+                                    </label>
                                 </div>
                             </div>
 
-                            {/* Divider */}
-                            <hr className="border-gray-200" />
-
-                            {/* Terms Checkbox */}
-                            <div className="flex items-start space-x-3 bg-gray-50 p-3 rounded">
-                                <input
-                                    type="checkbox"
-                                    id="terms-check"
-                                    checked={isAccepted}
-                                    onChange={(e) => setIsAccepted(e.target.checked)}
-                                    className="mt-1 h-4 w-4 text-[#002C5F] focus:ring-[#002C5F] border-gray-300 rounded cursor-pointer"
-                                />
-                                <label htmlFor="terms-check" className="text-[10px] text-gray-600 leading-snug cursor-pointer select-none">
-                                    I confirm that my content complies with all requirements of BeFit's Customised-Product Terms of Sale. I understand that my upload may be rejected, or my order cancelled if BeFit determines or reasonably suspects I may have violated these terms.
-                                </label>
-                            </div>
-                        </div>
-
-                        {/* Modal Footer */}
-                        <div className="p-6 pt-0 flex justify-center sticky bottom-0 bg-white">
-                            <button
-                                onClick={() => fileInputRef.current.click()}
-                                disabled={!isAccepted}
-                                className={`w-full py-3 rounded font-bold uppercase tracking-widest transition-all
+                            {/* Modal Footer */}
+                            <div className="p-6 pt-0 flex justify-center sticky bottom-0 bg-white">
+                                <button
+                                    onClick={() => fileInputRef.current.click()}
+                                    disabled={!isAccepted}
+                                    className={`w-full py-3 rounded font-bold uppercase tracking-widest transition-all
                                     ${isAccepted
-                                        ? 'bg-[#002C5F] text-white hover:bg-[#003d82] shadow-md'
-                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'}
+                                            ? 'bg-[#002C5F] text-white hover:bg-[#003d82] shadow-md'
+                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'}
                                 `}
-                            >
-                                Select Image
-                            </button>
+                                >
+                                    Select Image
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 

@@ -2,7 +2,7 @@ import React from 'react';
 
 const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles, selectedMonogram, setSelectedMonogram }) => {
     return (
-        <div className="w-full max-w-2xl">
+        <div className="flex flex-col h-full w-full max-w-2xl">
             {/* Mini Nav for Tools - Hidden on mobile */}
             <div className="hidden md:flex items-center justify-center space-x-4 mb-8">
                 <button onClick={() => setView('upload')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
@@ -35,7 +35,7 @@ const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles
             </button>
 
             {/* Monogram Input */}
-            <div className="bg-white rounded-lg shadow-sm p-2 mb-6 border border-gray-200 flex items-center">
+            <div className="bg-white rounded-lg shadow-sm p-2 mb-6 border border-gray-200 flex items-center flex-shrink-0">
                 <input
                     type="text"
                     value={monogramInput}
@@ -69,67 +69,85 @@ const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles
 
             {/* Single Letter Warning */}
             {monogramStyles.find(m => m.name === selectedMonogram)?.maxLength === 1 && monogramInput.length > 1 && (
-                <div className="text-red-500 text-xs font-bold text-center -mt-4 mb-4">
+                <div className="text-red-500 text-xs font-bold text-center -mt-4 mb-4 flex-shrink-0">
                     ONLY FIRST LETTER WILL BE SHOWN
                 </div>
             )}
 
             {/* Minimum Length Warning for Circle/NGram */}
             {(monogramStyles.find(m => m.name === selectedMonogram)?.useCircleGlyphs || monogramStyles.find(m => m.name === selectedMonogram)?.useNGramGlyphs) && monogramInput.length === 1 && (
-                <div className="text-red-500 text-xs font-bold text-center -mt-4 mb-4">
+                <div className="text-red-500 text-xs font-bold text-center -mt-4 mb-4 flex-shrink-0">
                     PLEASE ENTER AT LEAST 2 LETTERS
                 </div>
             )}
 
             {/* Info Note */}
-            <div className="bg-gray-100 rounded p-2 md:p-3 mb-4 md:mb-6 text-[10px] md:text-xs text-gray-600">
+            <div className="bg-gray-100 rounded p-2 md:p-3 mb-4 md:mb-6 text-[10px] md:text-xs text-gray-600 flex-shrink-0">
                 <span className="font-bold">Note:</span> Monograms with three initials display the last name initial in the center.
             </div>
 
             {/* Monogram Style Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 max-h-[300px] md:max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                {monogramStyles.map((monogram) => {
-                    // Custom display for Circle font (rjm = rJ#)
-                    const isCircleFont = monogram.useCircleGlyphs;
-                    // Custom display for N-Gram font (rjm = ?rJ#)
-                    const isNGramFont = monogram.useNGramGlyphs;
-                    // Single letter fonts
-                    const isSingleLetter = monogram.maxLength === 1;
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                    {monogramStyles.map((monogram) => {
+                        // Custom display for Circle font (rjm = rJ#)
+                        const isCircleFont = monogram.useCircleGlyphs;
+                        // Custom display for N-Gram font (rjm = ?rJ#)
+                        const isNGramFont = monogram.useNGramGlyphs;
+                        // Single letter fonts
+                        const isSingleLetter = monogram.maxLength === 1;
 
-                    let displayText = 'RJM';  // Default: show RJM for all fonts
-                    let displayFont = monogram.style?.fontFamily;
+                        let displayText = 'RJM';  // Default: show RJM for all fonts
+                        let displayFont = monogram.style?.fontFamily;
 
-                    if (isCircleFont) {
-                        displayText = 'rJ#';  // r=lowercase, J=uppercase, #=M glyph
-                        displayFont = 'Three Character Circle';
-                    } else if (isNGramFont) {
-                        displayText = '?rJ#';  // ?=container, r=lowercase, J=uppercase, #=M glyph
-                        displayFont = 'Three Character N-Gram';
-                    } else if (isSingleLetter) {
-                        displayText = 'J';  // Single letter preview
-                    }
+                        if (isCircleFont) {
+                            displayText = 'rJ#';  // r=lowercase, J=uppercase, #=M glyph
+                            displayFont = 'Three Character Circle';
+                        } else if (isNGramFont) {
+                            displayText = '?rJ#';  // ?=container, r=lowercase, J=uppercase, #=M glyph
+                            displayFont = 'Three Character N-Gram';
+                        } else if (isSingleLetter) {
+                            displayText = 'J';  // Single letter preview
+                        }
 
-                    return (
-                        <button
-                            key={monogram.name}
-                            onClick={() => setSelectedMonogram(monogram.name)}
-                            className={`p-4 md:p-8 bg-white rounded-lg border transition-all duration-200 flex items-center justify-center h-24 md:h-36
-                                ${selectedMonogram === monogram.name
-                                    ? 'border-[#002C5F] ring-1 ring-[#002C5F] shadow-md'
-                                    : 'border-transparent shadow-sm hover:shadow hover:border-gray-200 text-gray-400 hover:text-gray-600'
-                                }
-                            `}
-                        >
-                            <span
-                                className={`text-4xl md:text-5xl lg:text-7xl ${selectedMonogram === monogram.name ? 'text-[#002C5F]' : ''}`}
-                                style={{ ...(({ fontSize, ...rest }) => rest)(monogram.style), fontFamily: displayFont }}
+                        return (
+                            <button
+                                key={monogram.name}
+                                onClick={() => setSelectedMonogram(monogram.name)}
+                                className={`p-4 md:p-8 bg-white rounded-lg border transition-all duration-200 flex items-center justify-center h-24 md:h-36
+                                    ${selectedMonogram === monogram.name
+                                        ? 'border-[#002C5F] ring-1 ring-[#002C5F] shadow-md'
+                                        : 'border-transparent shadow-sm hover:shadow hover:border-gray-200 text-gray-400 hover:text-gray-600'
+                                    }
+                                `}
                             >
-                                {displayText}
-                            </span>
-                        </button>
-                    );
-                })}
+                                <span
+                                    className={`text-4xl md:text-5xl lg:text-7xl ${selectedMonogram === monogram.name ? 'text-[#002C5F]' : ''}`}
+                                    style={{ ...(({ fontSize, ...rest }) => rest)(monogram.style), fontFamily: displayFont }}
+                                >
+                                    {displayText}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
+
+            <style>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: #cbd5e1;
+                    border-radius: 3px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: #94a3b8;
+                }
+            `}</style>
         </div>
     );
 };

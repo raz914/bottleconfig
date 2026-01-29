@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 
 const ReviewScreen = ({
     onClose,
@@ -9,9 +9,36 @@ const ReviewScreen = ({
     selectedMonogram,
     frontImage, // Received from parent (snapshot)
     backImage,   // Received from parent (snapshot)
+    frontDesignImage,
+    backDesignImage,
     setActiveTab,
     setView
 }) => {
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+
+    // Listen for status messages from the parent window
+    useEffect(() => {
+        const handleMessage = (event) => {
+            const payload = event.data;
+            if (!payload || payload.type !== 'BOTTLE_CUSTOMIZER_ADD_TO_CART_STATUS') return;
+
+            if (payload.status === 'loading') {
+                setIsAddingToCart(true);
+                setErrorMessage('');
+            } else if (payload.status === 'success') {
+                // Parent will close the modal; we can optionally do cleanup here
+                setIsAddingToCart(false);
+            } else if (payload.status === 'error') {
+                setIsAddingToCart(false);
+                setErrorMessage(payload.message || 'Failed to add to cart. Please try again.');
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, []);
+
     // "Add to Cart" logic
     const handleAddToCart = useCallback(async () => {
         // Collect all customization data - FLAT structure matching WordPress plugin expectations
@@ -27,27 +54,33 @@ const ReviewScreen = ({
             backGraphic: customization.BACK.graphic ? customization.BACK.graphic.name : '',
             frontImage: frontImage || '', // Base64 snapshot
             backImage: backImage || '',   // Base64 snapshot
+            frontDesignImage: frontDesignImage || '', // Base64 isolated design
+            backDesignImage: backDesignImage || '',   // Base64 isolated design
         };
 
         console.log("Adding to Cart - Customization Data:", customizationData);
 
+        // Clear any previous error
+        setErrorMessage('');
+
         // Post message to parent window (WordPress/WooCommerce)
         // Use the exact message type expected by the WordPress plugin's frontend.js
         if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+            // Set loading state immediately (parent will also send status)
+            setIsAddingToCart(true);
             window.parent.postMessage({
                 type: 'BOTTLE_CUSTOMIZER_ADD_TO_CART',
                 data: customizationData
             }, '*');
+            // Don't close here - wait for parent to send success status
         } else {
             // Standalone mode - log the data
             console.log("Standalone mode - Add to Cart Data:", customizationData);
             alert("Added to cart! (Check console for payload)");
+            onRequestClose();
         }
 
-        // Close the customizer
-        onRequestClose();
-
-    }, [customization, selectedColor, selectedFont, selectedMonogram, frontImage, backImage, onRequestClose]);
+    }, [customization, selectedColor, selectedFont, selectedMonogram, frontImage, backImage, frontDesignImage, backDesignImage, onRequestClose]);
 
 
     const handleEdit = (side) => {
@@ -66,6 +99,14 @@ const ReviewScreen = ({
 
     return (
         <div className="fixed inset-0 z-50 bg-white flex flex-col font-sans text-slate-900 animate-in fade-in active:fade-out duration-300">
+            {/* Full-screen loader overlay when adding to cart */}
+            {isAddingToCart && (
+                <div className="fixed inset-0 z-[100] bg-white/90 flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 border-4 border-gray-300 border-t-[#002C5F] rounded-full animate-spin mb-4"></div>
+                    <p className="text-lg font-semibold text-[#002C5F]">Adding to cart...</p>
+                </div>
+            )}
+
             {/* Header */}
             <header className="bg-white border-b border-gray-200 flex-shrink-0">
                 <div className="max-w-[1920px] mx-auto px-4 md:px-6 h-14 md:h-16 flex items-center justify-between">
@@ -131,22 +172,30 @@ const ReviewScreen = ({
             <footer className="bg-white border-t border-gray-200 p-4 md:p-6 flex-shrink-0">
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="text-center md:text-left">
-                        <p className="text-sm font-medium text-gray-500">
-                            Please review your spelling and design. Custom products cannot be returned.
-                        </p>
+                        {errorMessage ? (
+                            <p className="text-sm font-medium text-red-600">
+                                {errorMessage}
+                            </p>
+                        ) : (
+                            <p className="text-sm font-medium text-gray-500">
+                                Please review your spelling and design. Custom products cannot be returned.
+                            </p>
+                        )}
                     </div>
                     <div className="flex space-x-4 w-full md:w-auto">
                         <button
                             onClick={onClose}
-                            className="flex-1 md:flex-none px-8 py-3 bg-white border-2 border-[#002C5F] text-[#002C5F] font-bold uppercase tracking-widest hover:bg-blue-50 transition-colors"
+                            disabled={isAddingToCart}
+                            className={`flex-1 md:flex-none px-8 py-3 bg-white border-2 border-[#002C5F] text-[#002C5F] font-bold uppercase tracking-widest transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-50'}`}
                         >
                             Back
                         </button>
                         <button
                             onClick={handleAddToCart}
-                            className="flex-1 md:flex-none px-8 py-3 bg-[#002C5F] text-white font-bold uppercase tracking-widest hover:bg-[#001D40] transition-colors shadow-lg"
+                            disabled={isAddingToCart}
+                            className={`flex-1 md:flex-none px-8 py-3 bg-[#002C5F] text-white font-bold uppercase tracking-widest shadow-lg transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#001D40]'}`}
                         >
-                            Add to Cart
+                            {isAddingToCart ? 'Adding...' : 'Add to Cart'}
                         </button>
                     </div>
                 </div>

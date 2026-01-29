@@ -25,10 +25,14 @@ const BottlePreview = ({
             boundary: { top: '32.5%', left: '35%', right: '34%', bottom: '61%' },
         },
         BACK: {
-            text: { top: '39%', left: '36%', right: '36%', bottom: '31%' },
+            text: (side === 'BACK' && customization.BACK?.isVertical)
+                ? { top: '40%', left: '36%', right: '36%', bottom: '25%' }
+                : { top: '39%', left: '36%', right: '36%', bottom: '31%' },
             monogram: { top: '33%', left: '36%', right: '36%', bottom: '31%' },
             graphic: { top: '33%', left: '36%', right: '36%', bottom: '31%' },
-            boundary: { top: '40.5%', left: '35.5%', right: '36%', bottom: '31%' },
+            boundary: (side === 'BACK' && customization.BACK?.isVertical)
+                ? { top: '39%', left: '35.5%', right: '36%', bottom: '25%' }
+                : { top: '40.5%', left: '35.5%', right: '36%', bottom: '31%' },
         }
     };
 
@@ -37,15 +41,19 @@ const BottlePreview = ({
         FRONT: {
             text: "top-[27.3%] md:top-[32.4%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[62%] md:bottom-[62%]",
             monogram: "top-[25.2%] md:top-[32.4%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[60%] md:bottom-[61%]",
-            graphic: "top-[27%] md:top-[33%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[61%] md:bottom-[62%]",
+            graphic: "top-[26%] md:top-[31%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[61%] md:bottom-[60%]",
             boundary: "top-[29%] md:top-[32.5%] left-[35%] md:left-[35%] right-[34%] md:right-[34%] bottom-[63%] md:bottom-[61%]",
             zoom: "scale-[1.5] translate-y-[3%] md:scale-[2] md:translate-y-[5%]"
         },
         BACK: {
-            text: "top-[38%] md:top-[39%] left-[38%] md:left-[36%] right-[38%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
+            text: (side === 'BACK' && customization.BACK?.isVertical)
+                ? "top-[38%] md:top-[40%] left-[38%] md:left-[36%] right-[38%] md:right-[36%] bottom-[25%] md:bottom-[25%]" // Vertical text: Taller box
+                : "top-[38%] md:top-[39%] left-[38%] md:left-[36%] right-[38%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
             monogram: "top-[37%] md:top-[33%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
             graphic: "top-[33%] md:top-[33%] left-[20%] md:left-[36%] right-[20%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
-            boundary: "top-[39.5%] md:top-[40.5%] left-[36%] md:left-[35.5%] right-[36%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
+            boundary: (side === 'BACK' && customization.BACK?.isVertical)
+                ? "top-[38%] md:top-[39%] left-[36%] md:left-[35.5%] right-[36%] md:right-[36%] bottom-[21%] md:bottom-[25%]"
+                : "top-[39.5%] md:top-[40.5%] left-[36%] md:left-[35.5%] right-[36%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
             zoom: "scale-[1.5] translate-y-[2%] md:scale-[2] md:translate-y-[5%]"
         }
     };
@@ -93,7 +101,11 @@ const BottlePreview = ({
         : `relative mb-4 md:mb-12 transition-transform duration-300 ease-in-out w-[200px] h-[280px] md:w-[300px] md:h-[500px] ${view && view !== 'main' ? currentConfig.zoom : ''}`;
 
     // Graphic size for capture mode (always desktop)
-    const graphicMaxSize = isCapture ? '75%' : (isMobile ? '45%' : '75%');
+    const graphicMaxSize = isCapture
+        ? '75%'
+        : (isMobile
+            ? (side === 'BACK' ? '45%' : '25%')
+            : (side === 'BACK' ? '75%' : '35%'));
 
     return (
         <div className="flex flex-col items-center">
@@ -118,7 +130,11 @@ const BottlePreview = ({
                 {textInput && (
                     <div
                         className={`${getPositionClass('text')} flex items-center justify-center z-20 pointer-events-none overflow-hidden`}
-                        style={{ containerType: 'inline-size', ...getPositionStyle('text') }}
+                        style={{
+                            containerType: 'inline-size',
+                            ...getPositionStyle('text'),
+                            writingMode: (side === 'BACK' && config.isVertical) ? 'vertical-rl' : undefined,
+                        }}
                     >
                         <span
                             className="text-center block overflow-hidden"
@@ -167,20 +183,18 @@ const BottlePreview = ({
                             style={{
                                 filter: graphicInput.isUpload
                                     ? 'grayscale(100%) contrast(1.2) brightness(1.2)'
-                                    : selectedColor === 'white'
-                                        ? 'brightness(0) saturate(100%) invert(15%) sepia(5%) saturate(0%) hue-rotate(0deg)'
-                                        : 'brightness(0) saturate(100%) invert(95%) sepia(0%) saturate(0%) hue-rotate(0deg)',
+                                    : `grayscale(1)${selectedColor !== 'white' ? ' invert(1)' : ''}`,
                                 opacity: graphicInput.isUpload
                                     ? 0.9
-                                    : selectedColor === 'white' ? 0.85 : 0.73,
+                                    : (selectedColor === 'white' ? 0.85 : 0.73),
                                 mixBlendMode: graphicInput.isUpload
                                     ? 'normal'
-                                    : selectedColor === 'white' ? 'multiply' : 'overlay',
+                                    : (selectedColor === 'white' ? 'multiply' : 'overlay'),
                                 maxHeight: graphicMaxSize,
                                 maxWidth: graphicMaxSize
                             }}
                         />
-                        {/* Uploaded Image Gradient Overlay */}
+                        {/* Engraved Gradient Overlay - Only for Uploaded Images */}
                         {graphicInput.isUpload && (
                             <div
                                 className="absolute w-full h-full pointer-events-none"
@@ -218,10 +232,11 @@ const BottlePreview = ({
                                 className="text-center whitespace-nowrap block"
                                 style={{
                                     fontFamily: getCircleFontFamily(monogramInput.length),
-                                    color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(255, 255, 255, 0.73)',
+                                    color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(216, 216, 216, 0.73)',
+                                    mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
+                                    filter: 'grayscale(1)',
                                     fontSize: getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile),
                                     lineHeight: 1,
-                                    mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
                                 }}
                             >
                                 {convertToCircleGlyphs(monogramInput, selectedMonogram)}
@@ -232,10 +247,11 @@ const BottlePreview = ({
                                 style={{
                                     ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
                                     fontFamily: getNGramFontFamily(monogramInput.length),
-                                    color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(255, 255, 255, 0.73)',
+                                    color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(216, 216, 216, 0.73)',
+                                    mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
+                                    filter: 'grayscale(1)',
                                     fontSize: getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile),
                                     lineHeight: 1,
-                                    mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
                                 }}
                             >
                                 {convertToNGramGlyphs(monogramInput)}
@@ -245,10 +261,11 @@ const BottlePreview = ({
                                 className="text-center whitespace-nowrap block"
                                 style={{
                                     ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
-                                    color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(255, 255, 255, 0.73)',
+                                    color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(216, 216, 216, 0.73)',
+                                    mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
+                                    filter: 'grayscale(1)',
                                     fontSize: getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile),
                                     lineHeight: 1,
-                                    mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
                                 }}
                             >
                                 <span style={{ fontSize: '0.75em' }}>{monogramInput[0]}</span>
@@ -260,10 +277,11 @@ const BottlePreview = ({
                                 className="text-center whitespace-nowrap block"
                                 style={{
                                     ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
-                                    color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(255, 255, 255, 0.73)',
+                                    color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(216, 216, 216, 0.73)',
+                                    mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
+                                    filter: 'grayscale(1)',
                                     fontSize: getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile),
                                     lineHeight: 1,
-                                    mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
                                 }}
                             >
                                 {monogramStyles.find(m => m.name === selectedMonogram)?.maxLength === 1
