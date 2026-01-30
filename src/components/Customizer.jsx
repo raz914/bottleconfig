@@ -268,7 +268,7 @@ const Customizer = () => {
             }
 
             const ref = sideUpper === 'FRONT' ? frontCaptureRef : backCaptureRef;
-            
+
             console.log(`[compareSnapshots] Capturing ${sideUpper} with both methods...`);
 
             try {
@@ -344,11 +344,11 @@ const Customizer = () => {
 
             // Check if we're on iOS OR force canvas capture is enabled - use canvas compositor instead of html-to-image
             const useCanvasCapture = isIOSDevice() || forceCanvasCapture;
-            
+
             if (useCanvasCapture) {
                 // iOS or forced: Use canvas compositor for reliable snapshot generation
                 console.log(`[Customizer] Using canvas capture (iOS: ${isIOSDevice()}, forced: ${forceCanvasCapture})`);
-                
+
                 // Wait for fonts to be ready
                 if (document.fonts && document.fonts.ready) {
                     await document.fonts.ready;
@@ -480,7 +480,7 @@ const Customizer = () => {
                                 onClick={() => setActiveTab(tab)}
                                 className={`relative h-full px-1 text-xs md:text-sm font-bold tracking-widest uppercase transition-colors
                   ${activeTab === tab
-                                        ? 'text-[#002C5F] border-b-4 border-[#002C5F]'
+                                        ? 'text-black border-b-4 border-brand-blue'
                                         : 'text-gray-400 hover:text-gray-600'
                                     }`}
                             >
@@ -553,14 +553,14 @@ const Customizer = () => {
                         isMobile={isMobile}
                     />
 
-                    {/* Trust Badge / Icon in bottom left */}
-                    <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6">
+
+                    {/* <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6">
                         <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 shadow-sm border border-blue-200">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                             </svg>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Right Panel - Customization Options */}

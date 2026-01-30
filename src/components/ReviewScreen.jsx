@@ -132,7 +132,7 @@ const ReviewScreen = ({
                     {/* FRONT VIEW */}
                     <div className="flex flex-col items-center bg-white p-6 rounded-lg shadow-sm">
                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Front View</h3>
-                        <div className="relative w-[240px] h-[360px] md:w-[300px] md:h-[500px] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible">
+                        <div className="relative w-full max-w-[300px] aspect-[3/5] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible">
                             {frontImage ? (
                                 <img src={frontImage} alt="Front Preview" className="w-full h-full object-contain drop-shadow-xl mix-blend-multiply" />
                             ) : (
@@ -141,7 +141,7 @@ const ReviewScreen = ({
                         </div>
                         <button
                             onClick={() => handleEdit('FRONT')}
-                            className="mt-6 text-sm font-bold text-[#002C5F] underline hover:text-blue-800 uppercase tracking-wider"
+                            className="mt-6 text-sm font-bold text-[#002C5F] underline hover:text-brand-blue uppercase tracking-wider"
                         >
                             Edit Front
                         </button>
@@ -150,7 +150,7 @@ const ReviewScreen = ({
                     {/* BACK VIEW */}
                     <div className="flex flex-col items-center bg-white p-6 rounded-lg shadow-sm">
                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Back View</h3>
-                        <div className="relative w-[240px] h-[360px] md:w-[300px] md:h-[500px] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible">
+                        <div className="relative w-full max-w-[300px] aspect-[3/5] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible">
                             {backImage ? (
                                 <img src={backImage} alt="Back Preview" className="w-full h-full object-contain drop-shadow-xl mix-blend-multiply" />
                             ) : (
@@ -159,7 +159,7 @@ const ReviewScreen = ({
                         </div>
                         <button
                             onClick={() => handleEdit('BACK')}
-                            className="mt-6 text-sm font-bold text-[#002C5F] underline hover:text-blue-800 uppercase tracking-wider"
+                            className="mt-6 text-sm font-bold text-[#002C5F] underline hover:text-brand-blue uppercase tracking-wider"
                         >
                             Edit Back
                         </button>
@@ -169,7 +169,7 @@ const ReviewScreen = ({
             </main>
 
             {/* Footer Actions */}
-            <footer className="bg-white border-t border-gray-200 p-4 md:p-6 flex-shrink-0">
+            <footer className="bg-white border-t border-gray-200 p-2 md:p-2 flex-shrink-0">
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="text-center md:text-left">
                         {errorMessage ? (
@@ -186,14 +186,14 @@ const ReviewScreen = ({
                         <button
                             onClick={onClose}
                             disabled={isAddingToCart}
-                            className={`flex-1 md:flex-none px-8 py-3 bg-white border-2 border-[#002C5F] text-[#002C5F] font-bold uppercase tracking-widest transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-50'}`}
+                            className={`flex-1 md:flex-none px-8 py-3 bg-white border-2 border-[#002C5F] text-[#002C5F] font-bold uppercase tracking-widest transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
                         >
                             Back
                         </button>
                         <button
                             onClick={handleAddToCart}
                             disabled={isAddingToCart}
-                            className={`flex-1 md:flex-none px-8 py-3 bg-[#002C5F] text-white font-bold uppercase tracking-widest shadow-lg transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#001D40]'}`}
+                            className={`flex-1 md:flex-none px-8 py-3 bg-[black] text-white font-bold uppercase tracking-widest shadow-lg transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#001D40]'}`}
                         >
                             {isAddingToCart ? 'Adding...' : 'Add to Cart'}
                         </button>

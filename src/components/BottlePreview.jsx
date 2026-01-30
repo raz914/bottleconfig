@@ -1,5 +1,6 @@
 import React from 'react';
 import { monogramStyles, getMonogramFontSize, shouldDisplayMonogram, convertToCircleGlyphs, getCircleFontFamily, usesCircleGlyphs, convertToNGramGlyphs, getNGramFontFamily, usesNGramGlyphs } from '../data/monogramConfig';
+import { DESKTOP_POSITIONS, MOBILE_POSITIONS, GRAPHIC_MAX_SIZE } from '../data/capturePositions';
 
 const BottlePreview = ({
     side, // 'FRONT' or 'BACK'
@@ -15,25 +16,16 @@ const BottlePreview = ({
 }) => {
 
     const isCapture = view === 'capture';
+    const isVertical = side === 'BACK' && customization.BACK?.isVertical;
 
-    // Desktop positioning values (used for capture mode - inline styles bypass Tailwind responsive)
-    const DESKTOP_POSITIONS = {
-        FRONT: {
-            text: { top: '32.4%', left: '36%', right: '36%', bottom: '62%' },
-            monogram: { top: '32.4%', left: '36%', right: '36%', bottom: '61%' },
-            graphic: { top: '33%', left: '36%', right: '36%', bottom: '62%' },
-            boundary: { top: '32.5%', left: '35%', right: '34%', bottom: '61%' },
-        },
-        BACK: {
-            text: (side === 'BACK' && customization.BACK?.isVertical)
-                ? { top: '40%', left: '36%', right: '36%', bottom: '25%' }
-                : { top: '39%', left: '36%', right: '36%', bottom: '31%' },
-            monogram: { top: '33%', left: '36%', right: '36%', bottom: '31%' },
-            graphic: { top: '33%', left: '36%', right: '36%', bottom: '31%' },
-            boundary: (side === 'BACK' && customization.BACK?.isVertical)
-                ? { top: '39%', left: '35.5%', right: '36%', bottom: '25%' }
-                : { top: '40.5%', left: '35.5%', right: '36%', bottom: '31%' },
-        }
+    // Helper to get position with vertical text handling
+    const getPositions = (positionsObj) => {
+        const sidePos = positionsObj[side];
+        return {
+            ...sidePos,
+            text: isVertical && sidePos.textVertical ? sidePos.textVertical : sidePos.text,
+            boundary: isVertical && sidePos.boundaryVertical ? sidePos.boundaryVertical : sidePos.boundary,
+        };
     };
 
     // Tailwind classes for responsive mode (normal viewing)
@@ -59,7 +51,8 @@ const BottlePreview = ({
     };
 
     const currentConfig = SIDE_CONFIG[side];
-    const desktopPos = DESKTOP_POSITIONS[side];
+    // Use mobile positions for capture mode on mobile devices
+    const capturePos = (isCapture && isMobile) ? getPositions(MOBILE_POSITIONS) : getPositions(DESKTOP_POSITIONS);
     const config = customization[side];
     const textInput = config.text;
     const monogramInput = config.monogram;
@@ -77,7 +70,7 @@ const BottlePreview = ({
     // Helper to get positioning style (inline for capture, classes for responsive)
     const getPositionStyle = (type) => {
         if (isCapture) {
-            return { position: 'absolute', ...desktopPos[type] };
+            return { position: 'absolute', ...capturePos[type] };
         }
         return {}; // Use className instead
     };
@@ -100,12 +93,9 @@ const BottlePreview = ({
         ? ''
         : `relative mb-4 md:mb-12 transition-transform duration-300 ease-in-out w-[200px] h-[280px] md:w-[300px] md:h-[500px] ${view && view !== 'main' ? currentConfig.zoom : ''}`;
 
-    // Graphic size for capture mode (always desktop)
-    const graphicMaxSize = isCapture
-        ? '75%'
-        : (isMobile
-            ? (side === 'BACK' ? '45%' : '25%')
-            : (side === 'BACK' ? '75%' : '35%'));
+    // Graphic size - uses shared config from capturePositions.js
+    const sizeConfig = isMobile ? GRAPHIC_MAX_SIZE.mobile : GRAPHIC_MAX_SIZE.desktop;
+    const graphicMaxSize = `${sizeConfig[side] * 100}%`;
 
     return (
         <div className="flex flex-col items-center">

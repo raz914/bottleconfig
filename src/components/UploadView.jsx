@@ -122,7 +122,7 @@ const UploadView = ({ setView, setGraphic, graphicInput }) => {
 
             {/* Mini Nav for Tools */}
             <div className="hidden md:flex items-center justify-center space-x-4 mb-8">
-                <button className="p-4 bg-white rounded-xl shadow-sm border-2 border-black">
+                <button className="p-4 bg-white rounded-xl shadow-sm border-2 border-brand-blue">
                     <img src="UI/icons/upload.svg" className="w-10 h-10" alt="Upload" />
                 </button>
                 <button onClick={() => setView('text')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
@@ -143,7 +143,7 @@ const UploadView = ({ setView, setGraphic, graphicInput }) => {
             {/* Back Button */}
             <button
                 onClick={() => setView('main')}
-                className="flex items-center text-[#002C5F] font-bold text-xs md:text-sm tracking-widest uppercase mb-4 md:mb-6 hover:opacity-80 transition-opacity"
+                className="flex items-center text-black font-bold text-xs md:text-sm tracking-widest uppercase mb-4 md:mb-6 hover:text-gray-600 transition-colors"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -228,7 +228,7 @@ const UploadView = ({ setView, setGraphic, graphicInput }) => {
 
                         <button
                             onClick={() => setShowModal(true)}
-                            className="px-8 py-3 bg-[#002C5F] text-white font-bold rounded hover:bg-[#003d82] transition-colors mb-4 uppercase tracking-wider"
+                            className="px-8 py-3 bg-brand-blue text-white font-bold rounded hover:bg-[#006da0] transition-colors mb-4 uppercase tracking-wider"
                         >
                             Upload Image
                         </button>

@@ -11,7 +11,7 @@ const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles
                 <button onClick={() => setView('text')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
                     <img src="UI/icons/text.png" className="w-10 h-10 object-contain" alt="Text" />
                 </button>
-                <button className="p-4 bg-white rounded-xl shadow-sm border-2 border-black">
+                <button className="p-4 bg-white rounded-xl shadow-sm border-2 border-brand-blue">
                     <img src="UI/icons/monogram.svg" className="w-10 h-10" alt="Monogram" />
                 </button>
                 <button onClick={() => setView('main')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
@@ -26,7 +26,7 @@ const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles
             {/* Back Button */}
             <button
                 onClick={() => setView('main')}
-                className="flex items-center text-[#002C5F] font-bold text-xs md:text-sm tracking-widest uppercase mb-4 md:mb-6 hover:opacity-80 transition-opacity"
+                className="flex items-center text-black font-bold text-xs md:text-sm tracking-widest uppercase mb-4 md:mb-6 hover:text-gray-600 transition-colors"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -116,13 +116,13 @@ const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles
                                 onClick={() => setSelectedMonogram(monogram.name)}
                                 className={`p-4 md:p-8 bg-white rounded-lg border transition-all duration-200 flex items-center justify-center h-24 md:h-36
                                     ${selectedMonogram === monogram.name
-                                        ? 'border-[#002C5F] ring-1 ring-[#002C5F] shadow-md'
-                                        : 'border-transparent shadow-sm hover:shadow hover:border-gray-200 text-gray-400 hover:text-gray-600'
+                                        ? 'border-brand-blue ring-1 ring-brand-blue shadow-md'
+                                        : 'border-transparent shadow-sm hover:shadow hover:border-brand-blue text-gray-400 hover:text-brand-blue'
                                     }
                                 `}
                             >
                                 <span
-                                    className={`text-4xl md:text-5xl lg:text-7xl ${selectedMonogram === monogram.name ? 'text-[#002C5F]' : ''}`}
+                                    className={`text-4xl md:text-5xl lg:text-7xl ${selectedMonogram === monogram.name ? 'text-brand-blue' : ''}`}
                                     style={{ ...(({ fontSize, ...rest }) => rest)(monogram.style), fontFamily: displayFont }}
                                 >
                                     {displayText}

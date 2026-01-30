@@ -15,6 +15,7 @@ import {
     shouldDisplayMonogram,
     getMonogramFontSize
 } from '../data/monogramConfig';
+import { DESKTOP_POSITIONS, MOBILE_POSITIONS, GRAPHIC_MAX_SIZE } from '../data/capturePositions';
 
 // =============================================================================
 // iOS Detection
@@ -102,20 +103,7 @@ const getPixelBounds = (percentPos, canvasWidth, canvasHeight) => {
     return { x, y, width, height };
 };
 
-// Desktop positioning values (same as BottlePreview.jsx DESKTOP_POSITIONS)
-const DESKTOP_POSITIONS = {
-    FRONT: {
-        text: { top: '32.4%', left: '36%', right: '36%', bottom: '62%' },
-        monogram: { top: '32.4%', left: '36%', right: '36%', bottom: '61%' },
-        graphic: { top: '33%', left: '36%', right: '36%', bottom: '62%' },
-    },
-    BACK: {
-        text: { top: '39%', left: '36%', right: '36%', bottom: '31%' },
-        textVertical: { top: '40%', left: '36%', right: '36%', bottom: '25%' },
-        monogram: { top: '33%', left: '36%', right: '36%', bottom: '31%' },
-        graphic: { top: '33%', left: '36%', right: '36%', bottom: '31%' },
-    }
-};
+// Positions imported from ../data/capturePositions.js
 
 // =============================================================================
 // Font Style Helpers
@@ -515,8 +503,9 @@ export const captureBottleSnapshotCanvas = async (
     const graphicInput = config?.graphic || null;
     const isVertical = side === 'BACK' && config?.isVertical;
 
-    // 3. Draw overlays
-    const positions = DESKTOP_POSITIONS[side];
+    // 3. Draw overlays - use mobile positions on iOS for accurate capture
+    const isMobile = isIOSDevice();
+    const positions = isMobile ? MOBILE_POSITIONS[side] : DESKTOP_POSITIONS[side];
     const textColor = selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(180,180,180,0.85)';
 
     // Draw text
@@ -537,10 +526,8 @@ export const captureBottleSnapshotCanvas = async (
 
     // Draw graphic
     if (graphicInput) {
-        const isMobile = isIOSDevice();
-        const maxPercent = isMobile
-            ? (side === 'BACK' ? 0.75 : 0.36)
-            : (side === 'BACK' ? 0.55 : 0.65);
+        const sizeConfig = isMobile ? GRAPHIC_MAX_SIZE.test : GRAPHIC_MAX_SIZE.desktop;
+        const maxPercent = sizeConfig[side];
         const graphicBounds = getPixelBounds(positions.graphic, BOTTLE_CANVAS_WIDTH, BOTTLE_CANVAS_HEIGHT);
         await drawGraphicOnCanvas(ctx, graphicInput, graphicBounds, selectedColor, maxPercent);
     }

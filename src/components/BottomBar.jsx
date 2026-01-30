@@ -22,7 +22,7 @@ const BottomBar = ({ onRemove, onReview, isDisabled, isPreparing }) => {
                 className={`px-8 py-3 rounded text-sm font-bold tracking-widest uppercase transition-colors
                     ${reviewDisabled
                         ? 'bg-gray-300 text-white cursor-not-allowed'
-                        : 'bg-slate-500 text-white hover:bg-slate-600'
+                        : 'bg-black text-white hover:bg-gray-800'
                     }`}
             >
                 {isPreparing ? 'PREPARING...' : 'REVIEW'}
