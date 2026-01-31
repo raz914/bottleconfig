@@ -108,6 +108,12 @@ const Customizer = () => {
         { name: 'Futura Bold', css: 'font-sans font-bold uppercase', style: { fontFamily: 'Oswald, "Noto Emoji", sans-serif', fontWeight: 'bold' } },
         { name: 'Script MT Bold', css: 'font-cursive font-bold', style: { fontFamily: 'Dancing Script, "Noto Emoji", cursive', fontWeight: 'bold' } },
         { name: 'Times New Roman', css: 'font-serif', style: { fontFamily: 'Times New Roman, "Noto Emoji", serif' } },
+        { name: 'Allura', css: 'font-cursive', style: { fontFamily: 'Allura, "Noto Emoji", cursive' } },
+        { name: 'Bebas Neue Bold', css: 'font-display', style: { fontFamily: 'Bebas Neue, "Noto Emoji", sans-serif', fontWeight: 'bold' } },
+        { name: 'Libre Baskerville', css: 'font-serif', style: { fontFamily: 'Libre Baskerville, "Noto Emoji", serif' } },
+        { name: 'Montserrat Italics', css: 'font-sans italic', style: { fontFamily: 'Montserrat, "Noto Emoji", sans-serif', fontStyle: 'italic' } },
+        { name: 'Dancing Script', css: 'font-cursive', style: { fontFamily: 'Dancing Script, "Noto Emoji", cursive' } },
+        { name: 'Yellowtail', css: 'font-cursive', style: { fontFamily: 'Yellowtail, "Noto Emoji", cursive' } },
     ];
 
     const [showReview, setShowReview] = useState(false);

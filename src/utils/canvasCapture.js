@@ -227,14 +227,59 @@ const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, 
         ctx.translate(centerX, centerY);
         ctx.rotate(Math.PI / 2);
 
-        // Draw each character vertically stacked
-        const charSpacing = fontSize * 1.2;
-        const totalHeight = text.length * charSpacing;
-        const startY = -totalHeight / 2 + charSpacing / 2;
+        // Multiline/wrapping behavior (match DOM more closely):
+        // Instead of drawing per-character (which loses kerning and can look like "random gaps"),
+        // we draw whole string runs per column using `fillText`, and wrap into new columns when
+        // the measured width exceeds the available vertical space.
+        //
+        // In rotated coords (+90deg):
+        // - text advances along +X, which maps to DOWN in the original canvas
+        // - increasing Y maps to LEFT in the original canvas (new columns move left)
+        const colAdvance = fontSize * 1.05; // distance between columns
+        const maxRun = bounds.height;
 
-        for (let i = 0; i < text.length; i++) {
-            ctx.fillText(text[i], 0, startY + i * charSpacing);
+        const columns = [];
+        let current = '';
+
+        const pushCurrent = () => {
+            const trimmed = current.replace(/^\s+/, ''); // avoid leading spaces per column
+            if (trimmed) columns.push(trimmed);
+            current = '';
+        };
+
+        for (const ch of String(text)) {
+            if (ch === '\n') {
+                pushCurrent();
+                continue;
+            }
+
+            // Skip leading whitespace in a new column
+            if (!current && (ch === ' ' || ch === '\t')) continue;
+
+            const next = current + ch;
+            const w = ctx.measureText(next).width;
+            if (current && w > maxRun) {
+                pushCurrent();
+                // don't start a column with whitespace
+                if (ch === ' ' || ch === '\t') continue;
+                current = ch;
+            } else {
+                current = next;
+            }
         }
+        pushCurrent();
+        if (!columns.length) columns.push('');
+
+        // Center columns within the available width.
+        // Column 0 is the "first" column (rightmost in vertical-rl), subsequent columns go left.
+        const colsWidth = (columns.length - 1) * colAdvance;
+        const startY = -colsWidth / 2;
+
+        columns.forEach((run, colIdx) => {
+            const y = startY + colIdx * colAdvance;
+            // With textAlign='center', x=0 centers the run within the available vertical space.
+            ctx.fillText(run, 0, y);
+        });
     } else {
         // Horizontal text - use width as inline-size for cqi
         const fontSize = calculateCqiFontSize(text, bounds.width, side);

@@ -30,7 +30,7 @@ export const MOBILE_POSITIONS = {
     },
     BACK: {
         text: { top: '38%', left: '38%', right: '38%', bottom: '31%' },
-        textVertical: { top: '38%', left: '38%', right: '38%', bottom: '25%' },
+        textVertical: { top: '40.5%', left: '38%', right: '38%', bottom: '27%' },
         monogram: { top: '37%', left: '36%', right: '36%', bottom: '31%' },
         graphic: { top: '33%', left: '22%', right: '22%', bottom: '31%' },
         boundary: { top: '39.5%', left: '36%', right: '36%', bottom: '31%' },
