@@ -14,6 +14,7 @@ yarn.lock
 dist-ssr
 *.local
 dist.zip
+
 bottle-customizer-plugin.zip
 bottle-customizer-plugin/configurator.zip
 # Editor directories and files
