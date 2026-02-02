@@ -44,12 +44,12 @@ export const GRAPHIC_MAX_SIZE = {
         FRONT: 0.32,  // 25%
         BACK: 0.45,   // 45%
     },
-    test:{
+    test: {
         FRONT: 0.20,
         BACK: 0.40,
     },
     desktop: {
         FRONT: 0.65,  // 65%
-        BACK: 0.55,   // 55%
+        BACK: 0.75,   // 55%
     }
 };

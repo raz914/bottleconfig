@@ -78,12 +78,18 @@ const loadImage = (src) => {
 // Canvas Positioning Constants (matching BottlePreview.jsx capture mode)
 // =============================================================================
 
+// Resolution multiplier for high-quality capture (e.g., Retina)
+const RESOLUTION_SCALE = 3;
+
 // Canvas dimensions for bottle snapshot
-const BOTTLE_CANVAS_WIDTH = 300;
-const BOTTLE_CANVAS_HEIGHT = 500;
+const BOTTLE_CANVAS_WIDTH = 300 * RESOLUTION_SCALE;
+const BOTTLE_CANVAS_HEIGHT = 500 * RESOLUTION_SCALE;
 
 // Canvas dimensions for design-only snapshot
-const DESIGN_CANVAS_SIZE = 300;
+const DESIGN_CANVAS_SIZE = 300 * RESOLUTION_SCALE;
+
+// Base font size scaled
+const BASE_FONT_SIZE = 16 * RESOLUTION_SCALE;
 
 /**
  * Convert percentage-based positioning to pixel coordinates
@@ -180,17 +186,17 @@ const drawImageContain = (ctx, img, dx, dy, dw, dh) => {
 const calculateCqiFontSize = (text, boundsWidth, side) => {
     const len = Math.max(1, text.length);
     const cqi = boundsWidth / 100; // 1cqi in pixels
-    
+
     if (side === 'FRONT') {
         // max(4px, min((100/len)cqi, 18cqi))
         const dynamicSize = (100 / len) * cqi;
         const maxSize = 18 * cqi;
-        return Math.max(4, Math.min(dynamicSize, maxSize));
+        return Math.max(4 * RESOLUTION_SCALE, Math.min(dynamicSize, maxSize));
     } else {
         // BACK: max(8px, min((100/len)cqi, 34cqi))
         const dynamicSize = (100 / len) * cqi;
         const maxSize = 34 * cqi;
-        return Math.max(8, Math.min(dynamicSize, maxSize));
+        return Math.max(8 * RESOLUTION_SCALE, Math.min(dynamicSize, maxSize));
     }
 };
 
@@ -300,11 +306,11 @@ const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, 
  * @param {number} baseFontSize - Base font size in pixels for em calculation
  * @returns {number} Font size in pixels
  */
-const parseCssFontSize = (cssValue, boundsWidth, baseFontSize = 16) => {
+const parseCssFontSize = (cssValue, boundsWidth, baseFontSize = BASE_FONT_SIZE) => {
     if (!cssValue) return baseFontSize;
-    
+
     const str = String(cssValue).trim();
-    
+
     // Handle simple em values like "5em", "2.2em"
     if (/^[\d.]+em$/i.test(str)) {
         const emValue = parseFloat(str);
@@ -312,31 +318,31 @@ const parseCssFontSize = (cssValue, boundsWidth, baseFontSize = 16) => {
         // Using a fixed baseFontSize here matches CSS behavior and avoids size drift vs preview.
         return emValue * baseFontSize;
     }
-    
+
     // Handle simple cqi values like "17cqi"
     if (/^[\d.]+cqi$/i.test(str)) {
         const cqiValue = parseFloat(str);
         return (boundsWidth / 100) * cqiValue;
     }
-    
+
     // Handle simple px values
     if (/^[\d.]+px$/i.test(str)) {
-        return parseFloat(str);
+        return parseFloat(str) * RESOLUTION_SCALE;
     }
-    
+
     // Handle max/min expressions like "max(4px, min(50cqi, 17cqi))"
     if (str.startsWith('max(') || str.startsWith('min(')) {
         // Extract numbers and units, evaluate expression
         // This is a simplified parser for common patterns
         const cqi = boundsWidth / 100;
-        
+
         // Replace cqi values with calculated pixels
         let expr = str.replace(/([\d.]+)cqi/g, (_, num) => String(parseFloat(num) * cqi));
-        // Replace px values
-        expr = expr.replace(/([\d.]+)px/g, (_, num) => num);
-        // Replace em values
+        // Replace px values with scaled pixels
+        expr = expr.replace(/([\d.]+)px/g, (_, num) => String(parseFloat(num) * RESOLUTION_SCALE));
+        // Replace em values with scaled pixels
         expr = expr.replace(/([\d.]+)em/g, (_, num) => String(parseFloat(num) * baseFontSize));
-        
+
         // Evaluate max/min
         try {
             // Safe eval using Function constructor with only Math operations
@@ -349,9 +355,9 @@ const parseCssFontSize = (cssValue, boundsWidth, baseFontSize = 16) => {
             return baseFontSize;
         }
     }
-    
+
     // Fallback
-    return parseFloat(str) || baseFontSize;
+    return (parseFloat(str) || 16) * RESOLUTION_SCALE;
 };
 
 /**
@@ -400,7 +406,7 @@ const drawMonogramOnCanvas = (ctx, monogramInput, selectedMonogram, bounds, sele
     // isMobile = false for capture mode
     const cssFontSize = getMonogramFontSize(selectedMonogram, side, monogramInput.length, false);
     const fontSize = parseCssFontSize(cssFontSize, bounds.width);
-    
+
     ctx.font = `normal normal ${fontSize}px ${fontFamily}`;
 
     // For middleLarger style (like Roman), draw with size variations
@@ -622,7 +628,7 @@ export const captureDesignSnapshotCanvas = async (
     ctx.clearRect(0, 0, DESIGN_CANVAS_SIZE, DESIGN_CANVAS_SIZE);
 
     // Design bounds fill the canvas with some padding
-    const padding = 20;
+    const padding = 20 * RESOLUTION_SCALE;
     const bounds = {
         x: padding,
         y: padding,

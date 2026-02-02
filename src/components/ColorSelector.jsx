@@ -76,7 +76,7 @@ const ColorSelector = ({ colors, selectedColor, setSelectedColor, isMobile }) =>
 
                                 <button
                                     onClick={() => setIsOpen(false)}
-                                    className="w-full bg-[#002C5F] text-white font-bold py-4 rounded-lg tracking-widest uppercase transition-all active:scale-[0.98] shadow-lg"
+                                    className="w-full bg-black text-white font-bold py-4 rounded-lg tracking-widest uppercase transition-all active:scale-[0.98] shadow-lg"
                                 >
                                     UPDATE
                                 </button>

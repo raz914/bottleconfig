@@ -170,8 +170,8 @@ const ReviewScreen = ({
 
             {/* Footer Actions */}
             <footer className="bg-white border-t border-gray-200 p-2 md:p-2 flex-shrink-0">
-                <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="text-center md:text-left">
+                <div className="max-w-6xl mx-auto flex flex-col items-center justify-between gap-4">
+                    <div className="text-center w-full">
                         {errorMessage ? (
                             <p className="text-sm font-medium text-red-600">
                                 {errorMessage}
@@ -182,18 +182,18 @@ const ReviewScreen = ({
                             </p>
                         )}
                     </div>
-                    <div className="flex space-x-4 w-full md:w-auto">
+                    <div className="flex space-x-4 w-full">
                         <button
                             onClick={onClose}
                             disabled={isAddingToCart}
-                            className={`flex-1 md:flex-none px-8 py-3 bg-white border-2 border-[#002C5F] text-[#002C5F] font-bold uppercase tracking-widest transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                            className={`flex-1 px-8 py-2 md:py-3 bg-white border-2 border-[#002C5F] text-[#002C5F] font-bold uppercase tracking-widest transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
                         >
                             Back
                         </button>
                         <button
                             onClick={handleAddToCart}
                             disabled={isAddingToCart}
-                            className={`flex-1 md:flex-none px-8 py-3 bg-[black] text-white font-bold uppercase tracking-widest shadow-lg transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#001D40]'}`}
+                            className={`flex-1 px-8 py-2 md:py-3 bg-[black] text-white font-bold uppercase tracking-widest shadow-lg transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#001D40]'}`}
                         >
                             {isAddingToCart ? 'Adding...' : 'Add to Cart'}
                         </button>

@@ -33,7 +33,7 @@ const BottlePreview = ({
         FRONT: {
             text: "top-[27.3%] md:top-[32.4%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[62%] md:bottom-[62%]",
             monogram: "top-[25.2%] md:top-[32.4%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[60%] md:bottom-[61%]",
-            graphic: "top-[26%] md:top-[31%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[61%] md:bottom-[60%]",
+            graphic: "top-[26%] md:top-[33%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[61%] md:bottom-[62%]",
             boundary: "top-[29%] md:top-[32.5%] left-[35%] md:left-[35%] right-[34%] md:right-[34%] bottom-[63%] md:bottom-[61%]",
             zoom: "scale-[1.5] translate-y-[3%] md:scale-[2] md:translate-y-[5%]"
         },
