@@ -199,18 +199,18 @@ const ReviewScreen = ({
                             </p>
                         )}
                     </div>
-                    <div className="flex space-x-4 w-full">
+                    <div className="max-w-md md:max-w-none mx-auto md:mx-0 md:ml-auto flex space-x-3 w-full md:w-auto px-4 md:pr-8">
                         <button
                             onClick={onClose}
                             disabled={isAddingToCart}
-                            className={`flex-1 px-8 py-2 md:py-3 bg-white border-2 border-[#002C5F] text-[#002C5F] font-bold uppercase tracking-widest transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                            className={`flex-1 px-6 py-4 rounded-lg text-sm bg-white border-2 border-gray-200 text-gray-500 font-bold uppercase tracking-widest transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:border-[#002C5F] hover:text-[#002C5F]'}`}
                         >
                             Back
                         </button>
                         <button
                             onClick={() => setShowConfirmationModal(true)}
                             disabled={isAddingToCart}
-                            className={`flex-1 px-8 py-2 md:py-3 bg-[black] text-white font-bold uppercase tracking-widest shadow-lg transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#001D40]'}`}
+                            className={`flex-1 px-6 py-4 rounded-lg text-sm bg-black text-white font-bold uppercase tracking-widest transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'}`}
                         >
                             {isAddingToCart ? 'Adding...' : 'Add to Cart'}
                         </button>

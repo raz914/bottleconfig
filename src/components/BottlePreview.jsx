@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { monogramStyles, getMonogramFontSize, shouldDisplayMonogram, convertToCircleGlyphs, getCircleFontFamily, usesCircleGlyphs, convertToNGramGlyphs, getNGramFontFamily, usesNGramGlyphs } from '../data/monogramConfig';
 import { DESKTOP_POSITIONS, MOBILE_POSITIONS, GRAPHIC_MAX_SIZE } from '../data/capturePositions';
 
@@ -57,6 +57,41 @@ const BottlePreview = ({
     const textInput = config.text;
     const monogramInput = config.monogram;
     const graphicInput = config.graphic;
+
+    // Graphic loading state
+    const [isGraphicLoading, setIsGraphicLoading] = useState(false);
+    const [loadedGraphicSrc, setLoadedGraphicSrc] = useState(null);
+
+    // Preload graphic when it changes
+    useEffect(() => {
+        if (graphicInput?.src) {
+            // Don't show loader for capture mode
+            if (isCapture) {
+                setLoadedGraphicSrc(graphicInput.src);
+                return;
+            }
+
+            // Check if it's the same image already loaded
+            if (graphicInput.src === loadedGraphicSrc) {
+                return;
+            }
+
+            setIsGraphicLoading(true);
+            const img = new Image();
+            img.onload = () => {
+                setLoadedGraphicSrc(graphicInput.src);
+                setIsGraphicLoading(false);
+            };
+            img.onerror = () => {
+                setLoadedGraphicSrc(graphicInput.src);
+                setIsGraphicLoading(false);
+            };
+            img.src = graphicInput.src;
+        } else {
+            setLoadedGraphicSrc(null);
+            setIsGraphicLoading(false);
+        }
+    }, [graphicInput?.src, isCapture]);
 
     const handleImageLoad = () => {
         if (setIsImageLoading) setIsImageLoading(false);
@@ -119,6 +154,7 @@ const BottlePreview = ({
                 {/* Text Overlay */}
                 {textInput && (
                     <div
+                        key={`text-${selectedColor}`}
                         className={`${getPositionClass('text')} flex items-center justify-center z-20 pointer-events-none overflow-hidden`}
                         style={{
                             containerType: 'inline-size',
@@ -130,24 +166,37 @@ const BottlePreview = ({
                             className="text-center block overflow-hidden"
                             style={{
                                 ...fonts.find(f => f.name === selectedFont)?.style,
-                                color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(216, 216, 216, 0.73)',
                                 fontSize: side === 'FRONT'
                                     ? `max(4px, min(${100 / Math.max(1, textInput.length)}cqi, 18cqi))`
                                     : `max(8px, min(${100 / Math.max(1, textInput.length)}cqi, 34cqi))`,
                                 letterSpacing: '0.5px',
-                                mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
                                 wordBreak: 'break-word',
                                 whiteSpace: 'pre-wrap',
                                 lineHeight: 1.2,
                                 fontVariantEmoji: 'text',
                                 verticalAlign: 'middle',
                                 textRendering: 'geometricPrecision',
-                                filter: 'grayscale(1)',
                                 ...(side === 'FRONT' && {
                                     display: '-webkit-box',
                                     WebkitLineClamp: 4,
                                     WebkitBoxOrient: 'vertical',
                                 }),
+                                // Silver Gradient Style
+                                ...(selectedColor === 'white' ? {
+                                    background: 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)',
+                                    WebkitBackgroundClip: 'text',
+                                    backgroundClip: 'text',
+                                    color: 'transparent',
+                                    filter: 'contrast(1.1) brightness(1.1) drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
+                                    WebkitTextFillColor: 'transparent',
+                                } : {
+                                    background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                    WebkitBackgroundClip: 'text',
+                                    backgroundClip: 'text',
+                                    color: 'transparent',
+                                    filter: 'contrast(1.1) brightness(1.1) drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
+                                    WebkitTextFillColor: 'transparent',
+                                })
                             }}
                         >
                             {textInput}
@@ -158,6 +207,7 @@ const BottlePreview = ({
                 {/* Graphic Overlay */}
                 {graphicInput && (
                     <div
+                        key={`graphic-${selectedColor}-${loadedGraphicSrc}`}
                         className={`${getPositionClass('graphic')} flex items-center justify-center z-20 pointer-events-none overflow-hidden`}
                         style={{
                             containerType: 'inline-size',
@@ -166,47 +216,70 @@ const BottlePreview = ({
                             ...getPositionStyle('graphic')
                         }}
                     >
-                        <img
-                            src={graphicInput.src}
-                            alt={graphicInput.name}
-                            className="w-full h-full object-contain"
-                            style={{
-                                filter: graphicInput.isUpload
-                                    ? 'grayscale(100%) contrast(1.2) brightness(1.2)'
-                                    : `grayscale(1)${selectedColor !== 'white' ? ' invert(1)' : ''}`,
-                                opacity: graphicInput.isUpload
-                                    ? 0.9
-                                    : (selectedColor === 'white' ? 0.85 : 0.73),
-                                mixBlendMode: graphicInput.isUpload
-                                    ? 'normal'
-                                    : (selectedColor === 'white' ? 'multiply' : 'overlay'),
-                                maxHeight: graphicMaxSize,
-                                maxWidth: graphicMaxSize
-                            }}
-                        />
-                        {/* Engraved Gradient Overlay - Only for Uploaded Images */}
-                        {graphicInput.isUpload && (
-                            <div
-                                className="absolute w-full h-full pointer-events-none"
-                                style={{
-                                    left: '50%',
-                                    top: '50%',
-                                    transform: 'translate(-50%, -50%)',
-                                    maxHeight: graphicMaxSize,
-                                    maxWidth: graphicMaxSize,
-                                    maskImage: `url(${graphicInput.src})`,
-                                    WebkitMaskImage: `url(${graphicInput.src})`,
-                                    maskSize: 'contain',
-                                    WebkitMaskSize: 'contain',
-                                    maskPosition: 'center',
-                                    WebkitMaskPosition: 'center',
-                                    maskRepeat: 'no-repeat',
-                                    WebkitMaskRepeat: 'no-repeat',
-                                    background: 'linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 40%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.3) 100%)',
-                                    mixBlendMode: 'overlay',
-                                    zIndex: 21
-                                }}
-                            />
+                        {/* Loading Spinner for Graphics */}
+                        {isGraphicLoading && !isCapture && (
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-6 h-6 border-2 border-gray-300 border-t-[#002C5F] rounded-full animate-spin"></div>
+                            </div>
+                        )}
+
+                        {/* Only show graphic when loaded */}
+                        {loadedGraphicSrc && !isGraphicLoading && (
+                            <>
+                                {/* Uploaded images (photos) use grayscale filter for cleaner look */}
+                                {graphicInput.isUpload ? (
+                                    <img
+                                        src={loadedGraphicSrc}
+                                        alt={graphicInput.name || 'Uploaded image'}
+                                        className="w-full h-full object-contain transition-opacity duration-200"
+                                        style={{
+                                            filter: 'grayscale(100%) contrast(1.2) brightness(1.2)',
+                                            maxHeight: graphicMaxSize,
+                                            maxWidth: graphicMaxSize
+                                        }}
+                                    />
+                                ) : selectedColor === 'white' ? (
+                                    /* Gallery SVGs on white bottle */
+                                    <div
+                                        className="w-full h-full transition-opacity duration-200"
+                                        style={{
+                                            maskImage: `url(${loadedGraphicSrc})`,
+                                            WebkitMaskImage: `url(${loadedGraphicSrc})`,
+                                            maskSize: 'contain',
+                                            WebkitMaskSize: 'contain',
+                                            maskPosition: 'center',
+                                            WebkitMaskPosition: 'center',
+                                            maskRepeat: 'no-repeat',
+                                            WebkitMaskRepeat: 'no-repeat',
+                                            background: 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)',
+                                            filter: 'contrast(1.1) brightness(1.1) drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
+                                            opacity: 0.95,
+                                            maxHeight: graphicMaxSize,
+                                            maxWidth: graphicMaxSize
+                                        }}
+                                    />
+                                ) : (
+                                    /* Gallery SVGs on colored bottles */
+                                    <div
+                                        className="w-full h-full transition-opacity duration-200"
+                                        style={{
+                                            maskImage: `url(${loadedGraphicSrc})`,
+                                            WebkitMaskImage: `url(${loadedGraphicSrc})`,
+                                            maskSize: 'contain',
+                                            WebkitMaskSize: 'contain',
+                                            maskPosition: 'center',
+                                            WebkitMaskPosition: 'center',
+                                            maskRepeat: 'no-repeat',
+                                            WebkitMaskRepeat: 'no-repeat',
+                                            background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                            filter: 'contrast(1.1) brightness(1.1) drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
+                                            opacity: 0.95,
+                                            maxHeight: graphicMaxSize,
+                                            maxWidth: graphicMaxSize
+                                        }}
+                                    />
+                                )}
+                            </>
                         )}
                     </div>
                 )}
@@ -214,7 +287,8 @@ const BottlePreview = ({
                 {/* Monogram Overlay */}
                 {monogramInput && shouldDisplayMonogram(selectedMonogram, monogramInput.length) && (
                     <div
-                        className={`${getPositionClass('monogram')} flex items-center justify-center z-20 pointer-events-none overflow-hidden`}
+                        key={`monogram-${selectedColor}-${selectedMonogram}`}
+                        className={`${getPositionClass('monogram')} flex items-center justify-center z-20 pointer-events-none`}
                         style={{ containerType: 'inline-size', ...getPositionStyle('monogram') }}
                     >
                         {usesCircleGlyphs(selectedMonogram) ? (
@@ -222,11 +296,21 @@ const BottlePreview = ({
                                 className="text-center whitespace-nowrap block"
                                 style={{
                                     fontFamily: getCircleFontFamily(monogramInput.length),
-                                    color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(216, 216, 216, 0.73)',
-                                    mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
-                                    filter: 'grayscale(1)',
                                     fontSize: getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile),
-                                    lineHeight: 1,
+                                    lineHeight: 1.4,
+                                    ...(selectedColor === 'white' ? {
+                                        background: 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)',
+                                        WebkitBackgroundClip: 'text',
+                                        backgroundClip: 'text',
+                                        color: 'transparent',
+                                        WebkitTextFillColor: 'transparent',
+                                    } : {
+                                        background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                        WebkitBackgroundClip: 'text',
+                                        backgroundClip: 'text',
+                                        color: 'transparent',
+                                        WebkitTextFillColor: 'transparent',
+                                    })
                                 }}
                             >
                                 {convertToCircleGlyphs(monogramInput, selectedMonogram)}
@@ -237,11 +321,21 @@ const BottlePreview = ({
                                 style={{
                                     ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
                                     fontFamily: getNGramFontFamily(monogramInput.length),
-                                    color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(216, 216, 216, 0.73)',
-                                    mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
-                                    filter: 'grayscale(1)',
                                     fontSize: getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile),
-                                    lineHeight: 1,
+                                    lineHeight: 1.4,
+                                    ...(selectedColor === 'white' ? {
+                                        background: 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)',
+                                        WebkitBackgroundClip: 'text',
+                                        backgroundClip: 'text',
+                                        color: 'transparent',
+                                        WebkitTextFillColor: 'transparent',
+                                    } : {
+                                        background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                        WebkitBackgroundClip: 'text',
+                                        backgroundClip: 'text',
+                                        color: 'transparent',
+                                        WebkitTextFillColor: 'transparent',
+                                    })
                                 }}
                             >
                                 {convertToNGramGlyphs(monogramInput)}
@@ -251,11 +345,21 @@ const BottlePreview = ({
                                 className="text-center whitespace-nowrap block"
                                 style={{
                                     ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
-                                    color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(216, 216, 216, 0.73)',
-                                    mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
-                                    filter: 'grayscale(1)',
                                     fontSize: getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile),
-                                    lineHeight: 1,
+                                    lineHeight: 1.4,
+                                    ...(selectedColor === 'white' ? {
+                                        background: 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)',
+                                        WebkitBackgroundClip: 'text',
+                                        backgroundClip: 'text',
+                                        color: 'transparent',
+                                        WebkitTextFillColor: 'transparent',
+                                    } : {
+                                        background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                        WebkitBackgroundClip: 'text',
+                                        backgroundClip: 'text',
+                                        color: 'transparent',
+                                        WebkitTextFillColor: 'transparent',
+                                    })
                                 }}
                             >
                                 <span style={{ fontSize: '0.75em' }}>{monogramInput[0]}</span>
@@ -267,11 +371,26 @@ const BottlePreview = ({
                                 className="text-center whitespace-nowrap block"
                                 style={{
                                     ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
-                                    color: selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(216, 216, 216, 0.73)',
-                                    mixBlendMode: selectedColor === 'white' ? 'multiply' : 'overlay',
-                                    filter: 'grayscale(1)',
                                     fontSize: getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile),
-                                    lineHeight: 1,
+                                    lineHeight: selectedMonogram === 'Vine' ? 2.4 : 1.4,
+                                    // Override Vine's marginLeft and use symmetric padding instead for centering
+                                    marginLeft: selectedMonogram === 'Vine' ? 0 : undefined,
+                                    paddingLeft: selectedMonogram === 'Vine' ? '0.6em' : undefined,
+                                    paddingTop: selectedMonogram === 'Vine' ? '0.3em' : undefined,
+                                    paddingBottom: selectedMonogram === 'Vine' ? '0.3em' : undefined,
+                                    ...(selectedColor === 'white' ? {
+                                        background: 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)',
+                                        WebkitBackgroundClip: 'text',
+                                        backgroundClip: 'text',
+                                        color: 'transparent',
+                                        WebkitTextFillColor: 'transparent',
+                                    } : {
+                                        background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                        WebkitBackgroundClip: 'text',
+                                        backgroundClip: 'text',
+                                        color: 'transparent',
+                                        WebkitTextFillColor: 'transparent',
+                                    })
                                 }}
                             >
                                 {monogramStyles.find(m => m.name === selectedMonogram)?.maxLength === 1

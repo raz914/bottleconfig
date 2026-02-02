@@ -22,7 +22,6 @@ export const galleryIcons = {
         { id: 'butterfly', name: 'Butterfly', src: 'gallery/nature/Butterfly.svg' },
         { id: 'charity_water', name: 'Charity Water', src: 'gallery/nature/CharityWater.svg' },
         { id: 'comet', name: 'Comet', src: 'gallery/nature/Comet.svg' },
-        { id: 'female_form', name: 'Female Form', src: 'gallery/nature/Female-form.svg' },
         { id: 'mountains_2', name: 'Mountains II', src: 'gallery/nature/Mountains.svg' },
         { id: 'paw', name: 'Paw', src: 'gallery/nature/paw.svg' }
     ],
