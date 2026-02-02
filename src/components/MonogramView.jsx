@@ -87,7 +87,7 @@ const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles
             </div>
 
             {/* Monogram Style Grid */}
-            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[50vh] md:max-h-full">
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                     {monogramStyles.map((monogram) => {
                         // Custom display for Circle font (rjm = rJ#)

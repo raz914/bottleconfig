@@ -205,7 +205,7 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab }) => {
                         UPLOAD DESIGN
                     </button>
 
-                    <p className="text-center text-[10px] text-gray-500 mb-8 uppercase tracking-wide">
+                    <p className="text-center text-xs text-gray-700 font-semibold mb-8 uppercase tracking-wide">
                         Accepted file types: PNG, JPG, and WEBP
                     </p>
 
@@ -213,56 +213,56 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab }) => {
                     <div className="grid grid-cols-4 gap-2 mb-8">
                         {/* 1. Image Size */}
                         <div className="flex flex-col items-center text-center">
-                            <div className="w-10 h-10 mb-2 flex items-center justify-center text-gray-900">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <div className="w-14 h-14 mb-2 flex items-center justify-center text-gray-900">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                                     <circle cx="8.5" cy="8.5" r="1.5"></circle>
                                     <polyline points="21 15 16 10 5 21"></polyline>
                                 </svg>
                             </div>
-                            <span className="text-[9px] leading-tight text-gray-500">
+                            <span className="text-[10px] leading-tight text-gray-800 font-medium">
                                 Image must be 300 px<br />(W or H)
                             </span>
                         </div>
 
                         {/* 2. No TM */}
                         <div className="flex flex-col items-center text-center">
-                            <div className="w-10 h-10 mb-2 flex items-center justify-center text-gray-900 relative">
-                                <span className="font-serif font-bold text-lg">TM</span>
+                            <div className="w-14 h-14 mb-2 flex items-center justify-center text-gray-900 relative">
+                                <span className="font-serif font-bold text-2xl">TM</span>
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="w-8 h-0.5 bg-gray-900 rotate-45 transform origin-center"></div>
+                                    <div className="w-12 h-0.5 bg-gray-900 rotate-45 transform origin-center"></div>
                                 </div>
                             </div>
-                            <span className="text-[9px] leading-tight text-gray-500">
+                            <span className="text-[10px] leading-tight text-gray-800 font-medium">
                                 No trademark infringement
                             </span>
                         </div>
 
                         {/* 3. No Copyright */}
                         <div className="flex flex-col items-center text-center">
-                            <div className="w-10 h-10 mb-2 flex items-center justify-center text-gray-900 relative">
-                                <span className="font-sans font-bold text-xl">©</span>
+                            <div className="w-14 h-14 mb-2 flex items-center justify-center text-gray-900 relative">
+                                <span className="font-sans font-bold text-3xl">©</span>
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="w-8 h-0.5 bg-gray-900 rotate-45 transform origin-center"></div>
+                                    <div className="w-12 h-0.5 bg-gray-900 rotate-45 transform origin-center"></div>
                                 </div>
                             </div>
-                            <span className="text-[9px] leading-tight text-gray-500">
+                            <span className="text-[10px] leading-tight text-gray-800 font-medium">
                                 No copyright infringement
                             </span>
                         </div>
 
                         {/* 4. No Photos */}
                         <div className="flex flex-col items-center text-center">
-                            <div className="w-10 h-10 mb-2 flex items-center justify-center text-gray-900 relative">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <div className="w-14 h-14 mb-2 flex items-center justify-center text-gray-900 relative">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                                     <circle cx="12" cy="13" r="4"></circle>
                                 </svg>
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="w-8 h-0.5 bg-gray-900 rotate-45 transform origin-center"></div>
+                                    <div className="w-12 h-0.5 bg-gray-900 rotate-45 transform origin-center"></div>
                                 </div>
                             </div>
-                            <span className="text-[9px] leading-tight text-gray-500">
+                            <span className="text-[10px] leading-tight text-gray-800 font-medium">
                                 No photos
                             </span>
                         </div>
@@ -271,12 +271,22 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab }) => {
                     <div className="w-full h-px bg-gray-200 mb-6"></div>
 
                     {/* Instructions */}
-                    <div className="mb-4">
-                        <h4 className="text-xs font-bold text-gray-900 uppercase tracking-widest mb-4 text-center">INSTRUCTIONS</h4>
-                        <p className="text-[11px] text-gray-500 leading-relaxed text-center mb-4">
+                    <div className="mb-4 space-y-4">
+                        <h4 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4 text-center">INSTRUCTIONS</h4>
+
+                        <p className="text-xs text-gray-700 font-medium leading-relaxed text-left">
+                            Orders containing offensive, inappropriate, or copyrighted content may be cancelled without further notice.
+                        </p>
+
+                        <p className="text-xs text-gray-700 font-medium leading-relaxed text-left">
+                            Please verify your preview carefully: check for any unwanted lines or spots and crop them out.
+                        </p>
+
+                        <p className="text-xs text-gray-700 font-medium leading-relaxed text-left">
                             For best results, commence with a sketch on white paper using a thick dark marker. Keep it simple and take a photo in a well-lit area without shadows.
                         </p>
-                        <p className="text-[11px] text-gray-500 leading-relaxed text-center">
+
+                        <p className="text-xs text-gray-700 font-medium leading-relaxed text-left">
                             Photographs will be converted to black and white, and results may vary. Proceed with high-contrast images for optimal engraving quality.
                         </p>
                     </div>

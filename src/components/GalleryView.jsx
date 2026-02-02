@@ -86,7 +86,7 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
             )}
 
             {/* Content Area */}
-            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[50vh] md:max-h-full">
 
                 {/* Categories Grid */}
                 {view === 'categories' && (

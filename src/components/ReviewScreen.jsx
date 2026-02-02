@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react';
+import ConfirmationModal from './ConfirmationModal';
 
 const ReviewScreen = ({
     onClose,
@@ -16,6 +17,7 @@ const ReviewScreen = ({
 }) => {
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
     // Listen for status messages from the parent window
     useEffect(() => {
@@ -206,7 +208,7 @@ const ReviewScreen = ({
                             Back
                         </button>
                         <button
-                            onClick={handleAddToCart}
+                            onClick={() => setShowConfirmationModal(true)}
                             disabled={isAddingToCart}
                             className={`flex-1 px-8 py-2 md:py-3 bg-[black] text-white font-bold uppercase tracking-widest shadow-lg transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#001D40]'}`}
                         >
@@ -215,6 +217,15 @@ const ReviewScreen = ({
                     </div>
                 </div>
             </footer>
+
+            <ConfirmationModal
+                isOpen={showConfirmationModal}
+                onClose={() => setShowConfirmationModal(false)}
+                onConfirm={() => {
+                    setShowConfirmationModal(false);
+                    handleAddToCart();
+                }}
+            />
         </div>
     );
 };
