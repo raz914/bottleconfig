@@ -583,7 +583,7 @@ const Customizer = () => {
                 </div>
 
                 {/* Right Panel - Customization Options */}
-                <div className={`w-full md:w-1/2 bg-white md:bg-[#f3f4f6] p-4 md:p-12 flex flex-col items-center justify-start flex-1 md:mb-0 md:overflow-y-auto md:pb-32 ${view !== 'main' ? 'mb-16' : ''}`}>
+                <div className={`w-full md:w-1/2 bg-[#f3f4f6] md:bg-[#f3f4f6] p-4 md:p-12 flex flex-col items-center justify-start flex-1 md:mb-0 md:overflow-y-auto md:pb-32 ${view !== 'main' ? 'mb-16' : ''}`}>
                     {view === 'main' && <MainView setView={setView} />}
 
                     {view === 'text' && (
@@ -624,6 +624,7 @@ const Customizer = () => {
                             setView={setView}
                             setGraphic={setGraphic}
                             graphicInput={graphicInput}
+                            activeTab={activeTab}
                         />
                     )}
                 </div>

@@ -9,7 +9,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = import.meta.env.PROD
     ? new URL('./pdf.worker.min.js', import.meta.url).toString()
     : pdfWorkerDevUrl;
 
-const UploadView = ({ setView, setGraphic, graphicInput }) => {
+const UploadView = ({ setView, setGraphic, graphicInput, activeTab }) => {
     const fileInputRef = useRef(null);
     const [showModal, setShowModal] = useState(false);
     const [isAccepted, setIsAccepted] = useState(false);
@@ -110,8 +110,11 @@ const UploadView = ({ setView, setGraphic, graphicInput }) => {
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
+    const getSideName = () => activeTab === 'FRONT' ? 'FRONT' : 'BACK';
+    const sideName = getSideName();
+
     return (
-        <div className="w-full max-w-2xl relative">
+        <div className="w-full h-full flex flex-col bg-white p-4 md:p-8 overflow-y-auto pb-32">
             <input
                 type="file"
                 ref={fileInputRef}
@@ -120,55 +123,18 @@ const UploadView = ({ setView, setGraphic, graphicInput }) => {
                 className="hidden"
             />
 
-            {/* Mini Nav for Tools */}
-            <div className="hidden md:flex items-center justify-center space-x-4 mb-8">
-                <button className="p-4 bg-white rounded-xl shadow-sm border-2 border-brand-blue">
-                    <img src="UI/icons/upload.svg" className="w-10 h-10" alt="Upload" />
-                </button>
-                <button onClick={() => setView('text')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
-                    <img src="UI/icons/text.png" className="w-10 h-10 object-contain" alt="Text" />
-                </button>
-                <button onClick={() => setView('monogram')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
-                    <img src="UI/icons/monogram.svg" className="w-10 h-10" alt="Monogram" />
-                </button>
-                <button onClick={() => setView('gallery')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
-                    <img src="UI/icons/gallery.svg" className="w-10 h-10" alt="Gallery" />
+            {/* Header / Back Button */}
+            <div className="mb-6">
+                <button
+                    onClick={() => setView('main')}
+                    className="flex items-center text-[#002C5F] font-bold text-sm tracking-widest uppercase hover:text-brand-blue transition-colors group"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 transform group-hover:-translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    {sideName}
                 </button>
             </div>
-
-            <div className="hidden md:block text-center mb-8">
-                <span className="text-xs font-bold tracking-wider text-gray-900 uppercase block mb-1">UPLOAD YOUR OWN IMAGE</span>
-            </div>
-
-            {/* Back Button */}
-            <button
-                onClick={() => setView('main')}
-                className="flex items-center text-black font-bold text-xs md:text-sm tracking-widest uppercase mb-4 md:mb-6 hover:text-gray-600 transition-colors"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                BACK
-            </button>
-
-            {/* Scale Slider */}
-            {graphicInput && (
-                <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 w-full animate-fade-in-up">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">SIZE</span>
-                        <span className="text-xs font-bold text-gray-500">{Math.round((graphicInput.scale || 0.5) * 100)}%</span>
-                    </div>
-                    <input
-                        type="range"
-                        min="0.2"
-                        max="1.0"
-                        step="0.05"
-                        value={graphicInput.scale || 0.5}
-                        onChange={(e) => setGraphic({ ...graphicInput, scale: parseFloat(e.target.value) })}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#002C5F]"
-                    />
-                </div>
-            )}
 
             {/* Error Message */}
             {uploadError && (
@@ -180,153 +146,144 @@ const UploadView = ({ setView, setGraphic, graphicInput }) => {
                         <p className="text-xs font-bold text-red-700 uppercase tracking-wide mb-1">Upload Failed</p>
                         <p className="text-xs text-red-600">{uploadError}</p>
                     </div>
-                    <button onClick={() => setUploadError(null)} className="text-red-400 hover:text-red-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                    </button>
                 </div>
             )}
 
-            {/* Main Content Area */}
-            <div className="bg-white rounded-lg shadow-sm p-8 mb-8 border border-gray-200 flex flex-col items-center justify-center text-center min-h-[300px]">
-
-                {isLoading ? (
-                    <div className="flex flex-col items-center">
-                        <div className="w-12 h-12 border-4 border-gray-200 border-t-[#002C5F] rounded-full animate-spin mb-4"></div>
-                        <span className="text-sm font-bold text-gray-500 uppercase tracking-widest">UPLOADING IMAGE...</span>
+            {/* Main Content */}
+            {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                    <div className="w-12 h-12 border-4 border-gray-200 border-t-[#002C5F] rounded-full animate-spin mb-4"></div>
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-widest">Processing...</span>
+                </div>
+            ) : graphicInput ? (
+                // PREVIEW STATE (Keeping it simple for now, but cleaner)
+                <div className="flex flex-col items-center w-full animate-fade-in-up">
+                    <div className="w-full aspect-square max-w-[200px] border-2 border-dashed border-gray-300 rounded bg-gray-50 flex items-center justify-center p-4 mb-6 relative overflow-hidden">
+                        <img
+                            src={graphicInput.src}
+                            alt="Preview"
+                            className="max-w-full max-h-full object-contain"
+                            style={{ filter: 'grayscale(100%) contrast(1.2) brightness(1.2)' }}
+                        />
                     </div>
-                ) : graphicInput ? (
-                    // PREVIEW STATE
-                    <div className="flex flex-col items-center w-full">
 
+                    {/* Scale Slider */}
+                    <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 w-full">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">SIZE</span>
+                            <span className="text-xs font-bold text-gray-500">{Math.round((graphicInput.scale || 0.5) * 100)}%</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="0.2"
+                            max="1.0"
+                            step="0.05"
+                            value={graphicInput.scale || 0.5}
+                            onChange={(e) => setGraphic({ ...graphicInput, scale: parseFloat(e.target.value) })}
+                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#002C5F]"
+                        />
+                    </div>
 
-                        <div className="border-2 border-dashed border-gray-300 p-2 mb-4 rounded bg-gray-50 w-32 h-32 flex items-center justify-center">
-                            <img
-                                src={graphicInput.src}
-                                alt="Preview"
-                                className="max-w-full max-h-full object-contain"
-                                style={{ filter: 'grayscale(100%) contrast(1.2) brightness(1.2)' }}
-                            />
+                    <button
+                        onClick={handleRemove}
+                        className="text-xs font-bold text-red-500 underline hover:text-red-700 uppercase tracking-wider mb-2"
+                    >
+                        Remove Image
+                    </button>
+                    <p className="text-[10px] text-gray-400 text-center">
+                        Review your placement on the bottle preview to the left.
+                    </p>
+                </div>
+            ) : (
+                // INITIAL STATE (Matching Reference)
+                <div className="flex flex-col w-full animate-fade-in-up">
+                    {/* Upload Button */}
+                    <button
+                        onClick={() => fileInputRef.current.click()}
+                        className="w-full py-4 bg-white border-2 border-[#002C5F] text-[#002C5F] font-bold text-sm tracking-widest uppercase rounded hover:bg-gray-50 transition-colors mb-6 shadow-sm"
+                    >
+                        UPLOAD DESIGN
+                    </button>
+
+                    <p className="text-center text-[10px] text-gray-500 mb-8 uppercase tracking-wide">
+                        Accepted file types: PNG, JPG, and WEBP
+                    </p>
+
+                    {/* Icons Grid */}
+                    <div className="grid grid-cols-4 gap-2 mb-8">
+                        {/* 1. Image Size */}
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-10 h-10 mb-2 flex items-center justify-center text-gray-900">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
+                            </div>
+                            <span className="text-[9px] leading-tight text-gray-500">
+                                Image must be 300 px<br />(W or H)
+                            </span>
                         </div>
 
-
-
-                        <button
-                            onClick={handleRemove}
-                            className="text-xs font-bold text-gray-400 underline hover:text-red-500 uppercase tracking-wider"
-                        >
-                            Remove Image
-                        </button>
-                        <p className="text-[10px] text-gray-400 mt-2">
-                            Please check the preview to ensure your image looks good to you!
-                        </p>
-                    </div>
-                ) : (
-                    // INITIAL STATE
-                    <div className="flex flex-col items-center">
-
-                        <button
-                            onClick={() => setShowModal(true)}
-                            className="px-8 py-3 bg-brand-blue text-white font-bold rounded hover:bg-[#006da0] transition-colors mb-4 uppercase tracking-wider"
-                        >
-                            Upload Image
-                        </button>
-
-                        <p className="text-xs text-gray-400">
-                            Accepts .jpg, .png, .bmp, .svg, .pdf
-                        </p>
-                    </div>
-                )}
-            </div>
-
-            {/* MODAL */}
-            {
-                showModal && (
-                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                        <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col relative animate-fade-in-up">
-
-                            {/* Modal Header */}
-                            <div className="p-6 pb-2 relative">
-                                <button
-                                    onClick={() => setShowModal(false)}
-                                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-2"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                                <h2 className="text-2xl font-normal text-center text-gray-800 mb-2">Upload Guidelines For Engraving</h2>
-                                <p className="text-xs text-center text-gray-600 px-4">
-                                    Laser engraving is done on the surface of your product without using ink, so there will be no colours. Follow the guidelines below for best results.
-                                </p>
-                            </div>
-
-                            {/* Modal Body */}
-                            <div className="p-6 pt-2 space-y-6 overflow-y-auto custom-scrollbar">
-                                <div>
-                                    <h3 className="text-sm font-bold text-gray-800 mb-2">Tips to create a winning personalised product include:</h3>
-                                    <ul className="list-disc pl-5 text-xs text-gray-600 space-y-2">
-                                        <li>For the best visual quality, upload print-ready or vector quality files for your artwork (SVG, PDF).</li>
-                                        <li>Use a PNG file with a transparent background for best results (other acceptable files include JPG, JPEG, BMP).</li>
-                                        <li>One colour artworks will work better than photos or gradients.</li>
-                                        <li>Use a clear image or graphic.</li>
-                                        <li><strong>Images should be close to square</strong> (aspect ratio between 2:3 and 3:2). Very wide or very tall images will not be accepted.</li>
-                                    </ul>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <h4 className="text-sm font-semibold mb-1">Simple illustrations are ideal</h4>
-                                        <p className="text-[10px] text-gray-500 leading-relaxed">
-                                            Notice the clear lines of the image. The engraving will address the darkest lines and skip transparent backgrounds.
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-semibold mb-1">Results may vary with photographs</h4>
-                                        <p className="text-[10px] text-gray-500 leading-relaxed">
-                                            Photographs will be rendered in black and white, various gradients, and will be reduced to simple shapes with subtle details removed. Some images will work better than others.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Divider */}
-                                <hr className="border-gray-200" />
-
-                                {/* Terms Checkbox */}
-                                <div className="flex items-start space-x-3 bg-gray-50 p-3 rounded">
-                                    <input
-                                        type="checkbox"
-                                        id="terms-check"
-                                        checked={isAccepted}
-                                        onChange={(e) => setIsAccepted(e.target.checked)}
-                                        className="mt-1 h-4 w-4 text-[#002C5F] focus:ring-[#002C5F] border-gray-300 rounded cursor-pointer"
-                                    />
-                                    <label htmlFor="terms-check" className="text-[10px] text-gray-600 leading-snug cursor-pointer select-none">
-                                        I confirm that my content complies with all requirements of BeFit's Customised-Product Terms of Sale. I understand that my upload may be rejected, or my order cancelled if BeFit determines or reasonably suspects I may have violated these terms.
-                                    </label>
+                        {/* 2. No TM */}
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-10 h-10 mb-2 flex items-center justify-center text-gray-900 relative">
+                                <span className="font-serif font-bold text-lg">TM</span>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-8 h-0.5 bg-gray-900 rotate-45 transform origin-center"></div>
                                 </div>
                             </div>
+                            <span className="text-[9px] leading-tight text-gray-500">
+                                No trademark infringement
+                            </span>
+                        </div>
 
-                            {/* Modal Footer */}
-                            <div className="p-6 pt-0 flex justify-center sticky bottom-0 bg-white">
-                                <button
-                                    onClick={() => fileInputRef.current.click()}
-                                    disabled={!isAccepted}
-                                    className={`w-full py-3 rounded font-bold uppercase tracking-widest transition-all
-                                    ${isAccepted
-                                            ? 'bg-[#002C5F] text-white hover:bg-[#003d82] shadow-md'
-                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'}
-                                `}
-                                >
-                                    Select Image
-                                </button>
+                        {/* 3. No Copyright */}
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-10 h-10 mb-2 flex items-center justify-center text-gray-900 relative">
+                                <span className="font-sans font-bold text-xl">©</span>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-8 h-0.5 bg-gray-900 rotate-45 transform origin-center"></div>
+                                </div>
                             </div>
+                            <span className="text-[9px] leading-tight text-gray-500">
+                                No copyright infringement
+                            </span>
+                        </div>
+
+                        {/* 4. No Photos */}
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-10 h-10 mb-2 flex items-center justify-center text-gray-900 relative">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                    <circle cx="12" cy="13" r="4"></circle>
+                                </svg>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-8 h-0.5 bg-gray-900 rotate-45 transform origin-center"></div>
+                                </div>
+                            </div>
+                            <span className="text-[9px] leading-tight text-gray-500">
+                                No photos
+                            </span>
                         </div>
                     </div>
-                )
-            }
-        </div >
+
+                    <div className="w-full h-px bg-gray-200 mb-6"></div>
+
+                    {/* Instructions */}
+                    <div className="mb-4">
+                        <h4 className="text-xs font-bold text-gray-900 uppercase tracking-widest mb-4 text-center">INSTRUCTIONS</h4>
+                        <p className="text-[11px] text-gray-500 leading-relaxed text-center mb-4">
+                            For best results, commence with a sketch on white paper using a thick dark marker. Keep it simple and take a photo in a well-lit area without shadows.
+                        </p>
+                        <p className="text-[11px] text-gray-500 leading-relaxed text-center">
+                            Photographs will be converted to black and white, and results may vary. Proceed with high-contrast images for optimal engraving quality.
+                        </p>
+                    </div>
+
+                </div>
+            )}
+        </div>
     );
 };
 

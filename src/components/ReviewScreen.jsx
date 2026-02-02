@@ -141,11 +141,11 @@ const ReviewScreen = ({
             </header>
 
             {/* Content - Scrollable */}
-            <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#f3f4f6]">
+            <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#f9fafb]">
                 <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
 
                     {/* FRONT VIEW */}
-                    <div className="flex flex-col items-center bg-white p-6 rounded-lg shadow-sm">
+                    <div className="flex flex-col items-center bg-[#f9fafb] p-6 rounded-lg ">
                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Front View</h3>
                         <div className="relative w-full max-w-[300px] aspect-[3/5] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible">
                             {frontImage ? (
@@ -163,7 +163,7 @@ const ReviewScreen = ({
                     </div>
 
                     {/* BACK VIEW */}
-                    <div className="flex flex-col items-center bg-white p-6 rounded-lg shadow-sm">
+                    <div className="flex flex-col items-center bg-[#f9fafb] p-6 rounded-lg ">
                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Back View</h3>
                         <div className="relative w-full max-w-[300px] aspect-[3/5] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible">
                             {backImage ? (
