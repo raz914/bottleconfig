@@ -87,7 +87,20 @@ const Customizer = () => {
     });
 
     const [selectedFont, setSelectedFont] = useState('BeFit');
-    const [selectedMonogram, setSelectedMonogram] = useState('Circle');
+    // Store monogram style per side to allow different styles for front/back
+    const [selectedMonogramBySide, setSelectedMonogramBySide] = useState({
+        FRONT: 'Roman',
+        BACK: 'Roman'
+    });
+    // Helper to get current side's monogram style
+    const selectedMonogram = selectedMonogramBySide[activeTab];
+    // Helper to set current side's monogram style
+    const setSelectedMonogram = (style) => {
+        setSelectedMonogramBySide(prev => ({
+            ...prev,
+            [activeTab]: style
+        }));
+    };
 
     // Fonts array
     const fonts = [
@@ -249,7 +262,7 @@ const Customizer = () => {
                     customization,
                     selectedColor,
                     selectedFont,
-                    selectedMonogram,
+                    selectedMonogramBySide[sideUpper],
                     fonts
                 );
 
@@ -297,7 +310,7 @@ const Customizer = () => {
                     customization,
                     selectedColor,
                     selectedFont,
-                    selectedMonogram,
+                    selectedMonogramBySide[sideUpper],
                     fonts
                 );
 
@@ -336,7 +349,7 @@ const Customizer = () => {
             delete window.takeSnapshotCanvas;
             delete window.compareSnapshots;
         };
-    }, [customization, selectedColor, selectedFont, selectedMonogram]);
+    }, [customization, selectedColor, selectedFont, selectedMonogramBySide]);
 
     const handleReview = async () => {
         try {
@@ -366,7 +379,7 @@ const Customizer = () => {
                     customization,
                     selectedColor,
                     selectedFont,
-                    selectedMonogram,
+                    selectedMonogramBySide.FRONT,
                     fonts
                 );
 
@@ -375,7 +388,7 @@ const Customizer = () => {
                     customization,
                     selectedColor,
                     selectedFont,
-                    selectedMonogram,
+                    selectedMonogramBySide.BACK,
                     fonts
                 );
 
@@ -385,7 +398,7 @@ const Customizer = () => {
                     customization,
                     selectedColor,
                     selectedFont,
-                    selectedMonogram,
+                    selectedMonogramBySide.FRONT,
                     fonts
                 );
 
@@ -394,7 +407,7 @@ const Customizer = () => {
                     customization,
                     selectedColor,
                     selectedFont,
-                    selectedMonogram,
+                    selectedMonogramBySide.BACK,
                     fonts
                 );
             } else {
@@ -636,7 +649,7 @@ const Customizer = () => {
                         customization={customization}
                         selectedColor={selectedColor}
                         selectedFont={selectedFont}
-                        selectedMonogram={selectedMonogram}
+                        selectedMonogram={selectedMonogramBySide.FRONT}
                         fonts={fonts}
                         isMobile={false} // Force Desktop Mode
                         view="capture" // Special view mode to force sizes
@@ -648,7 +661,7 @@ const Customizer = () => {
                         customization={customization}
                         selectedColor={selectedColor}
                         selectedFont={selectedFont}
-                        selectedMonogram={selectedMonogram}
+                        selectedMonogram={selectedMonogramBySide.BACK}
                         fonts={fonts}
                         isMobile={false} // Force Desktop Mode
                         view="capture"
@@ -662,7 +675,7 @@ const Customizer = () => {
                         customization={customization}
                         selectedColor={selectedColor}
                         selectedFont={selectedFont}
-                        selectedMonogram={selectedMonogram}
+                        selectedMonogram={selectedMonogramBySide.FRONT}
                         fonts={fonts}
                     />
                 </div>
@@ -672,7 +685,7 @@ const Customizer = () => {
                         customization={customization}
                         selectedColor={selectedColor}
                         selectedFont={selectedFont}
-                        selectedMonogram={selectedMonogram}
+                        selectedMonogram={selectedMonogramBySide.BACK}
                         fonts={fonts}
                     />
                 </div>
@@ -694,7 +707,7 @@ const Customizer = () => {
                     customization={customization}
                     selectedColor={selectedColor}
                     selectedFont={selectedFont}
-                    selectedMonogram={selectedMonogram}
+                    selectedMonogramBySide={selectedMonogramBySide}
                     fonts={fonts}
                     monogramStyles={monogramStyles}
                     convertToCircleGlyphs={convertToCircleGlyphs}

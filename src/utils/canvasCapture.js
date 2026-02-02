@@ -386,7 +386,13 @@ const drawMonogramOnCanvas = (ctx, monogramInput, selectedMonogram, bounds, sele
 
     let displayText = monogramInput;
     let fontFamily = 'sans-serif';
+    let offsetX = 0;
     const monogramStyle = monogramStyles.find(m => m.name === selectedMonogram);
+
+    // Get font size from monogramConfig (same as BottlePreview uses)
+    // isMobile = false for capture mode
+    const cssFontSize = getMonogramFontSize(selectedMonogram, side, monogramInput.length, false);
+    const fontSize = parseCssFontSize(cssFontSize, bounds.width);
 
     if (usesCircleGlyphs(selectedMonogram)) {
         displayText = convertToCircleGlyphs(monogramInput, selectedMonogram);
@@ -394,6 +400,10 @@ const drawMonogramOnCanvas = (ctx, monogramInput, selectedMonogram, bounds, sele
     } else if (usesNGramGlyphs(selectedMonogram)) {
         displayText = convertToNGramGlyphs(monogramInput);
         fontFamily = getNGramFontFamily(monogramInput.length);
+        // N-Gram monogram has a slight left offset in the UI (margin-left: .1em) on BACK only
+        if (side === 'BACK') {
+            offsetX = fontSize * 0.05;
+        }
     } else if (monogramStyle) {
         fontFamily = monogramStyle.style?.fontFamily || 'sans-serif';
         // Handle maxLength === 1 monograms
@@ -401,11 +411,6 @@ const drawMonogramOnCanvas = (ctx, monogramInput, selectedMonogram, bounds, sele
             displayText = monogramInput.charAt(0);
         }
     }
-
-    // Get font size from monogramConfig (same as BottlePreview uses)
-    // isMobile = false for capture mode
-    const cssFontSize = getMonogramFontSize(selectedMonogram, side, monogramInput.length, false);
-    const fontSize = parseCssFontSize(cssFontSize, bounds.width);
 
     ctx.font = `normal normal ${fontSize}px ${fontFamily}`;
 
@@ -440,9 +445,36 @@ const drawMonogramOnCanvas = (ctx, monogramInput, selectedMonogram, bounds, sele
 
         ctx.font = `normal normal ${smallSize}px ${fontFamily}`;
         ctx.fillText(monogramInput[2], currentX + rightMetrics.width / 2, centerY);
+    } else if (selectedMonogram === 'Vine') {
+        // Vine monogram: apply letter-spacing manually (canvas doesn't support CSS letter-spacing)
+        // From monogramConfig: letterSpacing: '.55em'
+        // Note: CSS marginLeft (0.6em) compensates for letter-spacing's trailing space,
+        // but our canvas implementation doesn't add trailing space, so we skip marginLeft.
+        const letterSpacing = fontSize * 0.55; // Convert em to px
+
+        // Measure total width including spacing (no trailing space after last char)
+        let totalWidth = 0;
+        const charWidths = [];
+        for (let i = 0; i < displayText.length; i++) {
+            const charWidth = ctx.measureText(displayText[i]).width;
+            charWidths.push(charWidth);
+            totalWidth += charWidth;
+            if (i < displayText.length - 1) {
+                totalWidth += letterSpacing;
+            }
+        }
+
+        // Start position (centered)
+        let currentX = centerX - totalWidth / 2;
+
+        // Draw each character with spacing
+        for (let i = 0; i < displayText.length; i++) {
+            ctx.fillText(displayText[i], currentX + charWidths[i] / 2, centerY);
+            currentX += charWidths[i] + letterSpacing;
+        }
     } else {
         // Standard monogram drawing
-        ctx.fillText(displayText, centerX, centerY);
+        ctx.fillText(displayText, centerX + offsetX, centerY);
     }
 
     ctx.restore();

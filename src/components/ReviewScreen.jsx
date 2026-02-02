@@ -6,7 +6,7 @@ const ReviewScreen = ({
     customization,
     selectedColor,
     selectedFont,
-    selectedMonogram,
+    selectedMonogramBySide, // { FRONT: '...', BACK: '...' }
     frontImage, // Received from parent (snapshot)
     backImage,   // Received from parent (snapshot)
     frontDesignImage,
@@ -42,16 +42,31 @@ const ReviewScreen = ({
     // "Add to Cart" logic
     const handleAddToCart = useCallback(async () => {
         // Collect all customization data - FLAT structure matching WordPress plugin expectations
+        const frontGraphicSrc =
+            customization.FRONT.graphic && typeof customization.FRONT.graphic.src === 'string' && customization.FRONT.graphic.src.startsWith('gallery/')
+                ? customization.FRONT.graphic.src
+                : '';
+        const backGraphicSrc =
+            customization.BACK.graphic && typeof customization.BACK.graphic.src === 'string' && customization.BACK.graphic.src.startsWith('gallery/')
+                ? customization.BACK.graphic.src
+                : '';
+
         const customizationData = {
             color: selectedColor,
             font: selectedFont,
-            monogramStyle: selectedMonogram,
+            // Per-side monogram styles
+            frontMonogramStyle: selectedMonogramBySide?.FRONT || '',
+            backMonogramStyle: selectedMonogramBySide?.BACK || '',
+            // Backward compatibility: keep a single monogramStyle (use BACK as default)
+            monogramStyle: selectedMonogramBySide?.BACK || '',
             frontText: customization.FRONT.text || '',
             backText: customization.BACK.text || '',
             frontMonogram: customization.FRONT.monogram || '',
             backMonogram: customization.BACK.monogram || '',
             frontGraphic: customization.FRONT.graphic ? customization.FRONT.graphic.name : '',
             backGraphic: customization.BACK.graphic ? customization.BACK.graphic.name : '',
+            frontGraphicSrc,
+            backGraphicSrc,
             frontImage: frontImage || '', // Base64 snapshot
             backImage: backImage || '',   // Base64 snapshot
             frontDesignImage: frontDesignImage || '', // Base64 isolated design
@@ -80,7 +95,7 @@ const ReviewScreen = ({
             onRequestClose();
         }
 
-    }, [customization, selectedColor, selectedFont, selectedMonogram, frontImage, backImage, frontDesignImage, backDesignImage, onRequestClose]);
+    }, [customization, selectedColor, selectedFont, selectedMonogramBySide, frontImage, backImage, frontDesignImage, backDesignImage, onRequestClose]);
 
 
     const handleEdit = (side) => {

@@ -172,6 +172,71 @@ body.bottle-customizer-open {
 
 /* ===== Cart Personalization Dropdown ===== */
 
+/* ===== Monogram fonts (served from plugin configurator assets) ===== */
+@font-face {
+    font-family: 'ITC Modern';
+    src: url('../../configurator/monogram/itc-modern.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Nexa Script';
+    src: url('../../configurator/monogram/nexa-script.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Roman';
+    src: url('../../configurator/monogram/roman.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Vine';
+    src: url('../../configurator/monogram/vine.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Two Character Circle';
+    src: url('../../configurator/monogram/two-character-circle.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Three Character Circle';
+    src: url('../../configurator/monogram/three-character-circle.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Two Character N-Gram';
+    src: url('../../configurator/monogram/two-character-n-gram.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Three Character N-Gram';
+    src: url('../../configurator/monogram/three-character-n-gram.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* Dropdown container */
 .bottle-customizer-options {
     margin-top: 8px;
@@ -211,62 +276,90 @@ details[open] .bc-dropdown-summary::before {
     padding: 10px 0 5px 0;
 }
 
-/* Preview images row (front + back bottle previews) */
-.bc-previews {
+/* Dropdown rows (match reference layout: label + big preview) */
+.bc-rows {
     display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.bc-preview-img {
-    max-width: 70px;
-    height: auto;
-    border: 1px solid #eee;
-    border-radius: 4px;
-    background: #fafafa;
-}
-
-/* Side-by-side front/back designs */
-.bc-sides {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-
-.bc-side {
-    flex: 1 1 45%;
-    min-width: 100px;
-}
-
-.bc-side-label {
-    display: block;
-    font-size: 0.85em;
-    font-weight: 700;
-    color: #555;
-    text-transform: uppercase;
-    margin-bottom: 4px;
-}
-
-.bc-side-row {
+.bc-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
 }
 
-.bc-design-thumb {
-    width: 50px;
-    height: 50px;
-    object-fit: contain;
-    border: 1px solid #eee;
-    border-radius: 4px;
-    background: #fafafa;
-    flex-shrink: 0;
-}
-
-.bc-side-text {
-    font-size: 0.9em;
-    color: #444;
+.bc-label {
+    font-size: 0.85em;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     white-space: nowrap;
+    min-width: 72px;
+}
+
+.bc-value {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.bc-monogram {
+    line-height: 1;
+    font-size: 42px;
+    display: inline-block;
+}
+
+.bc-monogram--itc-modern { font-family: 'ITC Modern', serif; }
+.bc-monogram--nexa-script { font-family: 'Nexa Script', cursive; }
+.bc-monogram--roman { font-family: 'Roman', serif; }
+.bc-monogram--vine { font-family: 'Vine', serif; letter-spacing: .55em; margin-left: .6em; font-size: 0.7em; }
+.bc-monogram--circle2 { font-family: 'Two Character Circle', serif; }
+.bc-monogram--circle3 { font-family: 'Three Character Circle', serif; }
+.bc-monogram--ngram2 { font-family: 'Two Character N-Gram', serif; margin-left: .1em; }
+.bc-monogram--ngram3 { font-family: 'Three Character N-Gram', serif; margin-left: .1em; }
+
+/* Roman monogram: middle character larger (3-letter only) */
+.bc-monogram--roman-split {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+}
+
+.bc-monogram--roman-split .bc-monogram__left,
+.bc-monogram--roman-split .bc-monogram__right {
+    font-size: 0.57em !important; 
+}
+
+.bc-monogram--roman-split .bc-monogram__middle {
+    font-size: 0.75em !important;
+}
+
+.bc-graphic-img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    display: block;
+}
+
+.bc-text {
+    font-size: 0.95em;
+    color: #444;
+    word-break: break-word;
+}
+
+/* Cart/checkout thumbnail override */
+.bottle-customizer-cart-thumb {
+    width: 100%;
+    height: auto;
+    max-width: 80px;
+    object-fit: contain;
+    border-radius: 4px;
+    border: 1px solid #eee;
+    background: #fafafa;
 }
 
 /* Responsive */
@@ -280,33 +373,184 @@ details[open] .bc-dropdown-summary::before {
         max-width: 60px !important;
     }
 
-    .bc-sides {
-        flex-direction: column;
-        gap: 10px;
+    .bc-monogram {
+        font-size: 31px;
     }
-
-    .bc-side {
-        flex: 1 1 100%;
-    }
-
-    .bc-preview-img {
-        max-width: 55px;
+    .bc-graphic-img {
+        width: 70px;
+        height: 70px;
     }
 }
 
 /* Mini-cart / cart drawer narrow context */
 @media (max-width: 400px) {
-    .bc-sides {
-        flex-direction: column;
-        gap: 8px;
+    .bc-row {
+        gap: 10px;
     }
+    .bc-label {
+        min-width: 66px;
+    }
+    .bc-monogram {
+        font-size: 26px;
+    }
+    .bc-graphic-img {
+        width: 60px;
+        height: 60px;
+    }
+}
 
-    .bc-side {
-        flex: 1 1 100%;
-    }
+/* FKCart drawer: it applies aggressive rules that can shrink text and hide images.
+   Force monogram sizing in that context. */
+#fkcart-modal .bc-monogram {
+    font-size: 45px !important;
+    line-height: 1 !important;
+}
 
-    .bc-design-thumb {
-        width: 40px;
-        height: 40px;
+@media (max-width: 400px) {
+    #fkcart-modal .bc-monogram {
+        font-size: 34px !important;
     }
+}
+
+/* FKCart drawer: Vine monogram 30% smaller */
+#fkcart-modal .bc-monogram--vine {
+    font-size: 32px !important;
+}
+
+@media (max-width: 400px) {
+    #fkcart-modal .bc-monogram--vine {
+        font-size: 24px !important;
+    }
+}
+
+/* FKCart drawer: make the product thumbnail larger than the default 60x60. */
+#fkcart-modal .fkcart-image-wrapper {
+    width: 100px !important;
+    height: auto !important;
+    flex: 0 0 auto !important;
+}
+
+#fkcart-modal .fkcart-image-wrapper img.fkcart-image {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+}
+
+/* Ensure our injected thumbnail can scale up inside FKCart wrapper. */
+#fkcart-modal img.bottle-customizer-cart-thumb {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+}
+
+/* Hide the stray ":" row created by our custom item_data entry.
+   Woo renders an empty key as <dt class="variation-">:</dt> which FKCart shows as a standalone ":" */
+dl.variation dt.variation- {
+    display: none !important;
+}
+
+/* FKCart: hide only the stray colon span with the empty "variation-" key.
+   This targets the specific element: <span class="fkcart-attr-key" data-attr-key="variation-">: </span> */
+#fkcart-modal .fkcart-attr-key[data-attr-key="variation-"] {
+    display: none !important;
+}
+
+
+/* ===== Gradient border frame for customized item thumbnails (Yeti-style) ===== */
+.bc-thumb-frame {
+    display: inline-block;
+    padding: 3px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #20c997, #ffd43b, #339af0, #ff922b);
+    line-height: 0;
+}
+
+.bc-thumb-frame img {
+    display: block;
+    border-radius: 4px;
+    background: #fff;
+}
+
+/* FKCart: ensure thumb frame fills the wrapper properly */
+#fkcart-modal .fkcart-image-wrapper .bc-thumb-frame {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#fkcart-modal .fkcart-image-wrapper .bc-thumb-frame img {
+    width: 100%;
+    height: auto;
+}
+
+/* ===== Per-item delivery note (below quantity controls, full width) ===== */
+
+/* Wrapper row for the note — ensures it takes full width as a separate block */
+.bc-mini-cart-note-row {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+.bc-mini-cart-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    margin: 12px 0 4px;
+    background: #f0f9ff;
+    border-radius: 6px;
+    border-left: 3px solid #339af0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: #333;
+}
+
+.bc-mini-cart-note .bc-note-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    color: #339af0;
+}
+
+.bc-mini-cart-note .bc-note-text {
+    flex: 1;
+}
+
+.bc-mini-cart-note .bc-note-text strong {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 11px;
+    color: #1c7ed6;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* FKCart drawer: ensure note row takes full width and looks like a separate block */
+#fkcart-modal .bc-mini-cart-note-row {
+    width: 100% !important;
+    padding: 0 16px !important;
+    margin-top: 8px !important;
+}
+
+#fkcart-modal .bc-mini-cart-note {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 12px 14px !important;
+    font-size: 11px !important;
+}
+
+#fkcart-modal .bc-mini-cart-note .bc-note-icon {
+    width: 20px !important;
+    height: 20px !important;
+}
+
+#fkcart-modal .bc-mini-cart-note .bc-note-text strong {
+    font-size: 11px !important;
 }

@@ -514,8 +514,12 @@ function bottle_customizer_add_to_cart() {
             'back_monogram' => sanitize_text_field($customization_data['backMonogram'] ?? ''),
             'front_graphic' => sanitize_text_field($customization_data['frontGraphic'] ?? ''),
             'back_graphic' => sanitize_text_field($customization_data['backGraphic'] ?? ''),
+            'front_graphic_src' => bottle_customizer_sanitize_graphic_src($customization_data['frontGraphicSrc'] ?? ''),
+            'back_graphic_src' => bottle_customizer_sanitize_graphic_src($customization_data['backGraphicSrc'] ?? ''),
             'font' => sanitize_text_field($customization_data['font'] ?? ''),
             'monogram_style' => sanitize_text_field($customization_data['monogramStyle'] ?? ''),
+            'front_monogram_style' => sanitize_text_field($customization_data['frontMonogramStyle'] ?? ''),
+            'back_monogram_style' => sanitize_text_field($customization_data['backMonogramStyle'] ?? ''),
             'front_image_url' => $front_image_url,
             'back_image_url' => $back_image_url,
             'front_design_url' => $front_design_url,
@@ -717,6 +721,186 @@ function bottle_customizer_save_temp_image($base64_image, $prefix) {
 }
 
 /**
+ * Sanitize a configurator gallery graphic src (relative path like "gallery/.../file.svg").
+ * We only accept gallery paths to avoid loading arbitrary remote URLs.
+ */
+function bottle_customizer_sanitize_graphic_src($src) {
+    $src = trim((string) $src);
+    if ($src === '') return '';
+    $src = str_replace('\\', '/', $src);
+
+    // Disallow URLs, data URIs, blobs, and path traversal.
+    if (preg_match('#^(https?:)?//#i', $src)) return '';
+    if (strpos($src, 'data:') === 0) return '';
+    if (strpos($src, 'blob:') === 0) return '';
+    if (strpos($src, '..') !== false) return '';
+
+    // Only allow built-in gallery assets.
+    if (strpos($src, 'gallery/') !== 0) return '';
+
+    return $src;
+}
+
+/**
+ * Build a URL to a configurator asset by relative path (e.g. "gallery/.../icon.svg").
+ */
+function bottle_customizer_configurator_asset_url($relative_path) {
+    $relative_path = ltrim((string) $relative_path, '/');
+    return BOTTLE_CUSTOMIZER_PLUGIN_URL . 'configurator/' . $relative_path;
+}
+
+/**
+ * Monogram glyph mapping for 3-character circle/N-gram fonts (right position).
+ */
+function bottle_customizer_monogram_right_glyph_map() {
+    return array(
+        'A' => '1', 'B' => '2', 'C' => '3', 'D' => '4', 'E' => '5',
+        'F' => '6', 'G' => '7', 'H' => '8', 'I' => '9', 'J' => '0',
+        'K' => '!', 'L' => '@', 'M' => '#', 'N' => '$', 'O' => '%',
+        'P' => '^', 'Q' => '&', 'R' => '*', 'S' => '(', 'T' => ')',
+        'U' => '-', 'V' => '+', 'W' => '[', 'X' => ']', 'Y' => '\\\\', 'Z' => ':',
+    );
+}
+
+function bottle_customizer_monogram_convert_circle_glyphs($input) {
+    $input = (string) $input;
+    if ($input === '') return '';
+
+    $upper = strtoupper($input);
+    $len = strlen($upper);
+
+    if ($len === 2) {
+        return strtolower($upper[0]) . $upper[1];
+    }
+    if ($len === 3) {
+        $map = bottle_customizer_monogram_right_glyph_map();
+        $left = strtolower($upper[0]);
+        $middle = $upper[1];
+        $right = isset($map[$upper[2]]) ? $map[$upper[2]] : $upper[2];
+        return $left . $middle . $right;
+    }
+
+    return $input;
+}
+
+function bottle_customizer_monogram_convert_ngram_glyphs($input) {
+    $input = (string) $input;
+    if ($input === '') return '';
+
+    $upper = strtoupper($input);
+    $len = strlen($upper);
+
+    if ($len === 2) {
+        return '?' . strtolower($upper[0]) . $upper[1];
+    }
+    if ($len === 3) {
+        $map = bottle_customizer_monogram_right_glyph_map();
+        $left = strtolower($upper[0]);
+        $middle = $upper[1];
+        $right = isset($map[$upper[2]]) ? $map[$upper[2]] : $upper[2];
+        return '?' . $left . $middle . $right;
+    }
+
+    return $input;
+}
+
+/**
+ * Render a monogram as text using the correct font/glyph rules.
+ * Returns HTML (safe to echo into the cart item display block).
+ */
+function bottle_customizer_render_monogram_html($monogram, $monogram_style) {
+    $monogram = (string) $monogram;
+    $monogram_style = (string) $monogram_style;
+    $len = strlen($monogram);
+
+    if ($monogram === '') return '';
+
+    // Circle glyph fonts (rJ#)
+    if ($monogram_style === 'rJ#') {
+        $class = ($len === 3) ? 'bc-monogram--circle3' : 'bc-monogram--circle2';
+        $value = bottle_customizer_monogram_convert_circle_glyphs($monogram);
+        return '<span class="bc-monogram ' . esc_attr($class) . '">' . esc_html($value) . '</span>';
+    }
+
+    // N-Gram glyph fonts
+    if ($monogram_style === 'N-Gram') {
+        $class = ($len === 3) ? 'bc-monogram--ngram3' : 'bc-monogram--ngram2';
+        $value = bottle_customizer_monogram_convert_ngram_glyphs($monogram);
+        return '<span class="bc-monogram ' . esc_attr($class) . '">' . esc_html($value) . '</span>';
+    }
+
+    // Regular monogram fonts by style name.
+    $class_map = array(
+        'ITC Modern' => 'bc-monogram--itc-modern',
+        'Nexa Script' => 'bc-monogram--nexa-script',
+        'Roman' => 'bc-monogram--roman',
+        'Vine' => 'bc-monogram--vine',
+    );
+    $class = isset($class_map[$monogram_style]) ? $class_map[$monogram_style] : 'bc-monogram--roman';
+
+    // Roman monogram: middle letter larger when 3 characters.
+    if ($monogram_style === 'Roman' && $len === 3) {
+        $chars = str_split($monogram);
+        return '<span class="bc-monogram ' . esc_attr($class) . ' bc-monogram--roman-split">'
+            . '<span class="bc-monogram__left">' . esc_html($chars[0]) . '</span>'
+            . '<span class="bc-monogram__middle">' . esc_html($chars[1]) . '</span>'
+            . '<span class="bc-monogram__right">' . esc_html($chars[2]) . '</span>'
+            . '</span>';
+    }
+
+    return '<span class="bc-monogram ' . esc_attr($class) . '">' . esc_html($monogram) . '</span>';
+}
+
+/**
+ * Render the customization preview for a side (front/back).
+ */
+function bottle_customizer_render_side_preview_html($customization, $side) {
+    $side = ($side === 'back') ? 'back' : 'front';
+
+    $text_key = $side . '_text';
+    $mono_key = $side . '_monogram';
+    $graphic_key = $side . '_graphic';
+    $graphic_src_key = $side . '_graphic_src';
+    $design_url_key = $side . '_design_url';
+
+    $text = !empty($customization[$text_key]) ? (string) $customization[$text_key] : '';
+    $monogram = !empty($customization[$mono_key]) ? (string) $customization[$mono_key] : '';
+    $graphic = !empty($customization[$graphic_key]) ? (string) $customization[$graphic_key] : '';
+    $graphic_src = !empty($customization[$graphic_src_key]) ? (string) $customization[$graphic_src_key] : '';
+    $design_url = !empty($customization[$design_url_key]) ? (string) $customization[$design_url_key] : '';
+    // Prefer per-side monogram style, fall back to shared monogram_style for backward compatibility.
+    $monogram_style_key = $side . '_monogram_style';
+    $monogram_style = !empty($customization[$monogram_style_key])
+        ? (string) $customization[$monogram_style_key]
+        : (!empty($customization['monogram_style']) ? (string) $customization['monogram_style'] : '');
+
+    // Prefer showing the monogram as real text if present.
+    if ($monogram !== '') {
+        return bottle_customizer_render_monogram_html($monogram, $monogram_style);
+    }
+
+    // If a graphic exists, try to show original gallery SVG, else fall back to captured design image.
+    if ($graphic !== '') {
+        $safe_src = bottle_customizer_sanitize_graphic_src($graphic_src);
+        if ($safe_src !== '') {
+            $url = bottle_customizer_configurator_asset_url($safe_src);
+            return '<img src="' . esc_url($url) . '" alt="' . esc_attr__('Graphic', 'bottle-customizer') . '" class="bc-graphic-img" />';
+        }
+        if ($design_url !== '') {
+            return '<img src="' . esc_url($design_url) . '" alt="' . esc_attr__('Graphic', 'bottle-customizer') . '" class="bc-graphic-img" />';
+        }
+        return '<span class="bc-text">' . esc_html__('Graphic', 'bottle-customizer') . '</span>';
+    }
+
+    // Text fallback
+    if ($text !== '') {
+        return '<span class="bc-text">"' . esc_html($text) . '"</span>';
+    }
+
+    return '<span class="bc-text">—</span>';
+}
+
+/**
  * Display customization data in cart
  */
 function bottle_customizer_cart_item_data($item_data, $cart_item) {
@@ -808,70 +992,32 @@ function bottle_customizer_cart_item_data($item_data, $cart_item) {
         // --- Personalized Options Dropdown ---
         $has_front = !empty($customization['front_text']) || !empty($customization['front_monogram']) || !empty($customization['front_graphic']);
         $has_back = !empty($customization['back_text']) || !empty($customization['back_monogram']) || !empty($customization['back_graphic']);
-        $has_front_preview = !empty($customization['front_image_url']);
-        $has_back_preview = !empty($customization['back_image_url']);
-        $has_front_design = !empty($customization['front_design_url']) && (!empty($customization['front_monogram']) || !empty($customization['front_graphic']));
-        $has_back_design = !empty($customization['back_design_url']) && (!empty($customization['back_monogram']) || !empty($customization['back_graphic']));
 
-        if ($has_front || $has_back || $has_front_preview || $has_back_preview) {
+        if ($has_front || $has_back) {
             ob_start();
             ?>
-            <details class="bottle-customizer-options">
+            <details class="bottle-customizer-options" open>
                 <summary class="bc-dropdown-summary"><?php esc_html_e('Personalized Options', 'bottle-customizer'); ?></summary>
                 <div class="bc-dropdown-content">
-
-                    <?php if ($has_front_preview || $has_back_preview): ?>
-                        <div class="bc-previews">
-                            <?php if ($has_front_preview): ?>
-                                <img src="<?php echo esc_url($customization['front_image_url']); ?>" alt="<?php esc_attr_e('Front Preview', 'bottle-customizer'); ?>" class="bc-preview-img" />
-                            <?php endif; ?>
-                            <?php if ($has_back_preview): ?>
-                                <img src="<?php echo esc_url($customization['back_image_url']); ?>" alt="<?php esc_attr_e('Back Preview', 'bottle-customizer'); ?>" class="bc-preview-img" />
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if ($has_front || $has_back): ?>
-                        <div class="bc-sides">
-                            <?php if ($has_front): ?>
-                                <div class="bc-side">
-                                    <span class="bc-side-label"><?php esc_html_e('Front', 'bottle-customizer'); ?></span>
-                                    <div class="bc-side-row">
-                                        <?php if ($has_front_design): ?>
-                                            <img src="<?php echo esc_url($customization['front_design_url']); ?>" alt="<?php esc_attr_e('Front Design', 'bottle-customizer'); ?>" class="bc-design-thumb" />
-                                        <?php endif; ?>
-                                        <?php
-                                        $f_desc = [];
-                                        if (!empty($customization['front_text'])) $f_desc[] = $customization['front_text'];
-                                        if (!empty($customization['front_monogram'])) $f_desc[] = __('Monogram', 'bottle-customizer');
-                                        if (!empty($customization['front_graphic'])) $f_desc[] = __('Graphic', 'bottle-customizer');
-                                        if ($f_desc): ?>
-                                            <span class="bc-side-text"><?php echo esc_html(implode(', ', $f_desc)); ?></span>
-                                        <?php endif; ?>
-                                    </div>
+                    <div class="bc-rows">
+                        <?php if ($has_front): ?>
+                            <div class="bc-row">
+                                <span class="bc-label"><?php esc_html_e('Front:', 'bottle-customizer'); ?></span>
+                                <div class="bc-value">
+                                    <?php echo bottle_customizer_render_side_preview_html($customization, 'front'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                                 </div>
-                            <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
 
-                            <?php if ($has_back): ?>
-                                <div class="bc-side">
-                                    <span class="bc-side-label"><?php esc_html_e('Back', 'bottle-customizer'); ?></span>
-                                    <div class="bc-side-row">
-                                        <?php if ($has_back_design): ?>
-                                            <img src="<?php echo esc_url($customization['back_design_url']); ?>" alt="<?php esc_attr_e('Back Design', 'bottle-customizer'); ?>" class="bc-design-thumb" />
-                                        <?php endif; ?>
-                                        <?php
-                                        $b_desc = [];
-                                        if (!empty($customization['back_text'])) $b_desc[] = $customization['back_text'];
-                                        if (!empty($customization['back_monogram'])) $b_desc[] = __('Monogram', 'bottle-customizer');
-                                        if (!empty($customization['back_graphic'])) $b_desc[] = __('Graphic', 'bottle-customizer');
-                                        if ($b_desc): ?>
-                                            <span class="bc-side-text"><?php echo esc_html(implode(', ', $b_desc)); ?></span>
-                                        <?php endif; ?>
-                                    </div>
+                        <?php if ($has_back): ?>
+                            <div class="bc-row">
+                                <span class="bc-label"><?php esc_html_e('Back:', 'bottle-customizer'); ?></span>
+                                <div class="bc-value">
+                                    <?php echo bottle_customizer_render_side_preview_html($customization, 'back'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                                 </div>
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
 
                 </div>
             </details>
@@ -956,7 +1102,8 @@ function bottle_customizer_cart_item_thumbnail($thumbnail, $cart_item, $cart_ite
     
     return $thumbnail;
 }
-add_filter('woocommerce_cart_item_thumbnail', 'bottle_customizer_cart_item_thumbnail', 10, 3);
+// NOTE: This filter is intentionally not registered.
+// We use `bottle_customizer_cart_thumbnail` (priority 99) as the single source of truth.
 
 /**
  * Save customization data to order item meta
@@ -1103,18 +1250,12 @@ function bottle_customizer_cart_thumbnail($product_image, $cart_item, $cart_item
             $product = $cart_item['data'];
             $alt = $product->get_name();
             
-            // Render composite thumbnail
-            $html = '<div style="display: flex; align-items: center; gap: 5px;">';
-            
-            if ($front) {
-                $html .= '<img src="' . esc_url($front) . '" alt="Front" style="width: 50px; height: auto; object-fit: contain; border: 1px solid #eee; border-radius: 4px;" />';
-            }
-            if ($back) {
-                $html .= '<img src="' . esc_url($back) . '" alt="Back" style="width: 50px; height: auto; object-fit: contain; border: 1px solid #eee; border-radius: 4px;" />';
-            }
-            
-            $html .= '</div>';
-            return $html;
+            // Show only the customized BACK preview (fallback to front if needed).
+            $src = $back ? $back : $front;
+            $label = $back ? __('Back', 'bottle-customizer') : __('Front', 'bottle-customizer');
+            // FKCart hides `img:not(.fkcart-image)` inside its drawer; include that class for compatibility.
+            // Wrap in .bc-thumb-frame for gradient border styling.
+            return '<span class="bc-thumb-frame"><img src="' . esc_url($src) . '" alt="' . esc_attr($alt . ' - ' . $label) . '" class="fkcart-image bottle-customizer-cart-thumb" /></span>';
         }
     }
     return $product_image;
@@ -1132,21 +1273,38 @@ function bottle_customizer_order_thumbnail($product_image, $item, $visible) {
             $back  = !empty($c['back_image_url']) ? $c['back_image_url'] : false;
 
             if ($front || $back) {
-                // Render composite thumbnail
-                $html = '<div style="display: flex; align-items: center; gap: 5px;">';
-                
-                if ($front) {
-                    $html .= '<img src="' . esc_url($front) . '" alt="Front" style="width: 50px; height: auto; object-fit: contain; border: 1px solid #eee; border-radius: 4px;" />';
-                }
-                if ($back) {
-                    $html .= '<img src="' . esc_url($back) . '" alt="Back" style="width: 50px; height: auto; object-fit: contain; border: 1px solid #eee; border-radius: 4px;" />';
-                }
-                
-                $html .= '</div>';
-                return $html;
+                // Show only the customized BACK preview (fallback to front if needed).
+                $src = $back ? $back : $front;
+                $label = $back ? __('Back', 'bottle-customizer') : __('Front', 'bottle-customizer');
+                // FKCart hides `img:not(.fkcart-image)` inside its drawer; include that class for compatibility.
+                // Wrap in .bc-thumb-frame for gradient border styling.
+                return '<span class="bc-thumb-frame"><img src="' . esc_url($src) . '" alt="' . esc_attr($label) . '" class="fkcart-image bottle-customizer-cart-thumb" /></span>';
             }
         }
     }
     return $product_image;
 }
 add_filter('woocommerce_order_item_thumbnail', 'bottle_customizer_order_thumbnail', 10, 3);
+
+/**
+ * Render expected delivery note per-item in the mini-cart (drawer) for customized items.
+ * Hooked to run after each cart item in the mini-cart widget.
+ */
+function bottle_customizer_mini_cart_item_delivery_note($cart_item, $cart_item_key) {
+    // Only show for customized items.
+    if (empty($cart_item['bottle_customization'])) {
+        return;
+    }
+    ?>
+    <div class="bc-mini-cart-note-row">
+        <div class="bc-mini-cart-note">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bc-note-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div class="bc-note-text">
+                <strong><?php esc_html_e('Expected delivery:', 'bottle-customizer'); ?></strong>
+                <?php esc_html_e('Allow 7 business days for personalization and 2–3 days for delivery. Delivery date cannot be guaranteed. All purchases are final.', 'bottle-customizer'); ?>
+            </div>
+        </div>
+    </div>
+    <?php
+}
+add_action('woocommerce_widget_shopping_cart_after_cart_item', 'bottle_customizer_mini_cart_item_delivery_note', 20, 2);
