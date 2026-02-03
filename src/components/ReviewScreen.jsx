@@ -128,7 +128,7 @@ const ReviewScreen = ({
             <header className="bg-white border-b border-gray-200 flex-shrink-0">
                 <div className="max-w-[1920px] mx-auto px-4 md:px-6 h-14 md:h-16 flex items-center justify-between">
                     <img
-                        src="/logo.png"
+                        src="logo.png"
                         alt="Logo"
                         className="h-8 md:h-10 w-auto object-contain"
                     />
