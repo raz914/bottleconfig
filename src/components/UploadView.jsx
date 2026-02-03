@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
+import UploadConfirmationModal from './UploadConfirmationModal';
 
 // Set up the worker for PDF.js
 // - Dev: use Vite-served worker URL
@@ -9,12 +10,86 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = import.meta.env.PROD
     ? new URL('./pdf.worker.min.js', import.meta.url).toString()
     : pdfWorkerDevUrl;
 
+const MAX_MASK_DIMENSION = 1024;
+
+const createMetalMaskFromImage = (img) => {
+    const iw = img.naturalWidth || img.width;
+    const ih = img.naturalHeight || img.height;
+    if (!iw || !ih) return null;
+
+    const scale = Math.min(1, MAX_MASK_DIMENSION / Math.max(iw, ih));
+    const width = Math.max(1, Math.round(iw * scale));
+    const height = Math.max(1, Math.round(ih * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return null;
+
+    ctx.drawImage(img, 0, 0, width, height);
+
+    let imageData;
+    try {
+        imageData = ctx.getImageData(0, 0, width, height);
+    } catch (err) {
+        console.warn('Failed to read image data for metal mask:', err);
+        return null;
+    }
+
+    const data = imageData.data;
+    let hasAlpha = false;
+
+    for (let i = 3; i < data.length; i += 4) {
+        if (data[i] < 250) {
+            hasAlpha = true;
+            break;
+        }
+    }
+
+    if (hasAlpha) {
+        for (let i = 0; i < data.length; i += 4) {
+            const a = data[i + 3];
+            data[i] = 0;
+            data[i + 1] = 0;
+            data[i + 2] = 0;
+            data[i + 3] = a;
+        }
+    } else {
+        const contrast = 1.2;
+        const brightness = 1.1;
+
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+
+            let v = 0.299 * r + 0.587 * g + 0.114 * b;
+            v = (v - 128) * contrast + 128;
+            v = v * brightness;
+            v = Math.max(0, Math.min(255, v));
+
+            let a = 255 - v;
+            if (a < 20) a = 0;
+            else if (a > 235) a = 255;
+
+            data[i] = 0;
+            data[i + 1] = 0;
+            data[i + 2] = 0;
+            data[i + 3] = a;
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+    return canvas.toDataURL('image/png');
+};
+
 const UploadView = ({ setView, setGraphic, graphicInput, activeTab }) => {
     const fileInputRef = useRef(null);
     const [showModal, setShowModal] = useState(false);
-    const [isAccepted, setIsAccepted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [uploadError, setUploadError] = useState(null);
+    const [pendingGraphicData, setPendingGraphicData] = useState(null);
 
     // Aspect ratio limits: 2:3 (0.67) to 3:2 (1.5)
     const MIN_RATIO = 0.67;
@@ -27,13 +102,13 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab }) => {
         setUploadError(null);
         setIsLoading(true);
         setShowModal(false);
+        setPendingGraphicData(null);
 
         const fileType = file.type;
         const fileName = file.name.toLowerCase();
 
         try {
             let src = '';
-            let isPreviewAvailable = true;
 
             // Handle PDF
             if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
@@ -51,19 +126,35 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab }) => {
                 src = await readFileAsDataURL(file);
             }
 
-
-
             const img = new Image();
             img.onload = () => {
-                const ratio = img.width / img.height;
+                const ratio = (img.naturalWidth || img.width) / (img.naturalHeight || img.height);
                 if (ratio < MIN_RATIO || ratio > MAX_RATIO) {
                     setUploadError(`Image aspect ratio (${ratio.toFixed(2)}) is outside the allowed range. Please use an image closer to square (between 2:3 and 3:2).`);
                     setIsLoading(false);
                     if (fileInputRef.current) fileInputRef.current.value = '';
                     return;
                 }
-                setGraphic({ src, name: file.name, isUpload: true, scale: 0.5, fileType: fileName.split('.').pop() });
+
+                let maskSrc = null;
+                try {
+                    maskSrc = createMetalMaskFromImage(img);
+                } catch (err) {
+                    console.warn('Failed to generate metal mask:', err);
+                }
+
+                // Instead of setting graphic directly, set pending data and show modal
+                setPendingGraphicData({
+                    src,
+                    name: file.name,
+                    isUpload: true,
+                    scale: 0.5,
+                    fileType: fileName.split('.').pop(),
+                    maskSrc
+                });
+
                 setIsLoading(false);
+                setShowModal(true);
             };
             img.onerror = () => {
                 setUploadError('Failed to load image. Please check the file.');
@@ -76,6 +167,20 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab }) => {
             setUploadError('Error processing file.');
             setIsLoading(false);
         }
+    };
+
+    const handleConfirmUpload = () => {
+        if (pendingGraphicData) {
+            setGraphic(pendingGraphicData);
+            setPendingGraphicData(null);
+            setShowModal(false);
+        }
+    };
+
+    const handleCancelUpload = () => {
+        setPendingGraphicData(null);
+        setShowModal(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
     const readFileAsDataURL = (file) => {
@@ -293,6 +398,13 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab }) => {
 
                 </div>
             )}
+
+            {/* Confirmation Modal */}
+            <UploadConfirmationModal
+                isOpen={showModal}
+                onClose={handleCancelUpload}
+                onConfirm={handleConfirmUpload}
+            />
         </div>
     );
 };

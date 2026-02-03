@@ -539,7 +539,9 @@ const drawGraphicOnCanvas = async (ctx, graphic, bounds, selectedColor, maxPerce
     if (!graphic || !graphic.src) return;
 
     try {
-        const img = await loadImage(graphic.src);
+        const maskSrc = graphic.isUpload ? graphic.maskSrc : graphic.src;
+        const sourceSrc = maskSrc || graphic.src;
+        const img = await loadImage(sourceSrc);
 
         const scale = graphic.scale || 0.5;
         const maxSize = Math.min(bounds.width, bounds.height) * maxPercent;
@@ -561,15 +563,11 @@ const drawGraphicOnCanvas = async (ctx, graphic, bounds, selectedColor, maxPerce
 
         ctx.save();
 
+        const useMetalMask = !graphic.isUpload || !!graphic.maskSrc;
+
         // Match BottlePreview behavior
-        if (graphic.isUpload) {
-            // Uploaded images use grayscale filter
-            ctx.filter = 'grayscale(100%) contrast(1.2) brightness(1.2)';
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.globalAlpha = 0.9;
-            ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
-        } else {
-            // Gallery SVGs: Apply metallic gradient with mask
+        if (useMetalMask) {
+            // Metallic gradient with mask (gallery SVGs and uploads with mask)
             // Create a temporary canvas for the gradient + mask composition
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = drawWidth;
@@ -590,6 +588,12 @@ const drawGraphicOnCanvas = async (ctx, graphic, bounds, selectedColor, maxPerce
             ctx.globalAlpha = 0.95;
             ctx.filter = 'contrast(1.1) brightness(1.1) drop-shadow(0px 1px 1px rgba(0,0,0,0.3))';
             ctx.drawImage(tempCanvas, drawX, drawY);
+        } else {
+            // Uploaded images without mask fallback to grayscale
+            ctx.filter = 'grayscale(100%) contrast(1.2) brightness(1.2)';
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.globalAlpha = 0.9;
+            ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
         }
 
         ctx.restore();

@@ -57,6 +57,9 @@ const BottlePreview = ({
     const textInput = config.text;
     const monogramInput = config.monogram;
     const graphicInput = config.graphic;
+    const graphicRenderSrc = graphicInput?.isUpload
+        ? (graphicInput.maskSrc || graphicInput.src)
+        : graphicInput?.src;
 
     // Graphic loading state
     const [isGraphicLoading, setIsGraphicLoading] = useState(false);
@@ -64,34 +67,34 @@ const BottlePreview = ({
 
     // Preload graphic when it changes
     useEffect(() => {
-        if (graphicInput?.src) {
+        if (graphicRenderSrc) {
             // Don't show loader for capture mode
             if (isCapture) {
-                setLoadedGraphicSrc(graphicInput.src);
+                setLoadedGraphicSrc(graphicRenderSrc);
                 return;
             }
 
             // Check if it's the same image already loaded
-            if (graphicInput.src === loadedGraphicSrc) {
+            if (graphicRenderSrc === loadedGraphicSrc) {
                 return;
             }
 
             setIsGraphicLoading(true);
             const img = new Image();
             img.onload = () => {
-                setLoadedGraphicSrc(graphicInput.src);
+                setLoadedGraphicSrc(graphicRenderSrc);
                 setIsGraphicLoading(false);
             };
             img.onerror = () => {
-                setLoadedGraphicSrc(graphicInput.src);
+                setLoadedGraphicSrc(graphicRenderSrc);
                 setIsGraphicLoading(false);
             };
-            img.src = graphicInput.src;
+            img.src = graphicRenderSrc;
         } else {
             setLoadedGraphicSrc(null);
             setIsGraphicLoading(false);
         }
-    }, [graphicInput?.src, isCapture]);
+    }, [graphicRenderSrc, isCapture]);
 
     const handleImageLoad = () => {
         if (setIsImageLoading) setIsImageLoading(false);
@@ -131,6 +134,10 @@ const BottlePreview = ({
     // Graphic size - uses shared config from capturePositions.js
     const sizeConfig = isMobile ? GRAPHIC_MAX_SIZE.mobile : GRAPHIC_MAX_SIZE.desktop;
     const graphicMaxSize = `${sizeConfig[side] * 100}%`;
+    const metallicGradient = selectedColor === 'white'
+        ? 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)'
+        : 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)';
+    const metalMaskSrc = (graphicInput && (!graphicInput.isUpload || graphicInput.maskSrc)) ? loadedGraphicSrc : null;
 
     return (
         <div className="flex flex-col items-center">
@@ -226,32 +233,20 @@ const BottlePreview = ({
                         {/* Only show graphic when loaded */}
                         {loadedGraphicSrc && !isGraphicLoading && (
                             <>
-                                {/* Uploaded images (photos) use grayscale filter for cleaner look */}
-                                {graphicInput.isUpload ? (
-                                    <img
-                                        src={loadedGraphicSrc}
-                                        alt={graphicInput.name || 'Uploaded image'}
-                                        className="w-full h-full object-contain transition-opacity duration-200"
-                                        style={{
-                                            filter: 'grayscale(100%) contrast(1.2) brightness(1.2)',
-                                            maxHeight: graphicMaxSize,
-                                            maxWidth: graphicMaxSize
-                                        }}
-                                    />
-                                ) : selectedColor === 'white' ? (
-                                    /* Gallery SVGs on white bottle */
+                                {/* Uploaded images use metallic mask when available */}
+                                {metalMaskSrc ? (
                                     <div
                                         className="w-full h-full transition-opacity duration-200"
                                         style={{
-                                            maskImage: `url(${loadedGraphicSrc})`,
-                                            WebkitMaskImage: `url(${loadedGraphicSrc})`,
+                                            maskImage: `url(${metalMaskSrc})`,
+                                            WebkitMaskImage: `url(${metalMaskSrc})`,
                                             maskSize: 'contain',
                                             WebkitMaskSize: 'contain',
                                             maskPosition: 'center',
                                             WebkitMaskPosition: 'center',
                                             maskRepeat: 'no-repeat',
                                             WebkitMaskRepeat: 'no-repeat',
-                                            background: 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)',
+                                            background: metallicGradient,
                                             filter: 'contrast(1.1) brightness(1.1) drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
                                             opacity: 0.95,
                                             maxHeight: graphicMaxSize,
@@ -259,21 +254,12 @@ const BottlePreview = ({
                                         }}
                                     />
                                 ) : (
-                                    /* Gallery SVGs on colored bottles */
-                                    <div
-                                        className="w-full h-full transition-opacity duration-200"
+                                    <img
+                                        src={graphicInput.src}
+                                        alt={graphicInput.name || 'Uploaded image'}
+                                        className="w-full h-full object-contain transition-opacity duration-200"
                                         style={{
-                                            maskImage: `url(${loadedGraphicSrc})`,
-                                            WebkitMaskImage: `url(${loadedGraphicSrc})`,
-                                            maskSize: 'contain',
-                                            WebkitMaskSize: 'contain',
-                                            maskPosition: 'center',
-                                            WebkitMaskPosition: 'center',
-                                            maskRepeat: 'no-repeat',
-                                            WebkitMaskRepeat: 'no-repeat',
-                                            background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
-                                            filter: 'contrast(1.1) brightness(1.1) drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
-                                            opacity: 0.95,
+                                            filter: 'grayscale(100%) contrast(1.2) brightness(1.2)',
                                             maxHeight: graphicMaxSize,
                                             maxWidth: graphicMaxSize
                                         }}

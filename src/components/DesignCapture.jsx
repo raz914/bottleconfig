@@ -13,6 +13,12 @@ const DesignCapture = ({
     const textInput = config.text;
     const monogramInput = config.monogram;
     const graphicInput = config.graphic;
+    const metallicGradient = selectedColor === 'white'
+        ? 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)'
+        : 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)';
+    const graphicMaskSrc = graphicInput
+        ? (graphicInput.isUpload ? graphicInput.maskSrc : graphicInput.src)
+        : null;
 
     // Fixed container size for standardized capture
     const containerStyle = {
@@ -89,21 +95,36 @@ const DesignCapture = ({
                         justifyContent: 'center',
                     }}
                 >
-                    <img
-                        src={graphicInput.src}
-                        alt={graphicInput.name}
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'contain',
-                            // For uploaded images, keep original. For gallery icons (usually white/transparent), make them black?
-                            // Gallery icons are often white for dark bottles.
-                            // If it's a gallery icon, apply filter to make it dark?
-                            // Usually they are white PNGs.
-                            // Let's invert if it's not an upload.
-                            filter: graphicInput.isUpload ? 'none' : 'brightness(0)',
-                        }}
-                    />
+                    {graphicMaskSrc ? (
+                        <div
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                maskImage: `url(${graphicMaskSrc})`,
+                                WebkitMaskImage: `url(${graphicMaskSrc})`,
+                                maskSize: 'contain',
+                                WebkitMaskSize: 'contain',
+                                maskPosition: 'center',
+                                WebkitMaskPosition: 'center',
+                                maskRepeat: 'no-repeat',
+                                WebkitMaskRepeat: 'no-repeat',
+                                background: metallicGradient,
+                                filter: 'contrast(1.1) brightness(1.1) drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
+                                opacity: 0.95,
+                            }}
+                        />
+                    ) : (
+                        <img
+                            src={graphicInput.src}
+                            alt={graphicInput.name}
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'contain',
+                                filter: 'grayscale(100%) contrast(1.2) brightness(1.2)',
+                            }}
+                        />
+                    )}
                 </div>
             )}
 
