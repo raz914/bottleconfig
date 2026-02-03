@@ -346,6 +346,8 @@ const BottlePreview = ({
                                 style={{
                                     ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
                                     fontSize: getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile),
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
                                     lineHeight: 1.4,
                                     ...(selectedColor === 'white' ? {
                                         background: 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)',
@@ -362,9 +364,9 @@ const BottlePreview = ({
                                     })
                                 }}
                             >
-                                <span style={{ fontSize: '0.75em' }}>{monogramInput[0]}</span>
-                                <span style={{ fontSize: '1em' }}>{monogramInput[1]}</span>
-                                <span style={{ fontSize: '0.75em' }}>{monogramInput[2]}</span>
+                                <span style={{ fontSize: isMobile && side === 'FRONT' ? '0.2em' : '0.75em' }}>{monogramInput[0]}</span>
+                                <span style={{ fontSize: isMobile && side === 'FRONT' ? '1.3em' : '1em' }}>{monogramInput[1]}</span>
+                                <span style={{ fontSize: isMobile && side === 'FRONT' ? '0.2em' : '0.75em' }}>{monogramInput[2]}</span>
                             </span>
                         ) : (
                             <span
