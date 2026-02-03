@@ -170,6 +170,47 @@ const drawImageContain = (ctx, img, dx, dy, dw, dh) => {
 };
 
 /**
+ * Create metallic gradient matching BottlePreview.jsx CSS gradients
+ * Matches:
+ * - White bottle: linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)
+ * - Colored bottles: linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)
+ * 
+ * Enhanced with brightness(1.1) simulation for lighter appearance
+ * 
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {object} bounds - {x, y, width, height}
+ * @param {string} selectedColor - Bottle color ('white', 'black', etc.)
+ * @returns {CanvasGradient} Linear gradient for metallic silver effect
+ */
+const createMetallicGradient = (ctx, bounds, selectedColor) => {
+    // Horizontal gradient (90deg in CSS)
+    const gradient = ctx.createLinearGradient(
+        bounds.x,
+        bounds.y + bounds.height / 2,
+        bounds.x + bounds.width,
+        bounds.y + bounds.height / 2
+    );
+
+    if (selectedColor === 'white') {
+        // Slightly darker gradient for white bottle, lightened for brightness(1.1)
+        // Original: #b8b7b7ff, #9e9e9e, #656565
+        // Brightened by ~10%: 
+        gradient.addColorStop(0, '#cac9c9');      // was #b8b7b7ff
+        gradient.addColorStop(0.5, '#aeaeae');    // was #9e9e9e
+        gradient.addColorStop(1, '#717171');      // was #656565
+    } else {
+        // Lighter gradient for colored bottles, lightened for brightness(1.1)
+        // Original: #e6e5e5ff, #9e9e9e, #656565
+        // Brightened by ~10%:
+        gradient.addColorStop(0, '#f5f4f4');      // was #e6e5e5ff
+        gradient.addColorStop(0.5, '#aeaeae');    // was #9e9e9e
+        gradient.addColorStop(1, '#717171');      // was #656565
+    }
+
+    return gradient;
+};
+
+/**
  * Calculate font size using cqi-based formula matching BottlePreview.jsx
  * 
  * BottlePreview uses CSS container query units (cqi):
@@ -209,15 +250,25 @@ const calculateCqiFontSize = (text, boundsWidth, side) => {
  * @param {string} fontFamily 
  * @param {string} fontWeight 
  * @param {string} fontStyle 
- * @param {string} color 
+ * @param {string} selectedColor - Bottle color for gradient selection
  * @param {string} side - 'FRONT' or 'BACK' (for font size calculation)
  * @param {boolean} isVertical - whether text is vertical (BACK side option)
  */
-const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, color, side, isVertical = false) => {
+const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, selectedColor, side, isVertical = false) => {
     if (!text) return;
 
     ctx.save();
-    ctx.fillStyle = color;
+
+    // Use metallic gradient instead of solid color
+    const gradient = createMetallicGradient(ctx, bounds, selectedColor);
+    ctx.fillStyle = gradient;
+
+    // Add drop shadow to match CSS filter
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 2 * RESOLUTION_SCALE;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 1 * RESOLUTION_SCALE;
+
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -375,9 +426,10 @@ const drawMonogramOnCanvas = (ctx, monogramInput, selectedMonogram, bounds, sele
 
     ctx.save();
 
-    // Match BottlePreview colors
-    const color = selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(216, 216, 216, 0.73)';
-    ctx.fillStyle = color;
+    // Use metallic gradient instead of solid color
+    const gradient = createMetallicGradient(ctx, bounds, selectedColor);
+    ctx.fillStyle = gradient;
+
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -481,7 +533,7 @@ const drawMonogramOnCanvas = (ctx, monogramInput, selectedMonogram, bounds, sele
 };
 
 /**
- * Draw graphic on canvas
+ * Draw graphic on canvas with gradient masking for gallery SVGs
  */
 const drawGraphicOnCanvas = async (ctx, graphic, bounds, selectedColor, maxPercent = 0.75) => {
     if (!graphic || !graphic.src) return;
@@ -509,22 +561,37 @@ const drawGraphicOnCanvas = async (ctx, graphic, bounds, selectedColor, maxPerce
 
         ctx.save();
 
-        // Match BottlePreview filter behavior.
-        // Note: html-to-image frequently flattens/approximates CSS blend modes on export,
-        // so for non-white bottles we intentionally avoid "overlay" here and instead
-        // draw a filtered (grayscale+invert) graphic with normal compositing + opacity.
+        // Match BottlePreview behavior
         if (graphic.isUpload) {
+            // Uploaded images use grayscale filter
             ctx.filter = 'grayscale(100%) contrast(1.2) brightness(1.2)';
             ctx.globalCompositeOperation = 'source-over';
             ctx.globalAlpha = 0.9;
+            ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
         } else {
-            const invert = selectedColor !== 'white' ? ' invert(1)' : '';
-            ctx.filter = `grayscale(100%)${invert}`;
-            ctx.globalCompositeOperation = selectedColor === 'white' ? 'multiply' : 'source-over';
-            ctx.globalAlpha = selectedColor === 'white' ? 0.85 : 0.73;
+            // Gallery SVGs: Apply metallic gradient with mask
+            // Create a temporary canvas for the gradient + mask composition
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = drawWidth;
+            tempCanvas.height = drawHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            // Step 1: Fill the temp canvas with metallic gradient
+            const tempBounds = { x: 0, y: 0, width: drawWidth, height: drawHeight };
+            const gradient = createMetallicGradient(tempCtx, tempBounds, selectedColor);
+            tempCtx.fillStyle = gradient;
+            tempCtx.fillRect(0, 0, drawWidth, drawHeight);
+
+            // Step 2: Apply the graphic as a mask using destination-in
+            tempCtx.globalCompositeOperation = 'destination-in';
+            tempCtx.drawImage(img, 0, 0, drawWidth, drawHeight);
+
+            // Step 3: Draw the masked gradient result onto the main canvas
+            ctx.globalAlpha = 0.95;
+            ctx.filter = 'contrast(1.1) brightness(1.1) drop-shadow(0px 1px 1px rgba(0,0,0,0.3))';
+            ctx.drawImage(tempCanvas, drawX, drawY);
         }
 
-        ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
         ctx.restore();
     } catch (err) {
         console.warn('Failed to load graphic for canvas capture:', err);
@@ -589,7 +656,6 @@ export const captureBottleSnapshotCanvas = async (
     // 3. Draw overlays - use mobile positions on iOS for accurate capture
     const isMobile = isIOSDevice();
     const positions = isMobile ? MOBILE_POSITIONS[side] : DESKTOP_POSITIONS[side];
-    const textColor = selectedColor === 'white' ? 'rgba(50,50,50,0.85)' : 'rgba(180,180,180,0.85)';
 
     // Draw text
     if (textInput) {
@@ -598,7 +664,7 @@ export const captureBottleSnapshotCanvas = async (
         const fontFamily = getFontFamily(selectedFont, fonts);
         const fontWeight = getFontWeight(selectedFont, fonts);
         const fontStyle = getFontStyle(selectedFont, fonts);
-        drawTextOnCanvas(ctx, textInput, textBounds, fontFamily, fontWeight, fontStyle, textColor, side, isVertical);
+        drawTextOnCanvas(ctx, textInput, textBounds, fontFamily, fontWeight, fontStyle, selectedColor, side, isVertical);
     }
 
     // Draw monogram
@@ -668,15 +734,14 @@ export const captureDesignSnapshotCanvas = async (
         height: DESIGN_CANVAS_SIZE - padding * 2
     };
 
-    const textColor = '#333333'; // Dark color for isolated design preview
     const isVertical = side === 'BACK' && config?.isVertical;
 
-    // Draw text
+    // Draw text - use 'white' bottle color for dark gradient
     if (textInput) {
         const fontFamily = getFontFamily(selectedFont, fonts);
         const fontWeight = getFontWeight(selectedFont, fonts);
         const fontStyle = getFontStyle(selectedFont, fonts);
-        drawTextOnCanvas(ctx, textInput, bounds, fontFamily, fontWeight, fontStyle, textColor, side, isVertical);
+        drawTextOnCanvas(ctx, textInput, bounds, fontFamily, fontWeight, fontStyle, 'white', side, isVertical);
     }
 
     // Draw monogram

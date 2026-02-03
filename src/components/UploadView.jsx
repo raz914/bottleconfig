@@ -206,7 +206,7 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab }) => {
                     </button>
 
                     <p className="text-center text-xs text-gray-700 font-semibold mb-8 uppercase tracking-wide">
-                        Accepted file types: PNG, JPG, and WEBP
+                        Accepted file types: PNG, JPG,SVG and PDF
                     </p>
 
                     {/* Icons Grid */}

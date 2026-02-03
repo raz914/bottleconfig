@@ -894,7 +894,7 @@ function bottle_customizer_render_side_preview_html($customization, $side) {
 
     // Text fallback
     if ($text !== '') {
-        return '<span class="bc-text">"' . esc_html($text) . '"</span>';
+        return '<span class="bc-text">' . esc_html($text) . '</span>';
     }
 
     return '<span class="bc-text">—</span>';
@@ -1308,3 +1308,49 @@ function bottle_customizer_mini_cart_item_delivery_note($cart_item, $cart_item_k
     <?php
 }
 add_action('woocommerce_widget_shopping_cart_after_cart_item', 'bottle_customizer_mini_cart_item_delivery_note', 20, 2);
+
+/**
+ * Tag the cart item product object with the custom preview URL.
+ * This allows us to intercept `$product->get_image()` calls on checkout pages
+ * (e.g., FunnelKit/Aero checkout sidebar) that bypass `woocommerce_cart_item_thumbnail`.
+ */
+function bottle_customizer_tag_cart_item_product($product, $cart_item, $cart_item_key) {
+    if (!empty($cart_item['bottle_customization'])) {
+        $c = $cart_item['bottle_customization'];
+        $front = !empty($c['front_image_url']) ? $c['front_image_url'] : '';
+        $back  = !empty($c['back_image_url']) ? $c['back_image_url'] : '';
+
+        // Prefer back image, fall back to front.
+        $src = $back ? $back : $front;
+
+        if ($src) {
+            // Tag the product object with our custom thumbnail source.
+            $product->bc_custom_thumb_src = $src;
+        }
+    }
+    return $product;
+}
+add_filter('woocommerce_cart_item_product', 'bottle_customizer_tag_cart_item_product', 10, 3);
+
+/**
+ * Override product image HTML on checkout pages for customized items.
+ * FunnelKit/Aero checkout templates often call `$product->get_image()` directly,
+ * bypassing `woocommerce_cart_item_thumbnail`. This filter intercepts that.
+ */
+function bottle_customizer_checkout_product_image($image, $product, $size, $attr, $placeholder) {
+    // Only run on checkout pages (including FunnelKit).
+    if (!is_checkout() && !did_action('wfacp_after_checkout_page_found')) {
+        return $image;
+    }
+
+    // Check if our custom thumbnail src was tagged on this product object.
+    if (!empty($product->bc_custom_thumb_src)) {
+        $src = $product->bc_custom_thumb_src;
+        $alt = $product->get_name();
+        // Return our custom HTML with gradient frame.
+        return '<span class="bc-thumb-frame"><img src="' . esc_url($src) . '" alt="' . esc_attr($alt) . '" class="bottle-customizer-cart-thumb" /></span>';
+    }
+
+    return $image;
+}
+add_filter('woocommerce_product_get_image', 'bottle_customizer_checkout_product_image', 99, 5);

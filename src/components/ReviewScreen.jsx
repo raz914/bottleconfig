@@ -124,12 +124,14 @@ const ReviewScreen = ({
                 </div>
             )}
 
-            {/* Header */}
+            {/* Header with Logo */}
             <header className="bg-white border-b border-gray-200 flex-shrink-0">
                 <div className="max-w-[1920px] mx-auto px-4 md:px-6 h-14 md:h-16 flex items-center justify-between">
-                    <h1 className="text-lg md:text-xl font-bold text-[#002C5F] uppercase tracking-wider">
-                        Review Your Design
-                    </h1>
+                    <img
+                        src="/logo.png"
+                        alt="Logo"
+                        className="h-8 md:h-10 w-auto object-contain"
+                    />
                     <button
                         onClick={onClose}
                         className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -144,12 +146,21 @@ const ReviewScreen = ({
 
             {/* Content - Scrollable */}
             <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#f9fafb]">
+                {/* Page Heading */}
+                <div className="text-center mb-6 md:mb-8 max-w-2xl mx-auto">
+                    <h1 className="text-xl md:text-2xl font-bold text-[#002C5F] uppercase tracking-wider mb-3">
+                        Review Your Design
+                    </h1>
+                    <p className="text-sm md:text-base text-gray-800 font-medium leading-relaxed px-4">
+                        Please allow 7 business days for personalization and 2-3 days for delivery. Delivery dates cannot be guaranteed. ALL PURCHASES ARE FINAL.
+                    </p>
+                </div>
+
                 <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
 
                     {/* FRONT VIEW */}
                     <div className="flex flex-col items-center bg-[#f9fafb] p-6 rounded-lg ">
-                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Front View</h3>
-                        <div className="relative w-full max-w-[300px] aspect-[3/5] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible">
+                        <div className="relative w-full max-w-[300px] aspect-[3/5] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible mb-6">
                             {frontImage ? (
                                 <img src={frontImage} alt="Front Preview" className="w-full h-full object-contain drop-shadow-xl mix-blend-multiply" />
                             ) : (
@@ -158,16 +169,20 @@ const ReviewScreen = ({
                         </div>
                         <button
                             onClick={() => handleEdit('FRONT')}
-                            className="mt-6 text-sm font-bold text-[#002C5F] underline hover:text-brand-blue uppercase tracking-wider"
+                            className="group flex items-center space-x-2 bg-white px-6 py-3 rounded-full shadow-sm border border-gray-100 uppercase font-bold text-[#002C5F] text-xs md:text-sm tracking-wider hover:shadow-md transition-all"
                         >
-                            Edit Front
+                            <span>Edit Front</span>
+                            <div className="w-6 h-6 rounded-full border border-[#002C5F] flex items-center justify-center group-hover:bg-[#002C5F] group-hover:text-white transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
                         </button>
                     </div>
 
                     {/* BACK VIEW */}
                     <div className="flex flex-col items-center bg-[#f9fafb] p-6 rounded-lg ">
-                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Back View</h3>
-                        <div className="relative w-full max-w-[300px] aspect-[3/5] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible">
+                        <div className="relative w-full max-w-[300px] aspect-[3/5] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible mb-6">
                             {backImage ? (
                                 <img src={backImage} alt="Back Preview" className="w-full h-full object-contain drop-shadow-xl mix-blend-multiply" />
                             ) : (
@@ -176,9 +191,14 @@ const ReviewScreen = ({
                         </div>
                         <button
                             onClick={() => handleEdit('BACK')}
-                            className="mt-6 text-sm font-bold text-[#002C5F] underline hover:text-brand-blue uppercase tracking-wider"
+                            className="group flex items-center space-x-2 bg-white px-6 py-3 rounded-full shadow-sm border border-gray-100 uppercase font-bold text-[#002C5F] text-xs md:text-sm tracking-wider hover:shadow-md transition-all"
                         >
-                            Edit Back
+                            <span>Edit Back</span>
+                            <div className="w-6 h-6 rounded-full border border-[#002C5F] flex items-center justify-center group-hover:bg-[#002C5F] group-hover:text-white transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
                         </button>
                     </div>
 
@@ -186,7 +206,7 @@ const ReviewScreen = ({
             </main>
 
             {/* Footer Actions */}
-            <footer className="bg-white border-t border-gray-200 p-2 md:p-2 flex-shrink-0">
+            <footer className="bg-white border-t border-gray-200 p-4 md:p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 flex-shrink-0">
                 <div className="max-w-6xl mx-auto flex flex-col items-center justify-between gap-4">
                     <div className="text-center w-full">
                         {errorMessage ? (
@@ -199,7 +219,7 @@ const ReviewScreen = ({
                             </p>
                         )}
                     </div>
-                    <div className="max-w-md md:max-w-none mx-auto md:mx-0 md:ml-auto flex space-x-3 w-full md:w-auto px-4 md:pr-8">
+                    <div className="w-full flex space-x-3 px-4 md:px-0">
                         <button
                             onClick={onClose}
                             disabled={isAddingToCart}
