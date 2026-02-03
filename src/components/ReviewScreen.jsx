@@ -230,7 +230,7 @@ const ReviewScreen = ({
                         <button
                             onClick={() => setShowConfirmationModal(true)}
                             disabled={isAddingToCart}
-                            className={`flex-1 px-6 py-4 rounded-lg text-sm bg-black text-white font-bold uppercase tracking-widest transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'}`}
+                            className={`flex-1 px-6 py-4 rounded-lg text-[12px] md:text-sm bg-black text-white font-bold uppercase tracking-widest transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'}`}
                         >
                             {isAddingToCart ? 'Adding...' : 'Add to Cart'}
                         </button>

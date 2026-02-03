@@ -520,7 +520,7 @@ const Customizer = () => {
             {/* Main Content */}
             <main className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden relative">
                 {/* Left Panel - Bottle Preview */}
-                <div id="bottle-canvas" className="w-full md:w-1/2 flex items-center justify-center bg-[#f3f4f6] relative py-6 md:py-0 overflow-hidden min-h-[300px] md:min-h-0">
+                <div id="bottle-canvas" className="w-full md:w-1/2 flex items-center justify-center bg-[#f3f4f6] relative py-6 md:py-0 overflow-hidden min-h-[200px] md:min-h-0">
                     <div ref={bottlePreviewRef} className="flex flex-col items-center">
 
                         {/* Using Clean Component for Preview */}
@@ -583,7 +583,7 @@ const Customizer = () => {
                 </div>
 
                 {/* Right Panel - Customization Options */}
-                <div className={`w-full md:w-1/2 bg-[#f3f4f6] md:bg-[#f3f4f6] p-4 md:p-12 flex flex-col items-center justify-start flex-1 md:mb-0 md:overflow-y-auto md:pb-32 ${view !== 'main' ? 'mb-16' : ''}`}>
+                <div className={`w-full md:w-1/2 bg-[#f3f4f6] md:bg-[#f3f4f6] p-4 md:p-12 flex flex-col items-center justify-start flex-1 md:mb-0 md:overflow-y-auto md:pb-32 min-h-[60vh] md:min-h-0 ${view !== 'main' ? 'mb-16' : ''}`}>
                     {view === 'main' && <MainView setView={setView} />}
 
                     {view === 'text' && (
@@ -625,6 +625,7 @@ const Customizer = () => {
                             setGraphic={setGraphic}
                             graphicInput={graphicInput}
                             activeTab={activeTab}
+                            selectedColor={selectedColor}
                         />
                     )}
                 </div>

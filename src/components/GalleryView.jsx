@@ -124,7 +124,7 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
                                 <button
                                     key={icon.id}
                                     onClick={() => handleIconClick(icon)}
-                                    className={`aspect-square bg-white border rounded-md flex items-center justify-center p-2 transition-all
+                                    className={`aspect-square bg-white border rounded-md flex items-center justify-center p-4 transition-all
                                         ${selectedGraphic?.id === icon.id
                                             ? 'border-brand-blue ring-1 ring-brand-blue'
                                             : 'border-gray-200 hover:border-brand-blue'

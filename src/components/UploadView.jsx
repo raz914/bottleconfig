@@ -12,6 +12,71 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = import.meta.env.PROD
 
 const MAX_MASK_DIMENSION = 1024;
 
+const sampleAverageColor = (data, width, height, xStart, yStart, sampleSize) => {
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    let count = 0;
+    const safeX = Math.max(0, xStart);
+    const safeY = Math.max(0, yStart);
+    const xEnd = Math.min(width, safeX + sampleSize);
+    const yEnd = Math.min(height, safeY + sampleSize);
+
+    for (let y = safeY; y < yEnd; y++) {
+        for (let x = safeX; x < xEnd; x++) {
+            const idx = (y * width + x) * 4;
+            r += data[idx];
+            g += data[idx + 1];
+            b += data[idx + 2];
+            count++;
+        }
+    }
+
+    if (!count) return { r: 0, g: 0, b: 0 };
+    return { r: r / count, g: g / count, b: b / count };
+};
+
+const colorDistance = (c1, c2) => {
+    const dr = c1.r - c2.r;
+    const dg = c1.g - c2.g;
+    const db = c1.b - c2.b;
+    return Math.sqrt(dr * dr + dg * dg + db * db);
+};
+
+const applyLuminanceMask = (data, options = {}) => {
+    const {
+        invert = false,
+        threshold = 170,
+        softness = 40,
+        gamma = 0.7
+    } = options;
+
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+
+        const v = 0.299 * r + 0.587 * g + 0.114 * b;
+        const delta = invert ? (v - threshold) : (threshold - v);
+        let a = (delta / softness) * 255;
+
+        if (a < 0) a = 0;
+        if (a > 255) a = 255;
+
+        if (gamma !== 1 && a > 0) {
+            a = Math.pow(a / 255, gamma) * 255;
+        }
+
+        if (a < 25) a = 0;
+        else if (a > 230) a = 255;
+
+        data[i] = 0;
+        data[i + 1] = 0;
+        data[i + 2] = 0;
+        data[i + 3] = Math.round(a);
+    }
+};
+
 const createMetalMaskFromImage = (img) => {
     const iw = img.naturalWidth || img.width;
     const ih = img.naturalHeight || img.height;
@@ -56,27 +121,90 @@ const createMetalMaskFromImage = (img) => {
             data[i + 3] = a;
         }
     } else {
-        const contrast = 1.2;
-        const brightness = 1.1;
+        const sampleSize = Math.max(2, Math.round(Math.min(width, height) * 0.04));
+        const corners = [
+            sampleAverageColor(data, width, height, 0, 0, sampleSize),
+            sampleAverageColor(data, width, height, width - sampleSize, 0, sampleSize),
+            sampleAverageColor(data, width, height, 0, height - sampleSize, sampleSize),
+            sampleAverageColor(data, width, height, width - sampleSize, height - sampleSize, sampleSize)
+        ];
+
+        const bg = corners.reduce((acc, c) => ({
+            r: acc.r + c.r / corners.length,
+            g: acc.g + c.g / corners.length,
+            b: acc.b + c.b / corners.length
+        }), { r: 0, g: 0, b: 0 });
+
+        let maxCornerDist = 0;
+        for (const c of corners) {
+            maxCornerDist = Math.max(maxCornerDist, colorDistance(c, bg));
+        }
+
+        const bgLum = 0.299 * bg.r + 0.587 * bg.g + 0.114 * bg.b;
+        const invertLum = bgLum < 130;
+        const lumThreshold = invertLum
+            ? Math.min(230, bgLum + 45)
+            : Math.max(25, bgLum - 45);
+        const lumSoftness = 45;
+
+        const tolerance = Math.min(100, Math.max(14, maxCornerDist * 2.2));
+        const edgeSoftness = 18;
+        let foregroundCount = 0;
+        const totalPixels = width * height;
 
         for (let i = 0; i < data.length; i += 4) {
             const r = data[i];
             const g = data[i + 1];
             const b = data[i + 2];
+            const a = data[i + 3];
 
-            let v = 0.299 * r + 0.587 * g + 0.114 * b;
-            v = (v - 128) * contrast + 128;
-            v = v * brightness;
-            v = Math.max(0, Math.min(255, v));
+            if (a < 10) {
+                data[i] = 0;
+                data[i + 1] = 0;
+                data[i + 2] = 0;
+                data[i + 3] = 0;
+                continue;
+            }
 
-            let a = 255 - v;
-            if (a < 20) a = 0;
-            else if (a > 235) a = 255;
+            const dist = colorDistance({ r, g, b }, bg);
+            let distAlpha = 0;
 
+            if (dist > tolerance) {
+                if (dist < tolerance + edgeSoftness) {
+                    distAlpha = Math.round(((dist - tolerance) / edgeSoftness) * 255);
+                } else {
+                    distAlpha = 255;
+                }
+            }
+
+            const v = 0.299 * r + 0.587 * g + 0.114 * b;
+            const lumDelta = invertLum ? (v - lumThreshold) : (lumThreshold - v);
+            let lumAlpha = (lumDelta / lumSoftness) * 255;
+            if (lumAlpha < 0) lumAlpha = 0;
+            if (lumAlpha > 255) lumAlpha = 255;
+
+            let nextAlpha = Math.max(distAlpha, lumAlpha);
+            if (nextAlpha > 0 && nextAlpha < 255) {
+                nextAlpha = Math.pow(nextAlpha / 255, 0.65) * 255;
+            }
+            if (nextAlpha < 20) nextAlpha = 0;
+            else if (nextAlpha > 230) nextAlpha = 255;
+
+            if (nextAlpha > 0) foregroundCount++;
             data[i] = 0;
             data[i + 1] = 0;
             data[i + 2] = 0;
-            data[i + 3] = a;
+            data[i + 3] = nextAlpha;
+        }
+
+        const foregroundRatio = foregroundCount / Math.max(1, totalPixels);
+        if (foregroundRatio > 0.95 || foregroundRatio < 0.01) {
+            applyLuminanceMask(data, {
+                invert: invertLum,
+                threshold: lumThreshold,
+                softness: lumSoftness,
+                gamma: 0.7
+            });
         }
     }
 
@@ -84,7 +212,7 @@ const createMetalMaskFromImage = (img) => {
     return canvas.toDataURL('image/png');
 };
 
-const UploadView = ({ setView, setGraphic, graphicInput, activeTab }) => {
+const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColor }) => {
     const fileInputRef = useRef(null);
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -218,6 +346,10 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab }) => {
     const getSideName = () => activeTab === 'FRONT' ? 'FRONT' : 'BACK';
     const sideName = getSideName();
 
+    const metallicGradient = selectedColor === 'white'
+        ? 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)'
+        : 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)';
+
     return (
         <div className="w-full h-full flex flex-col bg-white p-4 md:p-8 overflow-y-auto pb-32">
             <input
@@ -264,12 +396,31 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab }) => {
                 // PREVIEW STATE (Keeping it simple for now, but cleaner)
                 <div className="flex flex-col items-center w-full animate-fade-in-up">
                     <div className="w-full aspect-square max-w-[200px] border-2 border-dashed border-gray-300 rounded bg-gray-50 flex items-center justify-center p-4 mb-6 relative overflow-hidden">
-                        <img
-                            src={graphicInput.src}
-                            alt="Preview"
-                            className="max-w-full max-h-full object-contain"
-                            style={{ filter: 'grayscale(100%) contrast(1.2) brightness(1.2)' }}
-                        />
+                        {graphicInput.maskSrc ? (
+                            <div
+                                className="w-full h-full"
+                                style={{
+                                    maskImage: `url(${graphicInput.maskSrc})`,
+                                    WebkitMaskImage: `url(${graphicInput.maskSrc})`,
+                                    maskSize: 'contain',
+                                    WebkitMaskSize: 'contain',
+                                    maskPosition: 'center',
+                                    WebkitMaskPosition: 'center',
+                                    maskRepeat: 'no-repeat',
+                                    WebkitMaskRepeat: 'no-repeat',
+                                    background: metallicGradient,
+                                    filter: 'contrast(1.1) brightness(1.1)',
+                                    opacity: 0.95
+                                }}
+                            />
+                        ) : (
+                            <img
+                                src={graphicInput.src}
+                                alt="Preview"
+                                className="max-w-full max-h-full object-contain"
+                                style={{ filter: 'grayscale(100%) contrast(1.2) brightness(1.2)' }}
+                            />
+                        )}
                     </div>
 
                     {/* Scale Slider */}
