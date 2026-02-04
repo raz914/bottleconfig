@@ -1,33 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { galleryCategories, galleryIcons } from '../data/galleryData';
 
 const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
     const [view, setViewInternal] = useState('categories'); // 'categories' | 'icons'
     const [activeCategory, setActiveCategory] = useState(null);
+    const contentRef = useRef(null);
 
     const handleCategoryClick = (category) => {
         setActiveCategory(category);
         setViewInternal('icons');
-        // Scroll to header on mobile
-        const target = document.getElementById('mobile-color-trigger');
-        if (target && window.innerWidth < 768) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Reset scroll position of content area
+        if (contentRef.current) {
+            contentRef.current.scrollTop = 0;
         }
     };
 
     const handleIconClick = (icon) => {
         setGraphic({ ...icon, scale: 1 }); // Default scale 1
-        // Scroll to header on mobile
-        const target = document.getElementById('mobile-color-trigger');
-        if (target && window.innerWidth < 768) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
     };
 
     const handleBackClick = () => {
         if (view === 'icons') {
             setViewInternal('categories');
             setActiveCategory(null);
+            // Reset scroll position
+            if (contentRef.current) {
+                contentRef.current.scrollTop = 0;
+            }
         } else {
             setView('main');
         }
@@ -86,7 +85,7 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
             )}
 
             {/* Content Area */}
-            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[50vh] md:max-h-full">
+            <div ref={contentRef} className="flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[50vh] md:max-h-full">
 
                 {/* Categories Grid */}
                 {view === 'categories' && (

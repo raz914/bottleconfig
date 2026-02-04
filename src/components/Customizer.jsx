@@ -25,6 +25,15 @@ const Customizer = () => {
     const [view, setView] = useState('main'); // 'main' | 'text' | 'monogram'
     const [isMobile, setIsMobile] = useState(false);
     const [isImageLoading, setIsImageLoading] = useState(false);
+    const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
+    // Custom handler to track when initial image load is done
+    const handlePreviewImageLoad = (loading) => {
+        setIsImageLoading(loading);
+        if (!loading && !initialLoadComplete) {
+            setInitialLoadComplete(true);
+        }
+    };
 
     // Force canvas capture flag for desktop testing of iOS code path
     const [forceCanvasCapture, setForceCanvasCaptureState] = useState(false);
@@ -533,7 +542,7 @@ const Customizer = () => {
                             fonts={fonts}
                             isMobile={isMobile}
                             isImageLoading={isImageLoading}
-                            setIsImageLoading={setIsImageLoading}
+                            setIsImageLoading={handlePreviewImageLoad}
                             view={view}
                         />
 
@@ -583,7 +592,7 @@ const Customizer = () => {
                 </div>
 
                 {/* Right Panel - Customization Options */}
-                <div className={`w-full md:w-1/2 bg-[#f3f4f6] md:bg-[#f3f4f6] p-4 md:p-12 flex flex-col items-center justify-start flex-1 md:mb-0 md:overflow-y-auto md:pb-32 min-h-[60vh] md:min-h-0 ${view !== 'main' ? 'mb-16' : ''}`}>
+                <div className={`w-full md:w-1/2 bg-[#f3f4f6] md:bg-[#f3f4f6] p-4 md:p-12 flex flex-col items-center justify-start flex-1 md:mb-0 md:overflow-y-auto md:pb-32 min-h-[60vh] md:min-h-0 ${view !== 'main' ? 'pb-36' : ''}`}>
                     {view === 'main' && <MainView setView={setView} />}
 
                     {view === 'text' && (
@@ -644,54 +653,57 @@ const Customizer = () => {
             {/* HIDDEN CAPTURE AREA */}
             {/* Render both sides off-screen with fixed 'Desktop' dimensions for high-quality capture */}
             {/* Position offscreen (not opacity:0) for better html-to-image compatibility on non-iOS browsers */}
-            <div style={{ position: 'fixed', top: 0, left: '-9999px', pointerEvents: 'none', zIndex: -1 }}>
-                <div ref={frontCaptureRef}>
-                    <BottlePreview
-                        side="FRONT"
-                        customization={customization}
-                        selectedColor={selectedColor}
-                        selectedFont={selectedFont}
-                        selectedMonogram={selectedMonogramBySide.FRONT}
-                        fonts={fonts}
-                        isMobile={false} // Force Desktop Mode
-                        view="capture" // Special view mode to force sizes
-                    />
-                </div>
-                <div ref={backCaptureRef}>
-                    <BottlePreview
-                        side="BACK"
-                        customization={customization}
-                        selectedColor={selectedColor}
-                        selectedFont={selectedFont}
-                        selectedMonogram={selectedMonogramBySide.BACK}
-                        fonts={fonts}
-                        isMobile={false} // Force Desktop Mode
-                        view="capture"
-                    />
-                </div>
+            {/* Only render after initial load to prevent blocking the main thread during startup */}
+            {initialLoadComplete && (
+                <div style={{ position: 'fixed', top: 0, left: '-9999px', pointerEvents: 'none', zIndex: -1 }}>
+                    <div ref={frontCaptureRef}>
+                        <BottlePreview
+                            side="FRONT"
+                            customization={customization}
+                            selectedColor={selectedColor}
+                            selectedFont={selectedFont}
+                            selectedMonogram={selectedMonogramBySide.FRONT}
+                            fonts={fonts}
+                            isMobile={false} // Force Desktop Mode
+                            view="capture" // Special view mode to force sizes
+                        />
+                    </div>
+                    <div ref={backCaptureRef}>
+                        <BottlePreview
+                            side="BACK"
+                            customization={customization}
+                            selectedColor={selectedColor}
+                            selectedFont={selectedFont}
+                            selectedMonogram={selectedMonogramBySide.BACK}
+                            fonts={fonts}
+                            isMobile={false} // Force Desktop Mode
+                            view="capture"
+                        />
+                    </div>
 
-                {/* VISUAL DESIGN CAPTURES (No Bottle, Just Design) */}
-                <div ref={frontDesignCaptureRef}>
-                    <DesignCapture
-                        side="FRONT"
-                        customization={customization}
-                        selectedColor={selectedColor}
-                        selectedFont={selectedFont}
-                        selectedMonogram={selectedMonogramBySide.FRONT}
-                        fonts={fonts}
-                    />
+                    {/* VISUAL DESIGN CAPTURES (No Bottle, Just Design) */}
+                    <div ref={frontDesignCaptureRef}>
+                        <DesignCapture
+                            side="FRONT"
+                            customization={customization}
+                            selectedColor={selectedColor}
+                            selectedFont={selectedFont}
+                            selectedMonogram={selectedMonogramBySide.FRONT}
+                            fonts={fonts}
+                        />
+                    </div>
+                    <div ref={backDesignCaptureRef}>
+                        <DesignCapture
+                            side="BACK"
+                            customization={customization}
+                            selectedColor={selectedColor}
+                            selectedFont={selectedFont}
+                            selectedMonogram={selectedMonogramBySide.BACK}
+                            fonts={fonts}
+                        />
+                    </div>
                 </div>
-                <div ref={backDesignCaptureRef}>
-                    <DesignCapture
-                        side="BACK"
-                        customization={customization}
-                        selectedColor={selectedColor}
-                        selectedFont={selectedFont}
-                        selectedMonogram={selectedMonogramBySide.BACK}
-                        fonts={fonts}
-                    />
-                </div>
-            </div>
+            )}
 
             {/* Full-screen loader while preparing review */}
             {isPreparingReview && (
