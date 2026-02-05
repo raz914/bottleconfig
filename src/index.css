@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  font-family: 'BeFit Slim', 'Noto Emoji', sans-serif;
+}
+
 @layer utilities {
   .animate-fade-in {
     animation: fadeIn 0.5s ease-in-out;

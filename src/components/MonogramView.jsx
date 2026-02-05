@@ -26,7 +26,7 @@ const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles
             {/* Back Button */}
             <button
                 onClick={() => setView('main')}
-                className="flex items-center text-black font-bold text-xs md:text-sm tracking-widest uppercase mb-4 md:mb-6 hover:text-gray-600 transition-colors"
+                className="flex items-center text-black font-bold text-xs md:text-sm tracking-widest uppercase mb-2 md:mb-6 hover:text-gray-600 transition-colors"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -35,7 +35,7 @@ const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles
             </button>
 
             {/* Monogram Input */}
-            <div className="bg-white rounded-lg shadow-sm p-2 mb-6 border border-gray-200 flex items-center flex-shrink-0">
+            <div className="bg-white rounded-lg shadow-sm  mb-3 border border-gray-200 flex items-center flex-shrink-0">
                 <input
                     type="text"
                     value={monogramInput}
@@ -88,7 +88,7 @@ const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles
 
             {/* Monogram Style Grid */}
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[50vh] md:max-h-full">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                <div className="grid grid-cols-3 gap-3 md:gap-4">
                     {monogramStyles.map((monogram) => {
                         // Custom display for Circle font (rjm = rJ#)
                         const isCircleFont = monogram.useCircleGlyphs;
@@ -114,10 +114,10 @@ const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles
                             <button
                                 key={monogram.name}
                                 onClick={() => setSelectedMonogram(monogram.name)}
-                                className={`p-4 md:p-8 bg-white rounded-lg border transition-all duration-200 flex items-center justify-center h-24 md:h-36
+                                className={`p-4 md:p-8 bg-white rounded-lg border transition-all duration-200 flex items-center justify-center h-24 md:h-36 shadow-md
                                     ${selectedMonogram === monogram.name
-                                        ? 'border-brand-blue ring-1 ring-brand-blue shadow-md'
-                                        : 'border-transparent shadow-sm hover:shadow hover:border-brand-blue text-gray-400 hover:text-brand-blue'
+                                        ? 'border-brand-blue ring-1 ring-brand-blue shadow-lg'
+                                        : 'border-transparent hover:shadow-lg hover:border-brand-blue text-gray-400 hover:text-brand-blue'
                                     }
                                 `}
                             >

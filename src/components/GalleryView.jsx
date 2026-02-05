@@ -89,12 +89,12 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
 
                 {/* Categories Grid */}
                 {view === 'categories' && (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                         {galleryCategories.map((cat) => (
                             <button
                                 key={cat.id}
                                 onClick={() => handleCategoryClick(cat.id)}
-                                className="aspect-square bg-white border border-gray-200 rounded-lg flex flex-col items-center justify-center p-4 hover:border-brand-blue hover:shadow-md transition-all group"
+                                className="aspect-square bg-white border border-gray-200 rounded-lg flex flex-col items-center justify-center p-4 shadow-md hover:border-brand-blue hover:shadow-lg transition-all group"
                             >
                                 {/* Category Preview Icon (using the defined 'icon' string to find a sample) */}
                                 <div className="text-gray-400 group-hover:text-brand-blue mb-3 transition-colors">
@@ -104,7 +104,9 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
                                         className="w-12 h-12 object-contain"
                                     />
                                 </div>
-                                <span className="text-sm font-bold text-gray-600 group-hover:text-brand-blue uppercase tracking-wider">
+                                <span className={`font-bold text-gray-600 group-hover:text-brand-blue uppercase tracking-wider text-center leading-tight
+                                    ${cat.name.length > 8 ? 'text-[10px]' : 'text-sm'}
+                                `}>
                                     {cat.name}
                                 </span>
                             </button>
@@ -123,10 +125,10 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
                                 <button
                                     key={icon.id}
                                     onClick={() => handleIconClick(icon)}
-                                    className={`aspect-square bg-white border rounded-md flex items-center justify-center p-4 transition-all
+                                    className={`aspect-square bg-white border rounded-md flex items-center justify-center p-4 shadow-md transition-all
                                         ${selectedGraphic?.id === icon.id
-                                            ? 'border-brand-blue ring-1 ring-brand-blue'
-                                            : 'border-gray-200 hover:border-brand-blue'
+                                            ? 'border-brand-blue ring-1 ring-brand-blue shadow-lg'
+                                            : 'border-gray-200 hover:border-brand-blue hover:shadow-lg'
                                         }
                                     `}
                                 >

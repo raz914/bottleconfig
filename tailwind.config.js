@@ -6,6 +6,9 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['BeFit Slim', 'Noto Emoji', 'sans-serif'],
+      },
       colors: {
         'brand-blue': '#007db5', // For hover links and upload button
       }

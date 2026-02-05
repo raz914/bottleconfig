@@ -120,6 +120,7 @@ const Customizer = () => {
         { name: 'Yearbook Solid', css: 'font-serif uppercase font-black', style: { fontFamily: 'Bebas Neue, "Noto Emoji", sans-serif' } },
         { name: 'VAG Rounded Next', css: 'font-sans', style: { fontFamily: 'Nunito, "Noto Emoji", sans-serif' } },
         { name: 'Samantha Script', css: 'font-cursive', style: { fontFamily: 'Dancing Script, "Noto Emoji", cursive' } },
+        { name: 'Nexa Script', css: 'font-cursive', style: { fontFamily: 'Nexa Script, "Noto Emoji", cursive' } },
         { name: 'Cotford', css: 'font-serif', style: { fontFamily: 'Merriweather, "Noto Emoji", serif' } },
         { name: 'Arial Bold', css: 'font-sans font-bold', style: { fontFamily: 'Arial, "Noto Emoji", sans-serif', fontWeight: 'bold' } },
         { name: 'ITC Modern No 216', css: 'font-serif font-bold', style: { fontFamily: 'Bodoni Moda, "Noto Emoji", serif' } },
@@ -127,15 +128,15 @@ const Customizer = () => {
         { name: 'Rockwell Bold', css: 'font-serif font-bold', style: { fontFamily: 'Alfa Slab One, "Noto Emoji", serif' } },
         { name: 'WHIPHAND', css: 'font-display uppercase', style: { fontFamily: 'Permanent Marker, "Noto Emoji", cursive', fontStyle: 'italic' } },
         { name: 'WOOD TYPE', css: 'font-display uppercase tracking-wide', style: { fontFamily: 'Bungee, "Noto Emoji", sans-serif' } },
-        { name: 'Futura Bold', css: 'font-sans font-bold uppercase', style: { fontFamily: 'Oswald, "Noto Emoji", sans-serif', fontWeight: 'bold' } },
-        { name: 'Script MT Bold', css: 'font-cursive font-bold', style: { fontFamily: 'Dancing Script, "Noto Emoji", cursive', fontWeight: 'bold' } },
-        { name: 'Times New Roman', css: 'font-serif', style: { fontFamily: 'Times New Roman, "Noto Emoji", serif' } },
-        { name: 'Allura', css: 'font-cursive', style: { fontFamily: 'Allura, "Noto Emoji", cursive' } },
-        { name: 'Bebas Neue Bold', css: 'font-display', style: { fontFamily: 'Bebas Neue, "Noto Emoji", sans-serif', fontWeight: 'bold' } },
-        { name: 'Libre Baskerville', css: 'font-serif', style: { fontFamily: 'Libre Baskerville, "Noto Emoji", serif' } },
-        { name: 'Montserrat Italics', css: 'font-sans italic', style: { fontFamily: 'Montserrat, "Noto Emoji", sans-serif', fontStyle: 'italic' } },
-        { name: 'Dancing Script', css: 'font-cursive', style: { fontFamily: 'Dancing Script, "Noto Emoji", cursive' } },
-        { name: 'Yellowtail', css: 'font-cursive', style: { fontFamily: 'Yellowtail, "Noto Emoji", cursive' } },
+        // { name: 'Futura Bold', css: 'font-sans font-bold uppercase', style: { fontFamily: 'Oswald, "Noto Emoji", sans-serif', fontWeight: 'bold' } },
+        // { name: 'Script MT Bold', css: 'font-cursive font-bold', style: { fontFamily: 'Dancing Script, "Noto Emoji", cursive', fontWeight: 'bold' } },
+        // { name: 'Times New Roman', css: 'font-serif', style: { fontFamily: 'Times New Roman, "Noto Emoji", serif' } },
+        // { name: 'Allura', css: 'font-cursive', style: { fontFamily: 'Allura, "Noto Emoji", cursive' } },
+        // { name: 'Bebas Neue Bold', css: 'font-display', style: { fontFamily: 'Bebas Neue, "Noto Emoji", sans-serif', fontWeight: 'bold' } },
+        // { name: 'Libre Baskerville', css: 'font-serif', style: { fontFamily: 'Libre Baskerville, "Noto Emoji", serif' } },
+        // { name: 'Montserrat Italics', css: 'font-sans italic', style: { fontFamily: 'Montserrat, "Noto Emoji", sans-serif', fontStyle: 'italic' } },
+        // { name: 'Dancing Script', css: 'font-cursive', style: { fontFamily: 'Dancing Script, "Noto Emoji", cursive' } },
+        // { name: 'Yellowtail', css: 'font-cursive', style: { fontFamily: 'Yellowtail, "Noto Emoji", cursive' } },
     ];
 
     const [showReview, setShowReview] = useState(false);
@@ -592,7 +593,7 @@ const Customizer = () => {
                 </div>
 
                 {/* Right Panel - Customization Options */}
-                <div className={`w-full md:w-1/2 bg-[#f3f4f6] md:bg-[#f3f4f6] p-4 md:p-12 flex flex-col items-center justify-start flex-1 md:mb-0 md:overflow-y-auto md:pb-32 min-h-[60vh] md:min-h-0 ${view !== 'main' ? 'pb-36' : ''}`}>
+                <div className={`w-full md:w-1/2 p-4 md:p-12 flex flex-col items-center justify-start flex-1 md:mb-0 md:overflow-y-auto md:pb-32 min-h-[60vh] md:min-h-0 pb-24 ${view !== 'main' ? 'bg-white md:bg-white md:pb-36' : 'bg-[#f3f4f6] md:bg-[#f3f4f6]'}`}>
                     {view === 'main' && <MainView setView={setView} />}
 
                     {view === 'text' && (
