@@ -418,8 +418,12 @@ body #wfacp-e-form .bc-monogram--ngram3 * { font-family: 'Three Character N-Gram
 }
 
 .woocommerce-checkout-review-order .bc-thumb-frame {
-    width: 80px;
-    max-width: 80px;
+    width: 40px;
+    max-width: 40px;
+}
+
+.woocommerce-checkout-review-order .bottle-customizer-cart-thumb {
+    max-width: 40px;
 }
 
 /* Checkout: hide any empty variation row that can render as a lone ":" */
@@ -456,6 +460,24 @@ body #wfacp-e-form .bc-monogram--ngram3 * { font-family: 'Three Character N-Gram
     .bc-graphic-img {
         width: 70px;
         height: 70px;
+    }
+
+    /* Checkout: keep preview thumbnails small on mobile */
+    .woocommerce-checkout-review-order .bc-thumb-frame {
+        width: 40px !important;
+        max-width: 40px !important;
+    }
+
+    .woocommerce-checkout-review-order .bottle-customizer-cart-thumb {
+        max-width: 40px !important;
+    }
+
+    .woocommerce-checkout :is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-thumb-frame {
+        max-width: 40px !important;
+    }
+
+    .woocommerce-checkout :is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bottle-customizer-cart-thumb {
+        max-width: 40px !important;
     }
 }
 
@@ -701,6 +723,15 @@ dl.variation dt.variation- {
     display: inline-block;
     width: 100%;
     max-width: 80px;
+}
+
+/* FunnelKit checkout: make preview thumbnails 50% smaller */
+.woocommerce-checkout :is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-thumb-frame {
+    max-width: 40px;
+}
+
+.woocommerce-checkout :is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bottle-customizer-cart-thumb {
+    max-width: 40px;
 }
 
 :is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-thumb-frame img {
