@@ -69,14 +69,14 @@ const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles
 
             {/* Single Letter Warning */}
             {monogramStyles.find(m => m.name === selectedMonogram)?.maxLength === 1 && monogramInput.length > 1 && (
-                <div className="text-red-500 text-xs font-bold text-center -mt-4 mb-4 flex-shrink-0">
+                <div className="text-red-500 text-xs font-bold text-center mt-2 mb-2 flex-shrink-0">
                     ONLY FIRST LETTER WILL BE SHOWN
                 </div>
             )}
 
             {/* Minimum Length Warning for Circle/NGram */}
             {(monogramStyles.find(m => m.name === selectedMonogram)?.useCircleGlyphs || monogramStyles.find(m => m.name === selectedMonogram)?.useNGramGlyphs) && monogramInput.length === 1 && (
-                <div className="text-red-500 text-xs font-bold text-center -mt-4 mb-4 flex-shrink-0">
+                <div className="text-red-500 text-xs font-bold text-center mt-2 mb-2 flex-shrink-0">
                     PLEASE ENTER AT LEAST 2 LETTERS
                 </div>
             )}

@@ -134,9 +134,7 @@ const BottlePreview = ({
     // Graphic size - uses shared config from capturePositions.js
     const sizeConfig = isMobile ? GRAPHIC_MAX_SIZE.mobile : GRAPHIC_MAX_SIZE.desktop;
     const graphicMaxSize = `${sizeConfig[side] * 100}%`;
-    const metallicGradient = selectedColor === 'white'
-        ? 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)'
-        : 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)';
+    const metallicGradient = 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)';
     const metalMaskSrc = (graphicInput && (!graphicInput.isUpload || graphicInput.maskSrc)) ? loadedGraphicSrc : null;
 
     return (
@@ -167,6 +165,8 @@ const BottlePreview = ({
                             containerType: 'inline-size',
                             ...getPositionStyle('text'),
                             writingMode: (side === 'BACK' && config.isVertical) ? 'vertical-rl' : undefined,
+                            textOrientation: (side === 'BACK' && config.isVertical) ? 'sideways' : undefined,
+                            glyphOrientationVertical: (side === 'BACK' && config.isVertical) ? '90deg' : undefined,
                         }}
                     >
                         <span
@@ -175,7 +175,7 @@ const BottlePreview = ({
                                 ...fonts.find(f => f.name === selectedFont)?.style,
                                 fontSize: side === 'FRONT'
                                     ? `max(4px, min(${100 / Math.max(1, textInput.length)}cqi, 18cqi))`
-                                    : `max(8px, min(${100 / Math.max(1, textInput.length)}cqi, 54cqi))`,
+                                    : `max(8px, min(${150 / Math.max(1, textInput.length)}cqi, 54cqi))`,
                                 letterSpacing: '0.5px',
                                 wordBreak: 'break-word',
                                 whiteSpace: 'pre-wrap',
@@ -189,21 +189,12 @@ const BottlePreview = ({
                                     WebkitBoxOrient: 'vertical',
                                 }),
                                 // Silver Gradient Style
-                                ...(selectedColor === 'white' ? {
-                                    background: 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)',
-                                    WebkitBackgroundClip: 'text',
-                                    backgroundClip: 'text',
-                                    color: 'transparent',
-                                    filter: 'contrast(1.1) brightness(1.1) drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
-                                    WebkitTextFillColor: 'transparent',
-                                } : {
-                                    background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
-                                    WebkitBackgroundClip: 'text',
-                                    backgroundClip: 'text',
-                                    color: 'transparent',
-                                    filter: 'contrast(1.1) brightness(1.1) drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
-                                    WebkitTextFillColor: 'transparent',
-                                })
+                                background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                WebkitBackgroundClip: 'text',
+                                backgroundClip: 'text',
+                                color: 'transparent',
+                                filter: 'contrast(1.1) brightness(1.1) drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
+                                WebkitTextFillColor: 'transparent',
                             }}
                         >
                             {textInput}
@@ -284,19 +275,11 @@ const BottlePreview = ({
                                     fontFamily: getCircleFontFamily(monogramInput.length),
                                     fontSize: getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile),
                                     lineHeight: 1.4,
-                                    ...(selectedColor === 'white' ? {
-                                        background: 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)',
-                                        WebkitBackgroundClip: 'text',
-                                        backgroundClip: 'text',
-                                        color: 'transparent',
-                                        WebkitTextFillColor: 'transparent',
-                                    } : {
-                                        background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
-                                        WebkitBackgroundClip: 'text',
-                                        backgroundClip: 'text',
-                                        color: 'transparent',
-                                        WebkitTextFillColor: 'transparent',
-                                    })
+                                    background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                    WebkitBackgroundClip: 'text',
+                                    backgroundClip: 'text',
+                                    color: 'transparent',
+                                    WebkitTextFillColor: 'transparent',
                                 }}
                             >
                                 {convertToCircleGlyphs(monogramInput, selectedMonogram)}
@@ -309,19 +292,11 @@ const BottlePreview = ({
                                     fontFamily: getNGramFontFamily(monogramInput.length),
                                     fontSize: getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile),
                                     lineHeight: 1.4,
-                                    ...(selectedColor === 'white' ? {
-                                        background: 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)',
-                                        WebkitBackgroundClip: 'text',
-                                        backgroundClip: 'text',
-                                        color: 'transparent',
-                                        WebkitTextFillColor: 'transparent',
-                                    } : {
-                                        background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
-                                        WebkitBackgroundClip: 'text',
-                                        backgroundClip: 'text',
-                                        color: 'transparent',
-                                        WebkitTextFillColor: 'transparent',
-                                    })
+                                    background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                    WebkitBackgroundClip: 'text',
+                                    backgroundClip: 'text',
+                                    color: 'transparent',
+                                    WebkitTextFillColor: 'transparent',
                                 }}
                             >
                                 {convertToNGramGlyphs(monogramInput)}
@@ -335,19 +310,11 @@ const BottlePreview = ({
                                     display: 'inline-flex',
                                     alignItems: 'center',
                                     lineHeight: 1.4,
-                                    ...(selectedColor === 'white' ? {
-                                        background: 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)',
-                                        WebkitBackgroundClip: 'text',
-                                        backgroundClip: 'text',
-                                        color: 'transparent',
-                                        WebkitTextFillColor: 'transparent',
-                                    } : {
-                                        background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
-                                        WebkitBackgroundClip: 'text',
-                                        backgroundClip: 'text',
-                                        color: 'transparent',
-                                        WebkitTextFillColor: 'transparent',
-                                    })
+                                    background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                    WebkitBackgroundClip: 'text',
+                                    backgroundClip: 'text',
+                                    color: 'transparent',
+                                    WebkitTextFillColor: 'transparent',
                                 }}
                             >
                                 <span style={{ fontSize: isMobile && side === 'FRONT' ? '0.2em' : '0.75em' }}>{monogramInput[0]}</span>
@@ -366,19 +333,11 @@ const BottlePreview = ({
                                     paddingLeft: selectedMonogram === 'Vine' ? '0.6em' : undefined,
                                     paddingTop: selectedMonogram === 'Vine' ? '0.3em' : undefined,
                                     paddingBottom: selectedMonogram === 'Vine' ? '0.3em' : undefined,
-                                    ...(selectedColor === 'white' ? {
-                                        background: 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)',
-                                        WebkitBackgroundClip: 'text',
-                                        backgroundClip: 'text',
-                                        color: 'transparent',
-                                        WebkitTextFillColor: 'transparent',
-                                    } : {
-                                        background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
-                                        WebkitBackgroundClip: 'text',
-                                        backgroundClip: 'text',
-                                        color: 'transparent',
-                                        WebkitTextFillColor: 'transparent',
-                                    })
+                                    background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                    WebkitBackgroundClip: 'text',
+                                    backgroundClip: 'text',
+                                    color: 'transparent',
+                                    WebkitTextFillColor: 'transparent',
                                 }}
                             >
                                 {monogramStyles.find(m => m.name === selectedMonogram)?.maxLength === 1

@@ -235,8 +235,8 @@ const calculateCqiFontSize = (text, boundsWidth, side) => {
         return Math.max(4 * RESOLUTION_SCALE, Math.min(dynamicSize, maxSize));
     } else {
         // BACK: max(8px, min((100/len)cqi, 34cqi))
-        const dynamicSize = (100 / len) * cqi;
-        const maxSize = 34 * cqi;
+        const dynamicSize = (150 / len) * cqi;
+        const maxSize = 54 * cqi;
         return Math.max(8 * RESOLUTION_SCALE, Math.min(dynamicSize, maxSize));
     }
 };

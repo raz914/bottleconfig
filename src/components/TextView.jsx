@@ -47,7 +47,7 @@ const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSe
                         setTextInput(val);
                     }}
                     placeholder="TYPE TEXT HERE"
-                    maxLength={activeTab === 'FRONT' ? 150 : 800}
+                    maxLength={activeTab === 'FRONT' ? 50 : 150}
                     rows={1}
                     className="flex-1 w-full px-2 md:px-4 py-2 text-center text-sm md:text-base text-gray-700 placeholder-gray-300 focus:outline-none resize-none min-h-[44px] md:min-h-[48px]"
                     onFocus={() => {
