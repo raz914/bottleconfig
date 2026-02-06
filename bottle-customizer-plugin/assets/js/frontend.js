@@ -68,6 +68,101 @@
         }
     }
 
+    function findCheckoutItemContainer(el) {
+        if (!el || !el.closest) return null;
+        var selectors = [
+            'tr.cart_item',
+            'li.cart_item',
+            '.wfacp_cart_item',
+            '.wfacp-cart-item',
+            '.wfacp-order-item',
+            '.wfacp-order-summary-item'
+        ];
+        for (var i = 0; i < selectors.length; i++) {
+            var found = el.closest(selectors[i]);
+            if (found) return found;
+        }
+        // Fallback: walk up a few levels and look for the thumb container.
+        var node = el.parentElement;
+        var depth = 0;
+        while (node && node !== document.body && depth < 8) {
+            if (node.querySelector && node.querySelector('.wfacp-pro-thumb')) {
+                return node;
+            }
+            node = node.parentElement;
+            depth++;
+        }
+        return null;
+    }
+
+    function swapCheckoutThumbnailImages(root) {
+        var scope = root || document;
+        var customImgs = scope.querySelectorAll('img.bottle-customizer-cart-thumb');
+        if (!customImgs.length) return;
+
+        customImgs.forEach(function (customImg) {
+            // Skip if already processed
+            if (customImg.dataset.bcSwapped === '1') return;
+
+            var frame = customImg.closest('.bc-thumb-frame') || customImg;
+            var item = findCheckoutItemContainer(frame);
+            if (!item) return;
+
+            // Find the original FunnelKit product thumbnail
+            var originalThumb = item.querySelector('.wfacp-pro-thumb img');
+            if (!originalThumb) return;
+
+            // Swap original image src to our custom image src
+            var customSrc = customImg.src;
+            if (customSrc && originalThumb.src !== customSrc) {
+                originalThumb.src = customSrc;
+                // Remove srcset/sizes to prevent responsive swapping back to default
+                originalThumb.removeAttribute('srcset');
+                originalThumb.removeAttribute('sizes');
+                // Optionally update alt
+                if (customImg.alt) {
+                    originalThumb.alt = customImg.alt;
+                }
+            }
+
+            // Mark as processed
+            customImg.dataset.bcSwapped = '1';
+
+            // Remove/hide the duplicate custom thumb element
+            if (frame && frame.parentNode) {
+                frame.parentNode.removeChild(frame);
+            }
+        });
+    }
+
+    function initCheckoutThumbnailSwap() {
+        // FunnelKit checkout pages can be used on non-standard templates,
+        // so don't rely on body classes. Detect by WFACP container/thumb.
+        if (!document.querySelector('#wfacp-e-form') && !document.querySelector('.wfacp-pro-thumb')) return;
+
+        var root = document.querySelector('#wfacp-e-form')
+            || document.querySelector('.wfacp-order-summary, .wfacp_order_summary, .wfacp_order_sum, .wfacp_mini_cart_items')
+            || document.body;
+        var scheduled = false;
+
+        function scheduleSwap() {
+            if (scheduled) return;
+            scheduled = true;
+            window.requestAnimationFrame(function () {
+                scheduled = false;
+                swapCheckoutThumbnailImages(root);
+            });
+        }
+
+        swapCheckoutThumbnailImages(root);
+
+        var observer = new MutationObserver(function () {
+            scheduleSwap();
+        });
+
+        observer.observe(root, { childList: true, subtree: true });
+    }
+
     function init() {
         var button = $('#bottle-customizer-btn');
         if (!button) return;
@@ -227,8 +322,12 @@
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', function () {
+            init();
+            initCheckoutThumbnailSwap();
+        });
     } else {
         init();
+        initCheckoutThumbnailSwap();
     }
 })();

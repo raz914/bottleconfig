@@ -259,10 +259,6 @@ const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, 
 
     ctx.save();
 
-    // Use metallic gradient instead of solid color
-    const gradient = createMetallicGradient(ctx, bounds, selectedColor);
-    ctx.fillStyle = gradient;
-
     // Add drop shadow to match CSS filter
     ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
     ctx.shadowBlur = 2 * RESOLUTION_SCALE;
@@ -283,6 +279,28 @@ const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, 
 
         ctx.translate(centerX, centerY);
         ctx.rotate(Math.PI / 2);
+
+        // Create gradient AFTER transform so it's in the rotated coordinate space.
+        // CSS uses a horizontal gradient (90deg = left-to-right in screen space).
+        // After rotating 90deg clockwise:
+        //   - Local +X maps to original +Y (down)
+        //   - Local +Y maps to original -X (left)
+        // To get a left-to-right gradient in original screen space, we need
+        // the gradient to go from local +Y to local -Y (i.e., along local Y axis).
+        const gradient = ctx.createLinearGradient(
+            0, bounds.width / 2,    // maps to original left edge
+            0, -bounds.width / 2    // maps to original right edge
+        );
+        if (selectedColor === 'white') {
+            gradient.addColorStop(0, '#cac9c9');
+            gradient.addColorStop(0.5, '#aeaeae');
+            gradient.addColorStop(1, '#717171');
+        } else {
+            gradient.addColorStop(0, '#f5f4f4');
+            gradient.addColorStop(0.5, '#aeaeae');
+            gradient.addColorStop(1, '#717171');
+        }
+        ctx.fillStyle = gradient;
 
         // Multiline/wrapping behavior (match DOM more closely):
         // Instead of drawing per-character (which loses kerning and can look like "random gaps"),
@@ -341,6 +359,10 @@ const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, 
         // Horizontal text - use width as inline-size for cqi
         const fontSize = calculateCqiFontSize(text, bounds.width, side);
         ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
+
+        // Create gradient for horizontal text (in original coordinate space)
+        const gradient = createMetallicGradient(ctx, bounds, selectedColor);
+        ctx.fillStyle = gradient;
 
         ctx.fillText(text, centerX, centerY);
     }

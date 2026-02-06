@@ -322,55 +322,6 @@ details[open] .bc-dropdown-summary::before {
 .bc-monogram--ngram2 { font-family: 'Two Character N-Gram', serif !important; margin-left: .1em; }
 .bc-monogram--ngram3 { font-family: 'Three Character N-Gram', serif !important; margin-left: .1em; }
 
-/* FunnelKit/Aero often forces a global font-family with `!important` (especially on mobile).
-   Ensure our monogram font faces win in those contexts. */
-:is(.wfacp_anim, .wfacp_order_summary_container, .wfacp_min_cart_widget, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram--itc-modern { font-family: 'ITC Modern', serif !important; }
-:is(.wfacp_anim, .wfacp_order_summary_container, .wfacp_min_cart_widget, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram--nexa-script { font-family: 'Nexa Script', cursive !important; }
-:is(.wfacp_anim, .wfacp_order_summary_container, .wfacp_min_cart_widget, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram--roman { font-family: 'Roman', serif !important; }
-:is(.wfacp_anim, .wfacp_order_summary_container, .wfacp_min_cart_widget, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram--vine { font-family: 'Vine', serif !important; }
-:is(.wfacp_anim, .wfacp_order_summary_container, .wfacp_min_cart_widget, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram--circle2 { font-family: 'Two Character Circle', serif !important; }
-:is(.wfacp_anim, .wfacp_order_summary_container, .wfacp_min_cart_widget, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram--circle3 { font-family: 'Three Character Circle', serif !important; }
-:is(.wfacp_anim, .wfacp_order_summary_container, .wfacp_min_cart_widget, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram--ngram2 { font-family: 'Two Character N-Gram', serif !important; }
-:is(.wfacp_anim, .wfacp_order_summary_container, .wfacp_min_cart_widget, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram--ngram3 { font-family: 'Three Character N-Gram', serif !important; }
-
-/* FunnelKit checkout form applies `font-family: BeFit-Slim !important` on `body #wfacp-e-form *`.
-   That selector can beat class-based overrides even with `!important`.
-   Add ID-scoped overrides (and include descendants) so monogram glyph fonts render correctly. */
-body #wfacp-e-form .bc-monogram--itc-modern,
-body #wfacp-e-form .bc-monogram--itc-modern * { font-family: 'ITC Modern', serif !important; }
-
-body #wfacp-e-form .bc-monogram--nexa-script,
-body #wfacp-e-form .bc-monogram--nexa-script * { font-family: 'Nexa Script', cursive !important; }
-
-body #wfacp-e-form .bc-monogram--roman,
-body #wfacp-e-form .bc-monogram--roman * { font-family: 'Roman', serif !important; }
-
-body #wfacp-e-form .bc-monogram--vine,
-body #wfacp-e-form .bc-monogram--vine * { font-family: 'Vine', serif !important; }
-
-body #wfacp-e-form .bc-monogram--circle2,
-body #wfacp-e-form .bc-monogram--circle2 * { font-family: 'Two Character Circle', serif !important; }
-
-body #wfacp-e-form .bc-monogram--circle3,
-body #wfacp-e-form .bc-monogram--circle3 * { font-family: 'Three Character Circle', serif !important; }
-
-body #wfacp-e-form .bc-monogram--ngram2,
-body #wfacp-e-form .bc-monogram--ngram2 * { font-family: 'Two Character N-Gram', serif !important; }
-
-body #wfacp-e-form .bc-monogram--ngram3,
-body #wfacp-e-form .bc-monogram--ngram3 * { font-family: 'Three Character N-Gram', serif !important; }
-
-/* FunnelKit mini-cart block can apply a very specific `font-family: ... !important` selector.
-   Add extra specificity so our monogram glyph fonts win on desktop too. */
-.wfacp-mini-cart-block.wfacp-mini-cart-block .bc-monogram--itc-modern { font-family: 'ITC Modern', serif !important; }
-.wfacp-mini-cart-block.wfacp-mini-cart-block .bc-monogram--nexa-script { font-family: 'Nexa Script', cursive !important; }
-.wfacp-mini-cart-block.wfacp-mini-cart-block .bc-monogram--roman { font-family: 'Roman', serif !important; }
-.wfacp-mini-cart-block.wfacp-mini-cart-block .bc-monogram--vine { font-family: 'Vine', serif !important; }
-.wfacp-mini-cart-block.wfacp-mini-cart-block .bc-monogram--circle2 { font-family: 'Two Character Circle', serif !important; }
-.wfacp-mini-cart-block.wfacp-mini-cart-block .bc-monogram--circle3 { font-family: 'Three Character Circle', serif !important; }
-.wfacp-mini-cart-block.wfacp-mini-cart-block .bc-monogram--ngram2 { font-family: 'Two Character N-Gram', serif !important; }
-.wfacp-mini-cart-block.wfacp-mini-cart-block .bc-monogram--ngram3 { font-family: 'Three Character N-Gram', serif !important; }
-
 /* Roman monogram: middle character larger (3-letter only) */
 .bc-monogram--roman-split {
     display: inline-flex;
@@ -400,7 +351,7 @@ body #wfacp-e-form .bc-monogram--ngram3 * { font-family: 'Three Character N-Gram
     word-break: break-word;
 }
 
-/* Cart/checkout thumbnail override */
+/* Cart thumbnail override */
 .bottle-customizer-cart-thumb {
     width: 100%;
     height: auto;
@@ -409,33 +360,6 @@ body #wfacp-e-form .bc-monogram--ngram3 * { font-family: 'Three Character N-Gram
     border-radius: 4px;
     border: 1px solid #eee;
     background: #fafafa;
-}
-
-/* Checkout page: ensure our customized preview image is used as the main thumbnail */
-.woocommerce-checkout-review-order .bc-thumb-frame,
-.woocommerce-checkout-review-order .bottle-customizer-cart-thumb {
-    display: block;
-}
-
-.woocommerce-checkout-review-order .bc-thumb-frame {
-    width: 40px;
-    max-width: 40px;
-}
-
-.woocommerce-checkout-review-order .bottle-customizer-cart-thumb {
-    max-width: 40px;
-}
-
-/* Checkout: hide any empty variation row that can render as a lone ":" */
-.woocommerce-checkout-review-order dl.variation dt.variation-,
-.woocommerce-checkout-review-order dl.variation dt.variation- {
-    display: none !important;
-}
-
-/* Do NOT hide `dd.variation-` — our dropdown HTML is rendered there.
-   If a theme outputs an actually-empty `dd.variation-`, hide only those. */
-.woocommerce-checkout-review-order dl.variation dd.variation-:not(:has(*)) {
-    display: none !important;
 }
 
 /* Responsive */
@@ -460,24 +384,6 @@ body #wfacp-e-form .bc-monogram--ngram3 * { font-family: 'Three Character N-Gram
     .bc-graphic-img {
         width: 70px;
         height: 70px;
-    }
-
-    /* Checkout: keep preview thumbnails small on mobile */
-    .woocommerce-checkout-review-order .bc-thumb-frame {
-        width: 40px !important;
-        max-width: 40px !important;
-    }
-
-    .woocommerce-checkout-review-order .bottle-customizer-cart-thumb {
-        max-width: 40px !important;
-    }
-
-    .woocommerce-checkout :is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-thumb-frame {
-        max-width: 40px !important;
-    }
-
-    .woocommerce-checkout :is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bottle-customizer-cart-thumb {
-        max-width: 40px !important;
     }
 }
 
@@ -652,128 +558,4 @@ dl.variation dt.variation- {
 
 #fkcart-modal .bc-mini-cart-note .bc-note-text strong {
     font-size: 11px !important;
-}
-
-/* ===== FunnelKit/Aero Checkout Sidebar Styles ===== */
-
-/* FunnelKit containers can vary (sidebar block vs Elementor widget). Target both. */
-
-/* FunnelKit checkout: hide the ORIGINAL product image when the item is customized.
-   FunnelKit sometimes renders its own thumbnail (`.product-image .wfacp-pro-thumb img`) even when we inject
-   the customized preview elsewhere (e.g. inside `.wfacp_mini_cart_item_title`).
-   Key off our customization UI being present so non-customized items keep their images. */
-:is(.wfacp_order_summary_container, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget, .wfacp-mini-cart-block) .cart_item:has(.bc-thumb-frame) .product-image,
-:is(.wfacp_order_summary_container, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget, .wfacp-mini-cart-block) .cart_item:has(details.bottle-customizer-options) .product-image {
-    display: none !important;
-}
-
-/* Hide stray ":" row in FunnelKit checkout sidebar (similar to FKCart fix) */
-:is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) dl.variation dt.variation-,
-:is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) dl.variation dt.variation- {
-    display: none !important;
-}
-
-/* Mobile layouts sometimes render the mini-cart widget under different wrappers.
-   Repeat with broader FunnelKit wrappers to ensure the stray ":" is always hidden. */
-:is(.wfacp_anim, .wfacp_order_summary_container, .wfacp_min_cart_widget) dl.variation dt.variation- {
-    display: none !important;
-}
-
-/* Do NOT hide `dd.variation-` — our dropdown HTML is rendered there.
-   If a theme outputs an actually-empty `dd.variation-`, hide only those. */
-:is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) dl.variation dd.variation-:not(:has(*)) {
-    display: none !important;
-}
-
-/* IMPORTANT: Do not hide the entire attributes container.
-   FunnelKit renders cart meta inside this area; hiding it also hides our dropdown. */
-
-/* Ensure our dropdown is visible inside FunnelKit sidebar */
-:is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) details.bottle-customizer-options {
-    display: block !important;
-}
-
-:is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) details.bottle-customizer-options > summary {
-    display: flex !important;
-}
-
-/* FunnelKit checkout: monogram sizing to match cart dropdown */
-:is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram {
-    font-size: 42px !important;
-    line-height: 1 !important;
-}
-
-/* FunnelKit checkout: Vine 30% smaller */
-:is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram--vine {
-    font-size: 29px !important;
-}
-
-/* FunnelKit checkout: Roman split sizing */
-:is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram--roman-split .bc-monogram__left,
-:is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram--roman-split .bc-monogram__right {
-    font-size: 0.57em !important;
-}
-
-:is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram--roman-split .bc-monogram__middle {
-    font-size: 0.75em !important;
-}
-
-/* FunnelKit checkout: ensure thumbnail frame displays properly */
-:is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-thumb-frame {
-    display: inline-block;
-    width: 100%;
-    max-width: 80px;
-}
-
-/* FunnelKit checkout: make preview thumbnails 50% smaller */
-.woocommerce-checkout :is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-thumb-frame {
-    max-width: 40px;
-}
-
-.woocommerce-checkout :is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bottle-customizer-cart-thumb {
-    max-width: 40px;
-}
-
-:is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-thumb-frame img {
-    width: 100%;
-    height: auto;
-}
-
-/* FunnelKit checkout: graphic image sizing */
-:is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-graphic-img {
-    width: 70px;
-    height: 70px;
-    object-fit: contain;
-}
-
-/* Responsive: mobile checkout sidebar */
-@media (max-width: 768px) {
-    :is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram {
-        font-size: 31px !important;
-    }
-
-    :is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram--vine {
-        font-size: 22px !important;
-    }
-
-    :is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-graphic-img {
-        width: 60px;
-        height: 60px;
-    }
-}
-
-/* Extra-narrow phones: match cart sizing more closely */
-@media (max-width: 400px) {
-    :is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram {
-        font-size: 31px !important;
-    }
-
-    :is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-monogram--vine {
-        font-size: 22px !important;
-    }
-
-    :is(.wfacp-mini-cart-block, .wfacp_mini_cart_elementor, .wfacp_elementor_mini_cart_widget) .bc-graphic-img {
-        width: 60px;
-        height: 60px;
-    }
 }
