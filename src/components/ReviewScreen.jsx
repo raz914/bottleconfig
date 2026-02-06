@@ -145,9 +145,9 @@ const ReviewScreen = ({
             </header>
 
             {/* Content - Scrollable */}
-            <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#f9fafb]">
+            <main className="flex-1 overflow-y-auto p-3 md:p-8 bg-[#f9fafb]">
                 {/* Page Heading */}
-                <div className="text-center mb-6 md:mb-8 max-w-2xl mx-auto">
+                <div className="text-center mb-4 md:mb-8 max-w-2xl mx-auto">
                     <h1 className="text-xl md:text-2xl font-bold text-[#002C5F] uppercase tracking-wider mb-3">
                         Review Your Design
                     </h1>
@@ -156,11 +156,11 @@ const ReviewScreen = ({
                     </p>
                 </div>
 
-                <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
+                <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 items-start">
 
                     {/* FRONT VIEW */}
-                    <div className="flex flex-col items-center bg-[#f9fafb] p-6 rounded-lg ">
-                        <div className="relative w-full max-w-[300px] aspect-[3/5] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible mb-6">
+                    <div className="flex flex-col items-center bg-[#f9fafb] p-4 rounded-lg ">
+                        <div className="relative w-full max-w-[240px] md:max-w-[300px] aspect-[3/5] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible mb-4">
                             {frontImage ? (
                                 <img src={frontImage} alt="Front Preview" className="w-full h-full object-contain drop-shadow-xl mix-blend-multiply" />
                             ) : (
@@ -181,8 +181,8 @@ const ReviewScreen = ({
                     </div>
 
                     {/* BACK VIEW */}
-                    <div className="flex flex-col items-center bg-[#f9fafb] p-6 rounded-lg ">
-                        <div className="relative w-full max-w-[300px] aspect-[3/5] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible mb-6">
+                    <div className="flex flex-col items-center bg-[#f9fafb] p-4 rounded-lg ">
+                        <div className="relative w-full max-w-[240px] md:max-w-[300px] aspect-[3/5] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible mb-4">
                             {backImage ? (
                                 <img src={backImage} alt="Back Preview" className="w-full h-full object-contain drop-shadow-xl mix-blend-multiply" />
                             ) : (
@@ -206,8 +206,8 @@ const ReviewScreen = ({
             </main>
 
             {/* Footer Actions */}
-            <footer className="bg-white border-t border-gray-200 p-4 md:p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 flex-shrink-0">
-                <div className="max-w-6xl mx-auto flex flex-col items-center justify-between gap-4">
+            <footer className="bg-white border-t border-gray-200 p-3 md:p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 flex-shrink-0">
+                <div className="max-w-6xl mx-auto flex flex-col items-center justify-between gap-3">
                     <div className="text-center w-full">
                         {errorMessage ? (
                             <p className="text-sm font-medium text-red-600">

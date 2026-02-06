@@ -175,7 +175,7 @@ const BottlePreview = ({
                                 ...fonts.find(f => f.name === selectedFont)?.style,
                                 fontSize: side === 'FRONT'
                                     ? `max(4px, min(${100 / Math.max(1, textInput.length)}cqi, 18cqi))`
-                                    : `max(8px, min(${100 / Math.max(1, textInput.length)}cqi, 34cqi))`,
+                                    : `max(8px, min(${100 / Math.max(1, textInput.length)}cqi, 54cqi))`,
                                 letterSpacing: '0.5px',
                                 wordBreak: 'break-word',
                                 whiteSpace: 'pre-wrap',
