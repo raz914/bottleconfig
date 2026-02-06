@@ -95,9 +95,32 @@
         return null;
     }
 
-    function swapCheckoutThumbnailImages(root) {
-        var scope = root || document;
-        var customImgs = scope.querySelectorAll('img.bottle-customizer-cart-thumb');
+    /**
+     * Check if element is inside a FunnelKit order summary container.
+     * This guards against swapping on unrelated pages.
+     */
+    function isInsideFunnelKitSummary(el) {
+        if (!el || !el.closest) return false;
+        // Common FunnelKit order summary containers
+        var selectors = [
+            '#wfacp-e-form',
+            '.wfacp-mini-cart-block',
+            '.wfacp_order_sum',
+            '.wfacp_order_summary',
+            '.wfacp-order-summary',
+            '[id^="wfacp_mini_cart_items_"]',
+            'table.wfacp_mini_cart_items',
+            '.wfacp_mini_cart_start_h'
+        ];
+        for (var i = 0; i < selectors.length; i++) {
+            if (el.closest(selectors[i])) return true;
+        }
+        return false;
+    }
+
+    function swapCheckoutThumbnailImages() {
+        // Always scan from document to catch both mobile and desktop layouts
+        var customImgs = document.querySelectorAll('img.bottle-customizer-cart-thumb');
         if (!customImgs.length) return;
 
         customImgs.forEach(function (customImg) {
@@ -105,6 +128,10 @@
             if (customImg.dataset.bcSwapped === '1') return;
 
             var frame = customImg.closest('.bc-thumb-frame') || customImg;
+
+            // Guard: only process inside FunnelKit order summary containers
+            if (!isInsideFunnelKitSummary(frame)) return;
+
             var item = findCheckoutItemContainer(frame);
             if (!item) return;
 
@@ -140,9 +167,6 @@
         // so don't rely on body classes. Detect by WFACP container/thumb.
         if (!document.querySelector('#wfacp-e-form') && !document.querySelector('.wfacp-pro-thumb')) return;
 
-        var root = document.querySelector('#wfacp-e-form')
-            || document.querySelector('.wfacp-order-summary, .wfacp_order_summary, .wfacp_order_sum, .wfacp_mini_cart_items')
-            || document.body;
         var scheduled = false;
 
         function scheduleSwap() {
@@ -150,17 +174,26 @@
             scheduled = true;
             window.requestAnimationFrame(function () {
                 scheduled = false;
-                swapCheckoutThumbnailImages(root);
+                swapCheckoutThumbnailImages();
             });
         }
 
-        swapCheckoutThumbnailImages(root);
+        // Initial swap
+        swapCheckoutThumbnailImages();
 
+        // Observe document.body to catch both mobile form and desktop sidebar
         var observer = new MutationObserver(function () {
             scheduleSwap();
         });
+        observer.observe(document.body, { childList: true, subtree: true });
 
-        observer.observe(root, { childList: true, subtree: true });
+        // Retry on window load (late-rendered content)
+        window.addEventListener('load', function () {
+            swapCheckoutThumbnailImages();
+            // Delayed retry for very late renders (some themes/plugins)
+            setTimeout(swapCheckoutThumbnailImages, 500);
+            setTimeout(swapCheckoutThumbnailImages, 1500);
+        });
     }
 
     function init() {

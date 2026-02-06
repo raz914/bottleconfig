@@ -489,6 +489,25 @@ dl.variation dt.variation- {
     height: auto;
 }
 
+/* ===== FunnelKit checkout: prevent flicker during thumb swap =====
+   We temporarily hide BOTH images (blank) when a custom preview exists.
+   Our JS swaps the src into `.wfacp-pro-thumb img` and removes the custom preview,
+   which automatically makes the original thumb visible again (no double-image flash). */
+@supports selector(tr:has(img)) {
+    /* Scope to FunnelKit order summary tables/containers to avoid affecting other areas. */
+    #wfacp-e-form tr.cart_item:has(img.bottle-customizer-cart-thumb) .wfacp-pro-thumb img,
+    table.wfacp_order_sum tr.cart_item:has(img.bottle-customizer-cart-thumb) .wfacp-pro-thumb img,
+    [id^="wfacp_mini_cart_items_"] tr.cart_item:has(img.bottle-customizer-cart-thumb) .wfacp-pro-thumb img {
+        visibility: hidden !important;
+    }
+
+    #wfacp-e-form tr.cart_item:has(img.bottle-customizer-cart-thumb) .bc-thumb-frame,
+    table.wfacp_order_sum tr.cart_item:has(img.bottle-customizer-cart-thumb) .bc-thumb-frame,
+    [id^="wfacp_mini_cart_items_"] tr.cart_item:has(img.bottle-customizer-cart-thumb) .bc-thumb-frame {
+        visibility: hidden !important;
+    }
+}
+
 /* ===== Per-item delivery note (below quantity controls, full width) ===== */
 
 /* Wrapper row for the note — ensures it takes full width as a separate block */
