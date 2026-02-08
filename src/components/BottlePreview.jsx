@@ -35,7 +35,7 @@ const BottlePreview = ({
             monogram: "top-[25.2%] md:top-[32.4%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[60%] md:bottom-[61%]",
             graphic: "top-[26%] md:top-[33%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[61%] md:bottom-[62%]",
             boundary: "top-[29%] md:top-[32.5%] left-[35%] md:left-[35%] right-[34%] md:right-[34%] bottom-[63%] md:bottom-[61%]",
-            zoom: "scale-[2] translate-y-[35%] md:scale-[2] md:translate-y-[5%]"
+            zoom: "scale-[2] translate-y-[35%] md:scale-[3.3] md:translate-y-[25%]"
         },
         BACK: {
             text: (side === 'BACK' && customization.BACK?.isVertical)
@@ -46,7 +46,7 @@ const BottlePreview = ({
             boundary: (side === 'BACK' && customization.BACK?.isVertical)
                 ? "top-[38%] md:top-[39%] left-[36%] md:left-[35.5%] right-[36%] md:right-[36%] bottom-[21%] md:bottom-[25%]"
                 : "top-[39.5%] md:top-[40.5%] left-[36%] md:left-[35.5%] right-[36%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
-            zoom: "scale-[1.1] translate-y-[5%] md:scale-[2] md:translate-y-[5%]"
+            zoom: "scale-[2.1] translate-y-[5%] md:scale-[3.3] md:translate-y-[-19%]"
         }
     };
 

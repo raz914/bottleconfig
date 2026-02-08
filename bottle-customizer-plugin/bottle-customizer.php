@@ -365,7 +365,6 @@ function bottle_customizer_add_personalize_button() {
         data-ajax-url="' . esc_url($ajax_url) . '"
         data-nonce="' . esc_attr($nonce) . '"
         data-product-id="' . esc_attr($product->get_id()) . '">
-        <span class="btn-icon">✨</span>
         <span class="btn-text">PERSONALIZE</span>
     </button>';
     

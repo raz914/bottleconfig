@@ -7,33 +7,39 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    padding: 14px 28px;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    margin-top: 15px;
     width: 100%;
+    padding: 14px 28px;
+    margin-top: 15px;
+    color: #002d4b;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    background-image: 
+        linear-gradient(#fff, #fff), 
+        linear-gradient(to right, #bf7e48, #f4d960, #57d5d0, #bf7e48);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 200% 100%;
+    background-position: 0% 50%;
+    transition: background-position 0.5s ease-in-out, transform 0.2s ease;
 }
 
 .bottle-customizer-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    background-position: 100% 50%;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .bottle-customizer-btn:active {
     transform: translateY(0);
 }
 
-.bottle-customizer-btn .btn-icon {
-    font-size: 18px;
+.bottle-customizer-btn  {
+    font-size: 13px;
 }
 
 /* Modal Overlay */
@@ -511,6 +517,9 @@ dl.variation dt.variation- {
 /* ===== Per-item delivery note (below quantity controls, full width) ===== */
 
 /* Wrapper row for the note — ensures it takes full width as a separate block */
+
+
+
 .bc-mini-cart-note-row {
     width: 100%;
     box-sizing: border-box;
