@@ -1,16 +1,52 @@
-# React + Vite
+# Bottle Customizer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Bottle personalization system with:
+1. A React configurator app (`src/`).
+2. A WordPress/WooCommerce plugin (`bottle-customizer-plugin/`) that embeds it in a modal and adds customized items to cart.
 
-Currently, two official plugins are available:
+## Start Here
+- Architecture and flow: `PROJECT_GUIDE.md`
+- File-by-file ownership map: `docs/FILE_MAP.md`
+- Plugin-specific setup details: `bottle-customizer-plugin/README.md`
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Quick Local Development
+1. Install dependencies:
+```bash
+npm install
+```
+2. Start the configurator locally:
+```bash
+npm run dev
+```
+3. Open the Vite URL shown in terminal.
 
-## React Compiler
+## Build
+```bash
+npm run build
+```
 
-The React Compiler is not enabled on this template. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Build output is written to `dist/`.
 
-## Expanding the ESLint configuration
+## Deploy to WordPress Plugin Folder
+Use:
+```bash
+npm run deploy
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+This runs `deploy.bat`, which:
+1. Builds the React app.
+2. Copies `dist/*` to `bottle-customizer-plugin/configurator/`.
+3. Creates `bottle-customizer-plugin.zip`.
+
+## Repository Layout
+- `src/`: React UI, customization flow, preview/capture logic.
+- `public/`: Bottle images, gallery SVGs, fonts.
+- `bottle-customizer-plugin/`: WP plugin PHP/JS/CSS and built configurator copy.
+- `dist/`: Vite production build.
+
+## Main Commands
+- `npm run dev`: run local Vite dev server.
+- `npm run build`: build production assets.
+- `npm run preview`: preview production build locally.
+- `npm run lint`: run ESLint.
+- `npm run deploy`: build + copy to plugin + zip plugin.
