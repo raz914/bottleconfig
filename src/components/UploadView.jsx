@@ -361,7 +361,7 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
                 className="hidden"
             />
 
-            <MiniNav setView={setView} activeView="upload" />
+            <MiniNav setView={setView} activeView="upload" activeTab={activeTab} />
 
             {/* Header / Back Button */}
             <div className="mb-6">

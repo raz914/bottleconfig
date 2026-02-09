@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { galleryCategories, galleryIcons } from '../data/galleryData';
 import MiniNav from './MiniNav';
 
-const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
+const GalleryView = ({ setView, setGraphic, selectedGraphic, activeTab }) => {
     const [view, setViewInternal] = useState('categories'); // 'categories' | 'icons'
     const [activeCategory, setActiveCategory] = useState(null);
     const contentRef = useRef(null);
@@ -35,7 +35,7 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
 
     return (
         <div className="flex flex-col h-full w-full">
-            <MiniNav setView={setView} activeView="gallery" />
+            <MiniNav setView={setView} activeView="gallery" activeTab={activeTab} />
 
             {/* Header / Navigation */}
             <button
@@ -74,25 +74,24 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
                 {view === 'categories' && (
                     <div className="grid grid-cols-3 gap-4">
                         {galleryCategories.map((cat) => (
-                            <button
-                                key={cat.id}
-                                onClick={() => handleCategoryClick(cat.id)}
-                                className="aspect-square bg-white border border-gray-200 rounded-lg flex flex-col items-center justify-center p-4 shadow-md hover:border-brand-blue hover:shadow-lg transition-all group"
-                            >
-                                {/* Category Preview Icon (using the defined 'icon' string to find a sample) */}
-                                <div className="text-gray-400 group-hover:text-brand-blue mb-3 transition-colors">
+                            <div key={cat.id} className="flex flex-col items-center gap-2">
+                                <button
+                                    onClick={() => handleCategoryClick(cat.id)}
+                                    className="aspect-square w-full bg-white border border-gray-200 rounded-lg flex items-center justify-center p-4 shadow-md hover:border-brand-blue hover:shadow-lg transition-all group"
+                                >
+                                    {/* Category Preview Icon */}
                                     <img
                                         src={galleryIcons[cat.id]?.[0]?.src}
                                         alt={cat.name}
-                                        className="w-12 h-12 object-contain"
+                                        className="w-12 h-12 md:w-16 md:h-16 object-contain group-hover:scale-105 transition-transform"
                                     />
-                                </div>
-                                <span className={`font-bold text-gray-600 group-hover:text-brand-blue uppercase tracking-wider text-center leading-tight
-                                    ${cat.name.length > 8 ? 'text-[10px]' : 'text-sm'}
+                                </button>
+                                <span className={`font-bold text-gray-600 uppercase tracking-wider text-center leading-tight
+                                    ${cat.name.length > 8 ? 'text-[10px]' : 'text-xs'}
                                 `}>
                                     {cat.name}
                                 </span>
-                            </button>
+                            </div>
                         ))}
                     </div>
                 )}

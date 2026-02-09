@@ -4,7 +4,7 @@ import MiniNav from './MiniNav';
 const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSelectedFont, activeTab, isVertical, setIsVertical }) => {
     return (
         <div className="flex flex-col h-full w-full max-w-2xl">
-            <MiniNav setView={setView} activeView="text" />
+            <MiniNav setView={setView} activeView="text" activeTab={activeTab} />
 
             {/* Back Button */}
             <button
@@ -97,14 +97,14 @@ const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSe
                         <button
                             key={font.name}
                             onClick={() => setSelectedFont(font.name)}
-                            className={`p-3 md:p-6 bg-white rounded-lg border transition-all duration-200 flex items-center justify-center h-14 md:h-20 shadow-md
+                            className={`p-3 md:p-2 bg-white rounded-lg border transition-all duration-200 flex items-center justify-center h-14 md:h-12 shadow-md
                                 ${selectedFont === font.name
                                     ? 'border-brand-blue ring-1 ring-brand-blue shadow-lg'
                                     : 'border-transparent hover:shadow-lg hover:border-brand-blue text-gray-400 hover:text-brand-blue'
                                 }
                             `}
                         >
-                            <span className={`text-xs md:text-base lg:text-lg ${selectedFont === font.name ? 'text-brand-blue' : ''}`} style={font.style}>
+                            <span className={`text-xs md:text-sm ${selectedFont === font.name ? 'text-brand-blue' : ''}`} style={font.style}>
                                 {font.name}
                             </span>
                         </button>

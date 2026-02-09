@@ -35,7 +35,7 @@ const BottlePreview = ({
             monogram: "top-[25.2%] md:top-[32.4%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[60%] md:bottom-[61%]",
             graphic: "top-[26%] md:top-[33%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[61%] md:bottom-[62%]",
             boundary: "top-[29%] md:top-[32.5%] left-[35%] md:left-[35%] right-[34%] md:right-[34%] bottom-[63%] md:bottom-[61%]",
-            zoom: "scale-[2] translate-y-[35%] md:scale-[3.3] md:translate-y-[25%]"
+            zoom: "scale-[2] translate-y-[35%] md:scale-[2.5] md:translate-y-[25%]"
         },
         BACK: {
             text: (side === 'BACK' && customization.BACK?.isVertical)
@@ -46,7 +46,7 @@ const BottlePreview = ({
             boundary: (side === 'BACK' && customization.BACK?.isVertical)
                 ? "top-[38%] md:top-[39%] left-[36%] md:left-[35.5%] right-[36%] md:right-[36%] bottom-[21%] md:bottom-[25%]"
                 : "top-[39.5%] md:top-[40.5%] left-[36%] md:left-[35.5%] right-[36%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
-            zoom: "scale-[2.1] translate-y-[5%] md:scale-[3.3] md:translate-y-[-19%]"
+            zoom: "scale-[2.1] translate-y-[5%] md:scale-[2.5] md:translate-y-[-4%]"
         }
     };
 
@@ -129,7 +129,7 @@ const BottlePreview = ({
 
     const containerClass = isCapture
         ? ''
-        : `relative mb-4 md:mb-12 transition-transform duration-300 ease-in-out w-[200px] h-[280px] md:w-[300px] md:h-[500px] ${view && view !== 'main' ? currentConfig.zoom : ''}`;
+        : `relative mb-4 md:mb-2 transition-transform duration-300 ease-in-out w-[240px] h-[360px] md:w-[420px] md:h-[700px] ${view && view !== 'main' ? currentConfig.zoom : ''}`;
 
     // Graphic size - uses shared config from capturePositions.js
     const sizeConfig = isMobile ? GRAPHIC_MAX_SIZE.mobile : GRAPHIC_MAX_SIZE.desktop;

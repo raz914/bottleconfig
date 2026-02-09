@@ -487,7 +487,7 @@ const Customizer = () => {
     const colors = [
         { id: 'black', name: 'BLACK', bg: 'bg-black', text: 'text-white' },
         { id: 'white', name: 'WHITE', bg: 'bg-white', text: 'text-black', border: 'border-gray-200' },
-        { id: 'aqua', name: 'NAVY', bg: 'bg-[#002C5F]', text: 'text-white' },
+        { id: 'aqua', name: 'BLUE', bg: 'bg-[#2ea5d1]', text: 'text-white' },
         { id: 'red', name: 'RED', bg: 'bg-[#C8102E]', text: 'text-white' },
     ];
 
@@ -530,8 +530,8 @@ const Customizer = () => {
             {/* Main Content */}
             <main className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden relative">
                 {/* Left Panel - Bottle Preview */}
-                <div id="bottle-canvas" className="w-full md:w-1/2 flex items-center justify-center bg-[#f3f4f6] relative py-6 md:py-0 overflow-hidden min-h-[200px] md:min-h-0">
-                    <div ref={bottlePreviewRef} className="flex flex-col items-center">
+                <div id="bottle-canvas" className="w-full md:w-[65%] flex items-center justify-center bg-[#f3f4f6] relative py-6 md:py-0 overflow-hidden min-h-[200px] md:min-h-0">
+                    <div ref={bottlePreviewRef} className="flex flex-col items-center md:mb-[100px]">
 
                         {/* Using Clean Component for Preview */}
                         <BottlePreview
@@ -548,7 +548,7 @@ const Customizer = () => {
                         />
 
                         {/* Product Info - Hidden when editing */}
-                        <div className={`text-center space-y-2 md:space-y-4 hidden md:block transition-opacity duration-300 ${view !== 'main' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                        <div className={`text-center space-y-1 md:space-y-2 hidden md:block transition-opacity duration-300 md:mb-12 md:-mt-8 ${view !== 'main' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                             <h2 className="text-xs md:text-sm font-bold text-[#002C5F] tracking-wider uppercase">
                                 RAMBLER® 16 OZ TRAVEL BOTTLE
                             </h2>
@@ -593,8 +593,8 @@ const Customizer = () => {
                 </div>
 
                 {/* Right Panel - Customization Options */}
-                <div className={`w-full md:w-1/2 p-4 md:p-12 flex flex-col items-center justify-start flex-1 md:mb-0 md:overflow-y-auto md:pb-32 min-h-[60vh] md:min-h-0 pb-24 bg-[#f3f4f6] ${view !== 'main' ? 'md:pb-36' : ''}`}>
-                    {view === 'main' && <MainView setView={setView} />}
+                <div className={`w-full md:w-[35%] p-4 md:p-12 flex flex-col items-center justify-start flex-1 md:mb-0 md:overflow-y-auto md:pb-32 min-h-[60vh] md:min-h-0 pb-24 bg-[#f3f4f6] ${view !== 'main' ? 'md:pb-36' : ''}`}>
+                    {view === 'main' && <MainView setView={setView} activeTab={activeTab} />}
 
                     {view === 'text' && (
                         <TextView
@@ -618,6 +618,7 @@ const Customizer = () => {
                             monogramStyles={monogramStyles}
                             selectedMonogram={selectedMonogram}
                             setSelectedMonogram={setSelectedMonogram}
+                            activeTab={activeTab}
                         />
                     )}
 
@@ -626,6 +627,7 @@ const Customizer = () => {
                             setView={setView}
                             setGraphic={setGraphic}
                             selectedGraphic={graphicInput}
+                            activeTab={activeTab}
                         />
                     )}
 

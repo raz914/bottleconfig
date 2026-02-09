@@ -9,7 +9,7 @@ const BottomBar = ({ onRemove, onReview, isDisabled, isPreparing }) => {
                 <button
                     onClick={onRemove}
                     disabled={isDisabled || isPreparing}
-                    className={`flex-1 px-6 py-4 md:py-4 rounded-lg text-sm font-bold tracking-widest uppercase transition-colors
+                    className={`flex-1 px-6 py-4 md:py-4 rounded-lg text-sm font-bold tracking-widest uppercase transition-colors shadow-sm
                     ${isDisabled || isPreparing
                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                             : 'bg-white border-2 border-gray-200 text-gray-500 hover:border-red-500 hover:text-red-500'
@@ -20,7 +20,7 @@ const BottomBar = ({ onRemove, onReview, isDisabled, isPreparing }) => {
                 <button
                     onClick={onReview}
                     disabled={reviewDisabled}
-                    className={`flex-1 px-6 py-4 md:py-4 rounded-lg text-sm font-bold tracking-widest uppercase transition-colors
+                    className={`flex-1 px-6 py-4 md:py-4 rounded-lg text-sm font-bold tracking-widest uppercase transition-colors shadow-sm
                     ${reviewDisabled
                             ? 'bg-gray-300 text-white cursor-not-allowed'
                             : 'bg-black text-white hover:bg-gray-800'

@@ -1,10 +1,10 @@
 import React from 'react';
 import MiniNav from './MiniNav';
 
-const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles, selectedMonogram, setSelectedMonogram }) => {
+const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles, selectedMonogram, setSelectedMonogram, activeTab }) => {
     return (
         <div className="flex flex-col h-full w-full max-w-2xl">
-            <MiniNav setView={setView} activeView="monogram" />
+            <MiniNav setView={setView} activeView="monogram" activeTab={activeTab} />
 
             {/* Back Button */}
             <button
@@ -97,7 +97,7 @@ const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles
                             <button
                                 key={monogram.name}
                                 onClick={() => setSelectedMonogram(monogram.name)}
-                                className={`p-4 md:p-8 bg-white rounded-lg border transition-all duration-200 flex items-center justify-center h-24 md:h-36 shadow-md
+                                className={`p-4 md:p-3 bg-white rounded-lg border transition-all duration-200 flex items-center justify-center h-24 md:h-18 shadow-md
                                     ${selectedMonogram === monogram.name
                                         ? 'border-brand-blue ring-1 ring-brand-blue shadow-lg'
                                         : 'border-transparent hover:shadow-lg hover:border-brand-blue text-gray-400 hover:text-brand-blue'
@@ -105,7 +105,7 @@ const MonogramView = ({ setView, monogramInput, setMonogramInput, monogramStyles
                                 `}
                             >
                                 <span
-                                    className={`text-4xl md:text-5xl lg:text-7xl ${selectedMonogram === monogram.name ? 'text-brand-blue' : ''}`}
+                                    className={`text-4xl md:text-2xl lg:text-3xl ${selectedMonogram === monogram.name ? 'text-brand-blue' : ''}`}
                                     style={{ ...(({ fontSize, ...rest }) => rest)(monogram.style), fontFamily: displayFont }}
                                 >
                                     {displayText}

@@ -1,12 +1,16 @@
 import React from 'react';
 
-const MiniNav = ({ setView, activeView }) => {
-    const navItems = [
+const MiniNav = ({ setView, activeView, activeTab }) => {
+    const allNavItems = [
         { id: 'upload', label: 'UPLOAD', icon: 'UI/icons/upload.svg' },
         { id: 'text', label: 'TEXT', icon: 'UI/icons/text.png' },
         { id: 'monogram', label: 'MONOGRAM', icon: 'UI/icons/monogram.svg' },
         { id: 'gallery', label: 'GALLERY', icon: 'UI/icons/gallery.svg' },
     ];
+
+    const navItems = activeTab === 'FRONT'
+        ? allNavItems.filter(item => item.id === 'text')
+        : allNavItems;
 
     return (
         <div className="hidden md:flex items-start justify-center space-x-6 mb-8 transform -translate-x-2">
