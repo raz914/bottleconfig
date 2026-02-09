@@ -593,7 +593,7 @@ const Customizer = () => {
                 </div>
 
                 {/* Right Panel - Customization Options */}
-                <div className={`w-full md:w-1/2 p-4 md:p-12 flex flex-col items-center justify-start flex-1 md:mb-0 md:overflow-y-auto md:pb-32 min-h-[60vh] md:min-h-0 pb-24 ${view !== 'main' ? 'bg-white md:bg-white md:pb-36' : 'bg-[#f3f4f6] md:bg-[#f3f4f6]'}`}>
+                <div className={`w-full md:w-1/2 p-4 md:p-12 flex flex-col items-center justify-start flex-1 md:mb-0 md:overflow-y-auto md:pb-32 min-h-[60vh] md:min-h-0 pb-24 bg-[#f3f4f6] ${view !== 'main' ? 'md:pb-36' : ''}`}>
                     {view === 'main' && <MainView setView={setView} />}
 
                     {view === 'text' && (

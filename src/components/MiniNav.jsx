@@ -1,0 +1,45 @@
+import React from 'react';
+
+const MiniNav = ({ setView, activeView }) => {
+    const navItems = [
+        { id: 'upload', label: 'UPLOAD', icon: 'UI/icons/upload.svg' },
+        { id: 'text', label: 'TEXT', icon: 'UI/icons/text.png' },
+        { id: 'monogram', label: 'MONOGRAM', icon: 'UI/icons/monogram.svg' },
+        { id: 'gallery', label: 'GALLERY', icon: 'UI/icons/gallery.svg' },
+    ];
+
+    return (
+        <div className="hidden md:flex items-start justify-center space-x-6 mb-8 transform -translate-x-2">
+            {navItems.map((item) => {
+                const isActive = activeView === item.id;
+                return (
+                    <button
+                        key={item.id}
+                        onClick={!isActive ? () => setView(item.id) : undefined}
+                        className={`group flex flex-col items-center gap-2 ${isActive ? 'cursor-default' : ''}`}
+                    >
+                        <div
+                            className={`w-16 h-16 rounded-xl flex items-center justify-center transition-colors
+                                ${isActive
+                                    ? 'bg-white shadow-md border-2 border-brand-blue'
+                                    : 'bg-white shadow-sm group-hover:bg-gray-50'
+                                }
+                            `}
+                        >
+                            <img
+                                src={item.icon}
+                                className="w-8 h-8 object-contain"
+                                alt={item.label}
+                            />
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-900 uppercase tracking-wider">
+                            {item.label}
+                        </span>
+                    </button>
+                );
+            })}
+        </div>
+    );
+};
+
+export default MiniNav;

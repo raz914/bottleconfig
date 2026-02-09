@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import UploadConfirmationModal from './UploadConfirmationModal';
+import MiniNav from './MiniNav';
 
 // Set up the worker for PDF.js
 // - Dev: use Vite-served worker URL
@@ -351,7 +352,7 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
         : 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)';
 
     return (
-        <div className="w-full h-full flex flex-col bg-white p-4 md:p-8 overflow-y-auto pb-32">
+        <div className="w-full h-full flex flex-col p-4 md:p-8 overflow-y-auto pb-32">
             <input
                 type="file"
                 ref={fileInputRef}
@@ -359,6 +360,8 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
                 accept="image/png, image/jpeg, image/jpg, image/bmp, image/svg+xml, application/pdf"
                 className="hidden"
             />
+
+            <MiniNav setView={setView} activeView="upload" />
 
             {/* Header / Back Button */}
             <div className="mb-6">

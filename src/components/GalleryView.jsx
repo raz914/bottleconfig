@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { galleryCategories, galleryIcons } from '../data/galleryData';
+import MiniNav from './MiniNav';
 
 const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
     const [view, setViewInternal] = useState('categories'); // 'categories' | 'icons'
@@ -34,25 +35,7 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic }) => {
 
     return (
         <div className="flex flex-col h-full w-full">
-            {/* Mini Nav for Tools - Hidden on mobile */}
-            <div className="hidden md:flex items-center justify-center space-x-4 mb-4">
-                <button onClick={() => setView('upload')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
-                    <img src="UI/icons/upload.svg" className="w-10 h-10" alt="Upload" />
-                </button>
-                <button onClick={() => setView('text')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
-                    <img src="UI/icons/text.png" className="w-10 h-10 object-contain" alt="Text" />
-                </button>
-                <button onClick={() => setView('monogram')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
-                    <img src="UI/icons/monogram.svg" className="w-10 h-10" alt="Monogram" />
-                </button>
-                <button className="p-4 bg-white rounded-xl shadow-sm border-2 border-brand-blue">
-                    <img src="UI/icons/gallery.svg" className="w-10 h-10" alt="Gallery" />
-                </button>
-            </div>
-
-            <div className="hidden md:block text-center mb-8">
-                <span className="text-xs font-bold tracking-wider text-gray-900 uppercase block mb-1">GALLERY</span>
-            </div>
+            <MiniNav setView={setView} activeView="gallery" />
 
             {/* Header / Navigation */}
             <button

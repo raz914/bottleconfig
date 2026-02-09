@@ -1,27 +1,10 @@
 import React from 'react';
+import MiniNav from './MiniNav';
 
 const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSelectedFont, activeTab, isVertical, setIsVertical }) => {
     return (
         <div className="flex flex-col h-full w-full max-w-2xl">
-            {/* Mini Nav for Tools - Hidden on mobile */}
-            <div className="hidden md:flex items-center justify-center space-x-4 mb-8">
-                <button onClick={() => setView('upload')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
-                    <img src="UI/icons/upload.svg" className="w-10 h-10" alt="Upload" />
-                </button>
-                <button className="p-4 bg-white rounded-xl shadow-sm border-2 border-brand-blue">
-                    <img src="UI/icons/text.png" className="w-10 h-10 object-contain" alt="Text" />
-                </button>
-                <button onClick={() => setView('monogram')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
-                    <img src="UI/icons/monogram.svg" className="w-10 h-10" alt="Monogram" />
-                </button>
-                <button onClick={() => setView('main')} className="p-4 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors">
-                    <img src="UI/icons/gallery.svg" className="w-10 h-10" alt="Gallery" />
-                </button>
-            </div>
-
-            <div className="hidden md:block text-center mb-8">
-                <span className="text-xs font-bold tracking-wider text-gray-900 uppercase block mb-1">TEXT</span>
-            </div>
+            <MiniNav setView={setView} activeView="text" />
 
             {/* Back Button */}
             <button
