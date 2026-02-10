@@ -2,6 +2,10 @@ import React from 'react';
 import MiniNav from './MiniNav';
 
 const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSelectedFont, activeTab, isVertical, setIsVertical }) => {
+    const MAX_CHARS_PER_LINE = 20;
+    const MAX_FRONT_LINES = 4;
+    const MAX_FRONT_TOTAL = (MAX_CHARS_PER_LINE * MAX_FRONT_LINES) + (MAX_FRONT_LINES - 1); // include newlines
+
     return (
         <div className="flex flex-col h-full w-full max-w-2xl">
             <MiniNav setView={setView} activeView="text" activeTab={activeTab} />
@@ -22,16 +26,19 @@ const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSe
                 <textarea
                     value={textInput}
                     onChange={(e) => {
-                        const val = e.target.value;
+                        const raw = String(e.target.value || '').replace(/\r\n/g, '\n');
+                        let lines = raw.split('\n').map(line => line.slice(0, MAX_CHARS_PER_LINE));
+
                         if (activeTab === 'FRONT') {
-                            const lines = val.split('\n');
-                            if (lines.length > 4) return;
+                            lines = lines.slice(0, MAX_FRONT_LINES);
                         }
-                        setTextInput(val);
+
+                        setTextInput(lines.join('\n'));
                     }}
                     placeholder="TYPE TEXT HERE"
-                    maxLength={activeTab === 'FRONT' ? 50 : 150}
+                    maxLength={activeTab === 'FRONT' ? MAX_FRONT_TOTAL : 150}
                     rows={1}
+                    wrap="off"
                     className="flex-1 w-full px-2 md:px-4 py-2 text-center text-sm md:text-base text-gray-700 placeholder-gray-300 focus:outline-none resize-none min-h-[44px] md:min-h-[48px]"
                     onFocus={() => {
                         setTimeout(() => {

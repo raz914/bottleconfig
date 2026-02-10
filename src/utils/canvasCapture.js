@@ -271,9 +271,53 @@ const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, 
     const centerX = bounds.x + bounds.width / 2;
     const centerY = bounds.y + bounds.height / 2;
 
+    const rawLines = String(text).replace(/\r\n/g, '\n').split('\n');
+    const letterSpacingPx = 0.5 * RESOLUTION_SCALE; // matches DOM letterSpacing: 0.5px
+    const lineHeight = 1.2; // matches DOM
+    // Canvas text metrics can still differ slightly from DOM glyph rendering.
+    // Use a more conservative margin to avoid clipping across fonts/devices.
+    const fitScale = 0.82;
+
+    const measureLine = (line, sizePx) => {
+        ctx.font = `${fontStyle} ${fontWeight} ${sizePx}px ${fontFamily}`;
+        const base = ctx.measureText(line).width;
+        // CSS letter-spacing applies after every character including last
+        const extra = (line?.length || 0) * letterSpacingPx;
+        return base + extra;
+    };
+
+    const fitFontSizeHorizontal = () => {
+        const hardMinPx = 1 * RESOLUTION_SCALE;
+        const maxPx = Math.max(hardMinPx, (side === 'FRONT' ? 0.18 : 0.54) * bounds.width);
+
+        const fits = (sizePx) => {
+            const maxLineWidth = Math.max(0, ...rawLines.map(l => measureLine(l, sizePx)));
+            const totalHeight = rawLines.length * sizePx * lineHeight;
+            return (
+                maxLineWidth <= bounds.width * fitScale &&
+                totalHeight <= bounds.height * fitScale
+            );
+        };
+
+        let lo = hardMinPx;
+        let hi = maxPx;
+        let best = hardMinPx;
+        for (let i = 0; i < 16; i++) {
+            const mid = (lo + hi) / 2;
+            if (fits(mid)) {
+                best = mid;
+                lo = mid;
+            } else {
+                hi = mid;
+            }
+        }
+        return best;
+    };
+
     if (isVertical) {
         // Vertical text (writing-mode: vertical-rl in CSS)
         // For vertical, use height as the "inline-size" for cqi calculation
+        // and allow wrapping into new columns when needed (matches existing DOM behavior).
         const fontSize = calculateCqiFontSize(text, bounds.height, side);
         ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
 
@@ -356,15 +400,21 @@ const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, 
             ctx.fillText(run, 0, y);
         });
     } else {
-        // Horizontal text - use width as inline-size for cqi
-        const fontSize = calculateCqiFontSize(text, bounds.width, side);
+        // Horizontal text: manual line breaks only; shrink-to-fit inside bounds.
+        const fontSize = fitFontSizeHorizontal();
         ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
 
         // Create gradient for horizontal text (in original coordinate space)
         const gradient = createMetallicGradient(ctx, bounds, selectedColor);
         ctx.fillStyle = gradient;
 
-        ctx.fillText(text, centerX, centerY);
+        const totalHeight = rawLines.length * fontSize * lineHeight;
+        const firstLineY = centerY - (totalHeight / 2) + (fontSize * lineHeight) / 2;
+
+        rawLines.forEach((line, idx) => {
+            const y = firstLineY + idx * fontSize * lineHeight;
+            ctx.fillText(line, centerX, y);
+        });
     }
 
     ctx.restore();

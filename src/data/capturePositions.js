@@ -23,13 +23,13 @@ export const DESKTOP_POSITIONS = {
 // Mobile positioning values (used for capture mode on iOS/mobile)
 export const MOBILE_POSITIONS = {
     FRONT: {
-        text: { top: '32.3%', left: '36%', right: '36%', bottom: '62%' },
+        text: { top: '32.4%', left: '36%', right: '36%', bottom: '62%' },
         monogram: { top: '31%', left: '36%', right: '36%', bottom: '60%' },
         graphic: { top: '27.5%', left: '36%', right: '36%', bottom: '56.6%' },
-        boundary: { top: '29%', left: '35%', right: '34%', bottom: '63%' },
+        boundary: { top: '32.5%', left: '35%', right: '34%', bottom: '61%' },
     },
     BACK: {
-        text: { top: '38%', left: '38%', right: '38%', bottom: '31%' },
+        text: { top: '38%', left: '36%', right: '36%', bottom: '31%' },
         textVertical: { top: '40.5%', left: '38%', right: '38%', bottom: '27%' },
         monogram: { top: '37%', left: '36%', right: '36%', bottom: '31%' },
         graphic: { top: '33%', left: '22%', right: '22%', bottom: '31%' },

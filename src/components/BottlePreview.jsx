@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useRef, useState, useEffect, useLayoutEffect } from 'react';
 import { monogramStyles, getMonogramFontSize, shouldDisplayMonogram, convertToCircleGlyphs, getCircleFontFamily, usesCircleGlyphs, convertToNGramGlyphs, getNGramFontFamily, usesNGramGlyphs } from '../data/monogramConfig';
 import { DESKTOP_POSITIONS, MOBILE_POSITIONS, GRAPHIC_MAX_SIZE } from '../data/capturePositions';
 
@@ -31,22 +31,22 @@ const BottlePreview = ({
     // Tailwind classes for responsive mode (normal viewing)
     const SIDE_CONFIG = {
         FRONT: {
-            text: "top-[27.3%] md:top-[32.4%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[62%] md:bottom-[62%]",
+            text: "top-[30%] md:top-[32.4%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[62%] md:bottom-[62%]",
             monogram: "top-[25.2%] md:top-[32.4%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[60%] md:bottom-[61%]",
             graphic: "top-[26%] md:top-[33%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[61%] md:bottom-[62%]",
-            boundary: "top-[29%] md:top-[32.5%] left-[35%] md:left-[35%] right-[34%] md:right-[34%] bottom-[63%] md:bottom-[61%]",
-            zoom: "scale-[2] translate-y-[35%] md:scale-[2.5] md:translate-y-[25%]"
+            boundary: "top-[31%] md:top-[32.5%] left-[35%] md:left-[35%] right-[34%] md:right-[34%] bottom-[63%] md:bottom-[61%]",
+            zoom: "scale-[1.7] translate-y-[25%] md:scale-[2.5] md:translate-y-[25%]"
         },
         BACK: {
             text: (side === 'BACK' && customization.BACK?.isVertical)
                 ? "top-[38%] md:top-[40%] left-[38%] md:left-[36%] right-[38%] md:right-[36%] bottom-[25%] md:bottom-[25%]" // Vertical text: Taller box
-                : "top-[38%] md:top-[39%] left-[38%] md:left-[36%] right-[38%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
+                : "top-[38%] md:top-[39%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
             monogram: "top-[37%] md:top-[33%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
             graphic: "top-[33%] md:top-[33%] left-[20%] md:left-[36%] right-[20%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
             boundary: (side === 'BACK' && customization.BACK?.isVertical)
                 ? "top-[38%] md:top-[39%] left-[36%] md:left-[35.5%] right-[36%] md:right-[36%] bottom-[21%] md:bottom-[25%]"
                 : "top-[39.5%] md:top-[40.5%] left-[36%] md:left-[35.5%] right-[36%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
-            zoom: "scale-[2.1] translate-y-[5%] md:scale-[2.5] md:translate-y-[-4%]"
+            zoom: "scale-[1.4] translate-y-[1%] md:scale-[2.5] md:translate-y-[-4%]"
         }
     };
 
@@ -137,6 +137,118 @@ const BottlePreview = ({
     const metallicGradient = 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)';
     const metalMaskSrc = (graphicInput && (!graphicInput.isUpload || graphicInput.maskSrc)) ? loadedGraphicSrc : null;
 
+    // =========================================================================
+    // Text sizing: horizontal text should never wrap; it shrinks to fit bounds.
+    // =========================================================================
+    const textBoxRef = useRef(null);
+    const textMeasureRef = useRef(null);
+    const [textBoxSize, setTextBoxSize] = useState({ width: 0, height: 0 });
+    const [fittedFontSizePx, setFittedFontSizePx] = useState(null);
+    const [fontReadyTick, setFontReadyTick] = useState(0);
+
+    const fontStyleObj = fonts.find(f => f.name === selectedFont)?.style || {};
+    const fontFamily = fontStyleObj.fontFamily || 'sans-serif';
+    const fontWeight = fontStyleObj.fontWeight || 'normal';
+    const fontStyle = fontStyleObj.fontStyle || 'normal';
+
+    // When the font finishes loading, re-run fitting.
+    useEffect(() => {
+        let cancelled = false;
+        const run = async () => {
+            try {
+                if (document?.fonts?.load) {
+                    await document.fonts.load(`16px ${fontFamily}`);
+                }
+                if (document?.fonts?.ready) {
+                    await document.fonts.ready;
+                }
+            } finally {
+                if (!cancelled) setFontReadyTick(t => t + 1);
+            }
+        };
+        run();
+        return () => { cancelled = true; };
+    }, [fontFamily]);
+
+    // Observe the text box size (works for both normal view + capture view)
+    // IMPORTANT: use offsetWidth/offsetHeight, NOT getBoundingClientRect().
+    // The container has a CSS scale transform (zoom) when in text view, so
+    // getBoundingClientRect returns screen-scaled dimensions, but CSS fontSize
+    // operates in the element's own (unscaled) coordinate space.
+    useLayoutEffect(() => {
+        const el = textBoxRef.current;
+        if (!el) return;
+
+        const update = () => {
+            setTextBoxSize({ width: el.offsetWidth || 0, height: el.offsetHeight || 0 });
+        };
+
+        update();
+
+        let ro;
+        if (typeof ResizeObserver !== 'undefined') {
+            ro = new ResizeObserver(update);
+            ro.observe(el);
+        }
+
+        window.addEventListener('resize', update);
+        return () => {
+            window.removeEventListener('resize', update);
+            if (ro) ro.disconnect();
+        };
+    }, [side, isCapture, isMobile, selectedColor, config?.isVertical, !!textInput]);
+
+    const maxFontSizePx = useMemo(() => {
+        if (!textBoxSize.width) return null;
+        return Math.max(1, (side === 'FRONT' ? 0.18 : 0.54) * textBoxSize.width);
+    }, [textBoxSize.width, side]);
+
+    // Fit based on actual DOM measurements (most accurate across fonts/devices).
+    useLayoutEffect(() => {
+        const isVerticalText = side === 'BACK' && config?.isVertical;
+        if (!textInput || isVerticalText) {
+            setFittedFontSizePx(null);
+            return;
+        }
+        if (!maxFontSizePx || !textBoxSize.width || !textBoxSize.height) return;
+
+        const boxW = textBoxSize.width;
+        const boxH = textBoxSize.height;
+        const measureEl = textMeasureRef.current;
+        if (!measureEl) return;
+
+        const safety = isMobile ? 0.91 : 0.92;
+        const targetW = boxW * safety;
+        const targetH = boxH * safety;
+
+        const fits = (sizePx) => {
+            measureEl.style.fontSize = `${sizePx}px`;
+            const w = measureEl.offsetWidth || 0;
+            const h = measureEl.offsetHeight || 0;
+            return w <= targetW && h <= targetH;
+        };
+
+        let lo = 1;
+        let hi = maxFontSizePx;
+        let best = 1;
+
+        for (let i = 0; i < 16; i++) {
+            const mid = (lo + hi) / 2;
+            if (fits(mid)) {
+                best = mid;
+                lo = mid;
+            } else {
+                hi = mid;
+            }
+        }
+
+        // Extra shrink on mobile + zoomed editing view to absorb subpixel clipping.
+        const extraShrinkFactor = isMobile ? 0.92 : 0.9;
+        const zoomPenalty = (!isCapture && !isMobile && view && view !== 'main') ? 0.95 : 1;
+        const finalSize = Math.max(1, best * extraShrinkFactor * zoomPenalty);
+        setFittedFontSizePx(prev => (prev && Math.abs(prev - finalSize) < 0.05 ? prev : finalSize));
+    }, [textInput, side, config?.isVertical, maxFontSizePx, textBoxSize.width, textBoxSize.height, fontReadyTick, isMobile, isCapture, view]);
+
     return (
         <div className="flex flex-col items-center">
             <div className={containerClass} style={containerStyle}>
@@ -160,6 +272,7 @@ const BottlePreview = ({
                 {textInput && (
                     <div
                         key={`text-${selectedColor}`}
+                        ref={textBoxRef}
                         className={`${getPositionClass('text')} flex items-center justify-center z-20 pointer-events-none overflow-hidden`}
                         style={{
                             containerType: 'inline-size',
@@ -169,25 +282,54 @@ const BottlePreview = ({
                             glyphOrientationVertical: (side === 'BACK' && config.isVertical) ? '90deg' : undefined,
                         }}
                     >
+                        {/* Hidden measurement element (horizontal only) */}
+                        {!(side === 'BACK' && config.isVertical) && maxFontSizePx && (
+                            <span
+                                ref={textMeasureRef}
+                                aria-hidden="true"
+                                style={{
+                                    position: 'absolute',
+                                    left: -99999,
+                                    top: -99999,
+                                    visibility: 'hidden',
+                                    pointerEvents: 'none',
+                                    ...fonts.find(f => f.name === selectedFont)?.style,
+                                    fontSize: `${maxFontSizePx}px`,
+                                    letterSpacing: '0.5px',
+                                    whiteSpace: 'pre',
+                                    wordBreak: 'normal',
+                                    overflowWrap: 'normal',
+                                    lineHeight: 1.2,
+                                    display: 'inline-block',
+                                }}
+                            >
+                                {textInput}
+                            </span>
+                        )}
                         <span
-                            className="text-center block overflow-hidden"
+                            className="text-center block"
                             style={{
                                 ...fonts.find(f => f.name === selectedFont)?.style,
-                                fontSize: side === 'FRONT'
-                                    ? `max(4px, min(${100 / Math.max(1, textInput.length)}cqi, 18cqi))`
-                                    : `max(8px, min(${150 / Math.max(1, textInput.length)}cqi, 54cqi))`,
+                                // Horizontal: never wrap; shrink-to-fit inside the boundary.
+                                // Vertical: keep existing behavior for now.
+                                fontSize: (side === 'BACK' && config.isVertical)
+                                    ? (side === 'FRONT'
+                                        ? `max(4px, min(${100 / Math.max(1, textInput.length)}cqi, 18cqi))`
+                                        : `max(8px, min(${150 / Math.max(1, textInput.length)}cqi, 54cqi))`)
+                                    : (fittedFontSizePx ? `${fittedFontSizePx}px` : (side === 'FRONT'
+                                        ? `max(4px, min(${100 / Math.max(1, textInput.length)}cqi, 18cqi))`
+                                        : `max(8px, min(${150 / Math.max(1, textInput.length)}cqi, 54cqi))`)),
                                 letterSpacing: '0.5px',
-                                wordBreak: 'break-word',
-                                whiteSpace: 'pre-wrap',
+                                // No auto line breaks unless user types Enter
+                                ...(side === 'BACK' && config.isVertical
+                                    ? { wordBreak: 'break-word', whiteSpace: 'pre-wrap' }
+                                    : { wordBreak: 'normal', overflowWrap: 'normal', whiteSpace: 'pre' }),
                                 lineHeight: 1.2,
                                 fontVariantEmoji: 'text',
                                 verticalAlign: 'middle',
                                 textRendering: 'geometricPrecision',
-                                ...(side === 'FRONT' && {
-                                    display: '-webkit-box',
-                                    WebkitLineClamp: 4,
-                                    WebkitBoxOrient: 'vertical',
-                                }),
+                                boxSizing: 'border-box',
+                                width: '100%',
                                 // Silver Gradient Style
                                 background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
                                 WebkitBackgroundClip: 'text',
