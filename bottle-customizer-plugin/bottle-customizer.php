@@ -27,6 +27,49 @@ define('BOTTLE_CUSTOMIZER_PLUGIN_URL', plugin_dir_url(__FILE__));
 // Target product slug
 define('BOTTLE_CUSTOMIZER_PRODUCT_SLUG', 'be-fit-shakebeker');
 
+// ── Customization pricing constants ──
+define('BOTTLE_CUSTOMIZER_FRONT_SURCHARGE', 0.00);
+define('BOTTLE_CUSTOMIZER_BACK_SURCHARGE',  6.00);
+
+/**
+ * Check whether a given side has any customization.
+ */
+function bottle_customizer_side_has_customization($customization, $side = 'front') {
+    $side = ($side === 'back') ? 'back' : 'front';
+    return !empty($customization[$side . '_text'])
+        || !empty($customization[$side . '_monogram'])
+        || !empty($customization[$side . '_graphic']);
+}
+
+/**
+ * Return the surcharge amount (float) for a given side.
+ */
+function bottle_customizer_side_surcharge($side = 'front') {
+    return ($side === 'back') ? BOTTLE_CUSTOMIZER_BACK_SURCHARGE : BOTTLE_CUSTOMIZER_FRONT_SURCHARGE;
+}
+
+/**
+ * Compute total customization surcharge for a cart/order item.
+ */
+function bottle_customizer_total_surcharge($customization) {
+    $total = 0;
+    if (bottle_customizer_side_has_customization($customization, 'front')) {
+        $total += bottle_customizer_side_surcharge('front');
+    }
+    if (bottle_customizer_side_has_customization($customization, 'back')) {
+        $total += bottle_customizer_side_surcharge('back');
+    }
+    return $total;
+}
+
+/**
+ * Return a formatted price string like "+€0,00" / "+€6,00" for a surcharge amount.
+ */
+function bottle_customizer_format_surcharge($amount) {
+    $formatted = function_exists('wc_price') ? strip_tags(wc_price($amount)) : '€' . number_format($amount, 2, ',', '.');
+    return '+' . $formatted;
+}
+
 /**
  * True when WooCommerce is active/loaded.
  */
@@ -535,6 +578,12 @@ function bottle_customizer_add_to_cart() {
         ),
         'unique_key' => md5(microtime() . rand()), // Make each customization unique
     );
+
+    // Compute and store per-side surcharges so display helpers and price hooks have stable values.
+    $c = &$cart_item_data['bottle_customization'];
+    $c['front_amount'] = bottle_customizer_side_has_customization($c, 'front') ? bottle_customizer_side_surcharge('front') : 0;
+    $c['back_amount']  = bottle_customizer_side_has_customization($c, 'back')  ? bottle_customizer_side_surcharge('back')  : 0;
+    unset($c);
     
     // Add to cart
     wc_clear_notices();
@@ -860,6 +909,42 @@ function bottle_customizer_render_monogram_html($monogram, $monogram_style) {
 }
 
 /**
+ * Build a one-line text summary for a side.
+ */
+function bottle_customizer_build_side_summary($customization, $side, $include_amount = true) {
+    $side = ($side === 'back') ? 'back' : 'front';
+    $parts = array();
+
+    if (!empty($customization[$side . '_text'])) {
+        $parts[] = 'TEXT';
+        $parts[] = $customization[$side . '_text'];
+    } elseif (!empty($customization[$side . '_monogram'])) {
+        $parts[] = 'MONOGRAM';
+        $parts[] = $customization[$side . '_monogram'];
+    } elseif (!empty($customization[$side . '_graphic'])) {
+        $parts[] = 'GRAPHIC';
+        $name = !empty($customization[$side . '_graphic']) ? basename($customization[$side . '_graphic']) : '';
+        // Strip file extension for cleaner display.
+        $name = preg_replace('/\.[^.]+$/', '', $name);
+        if ($name) {
+            $parts[] = ucfirst($name);
+        }
+    }
+
+    if (empty($parts)) {
+        return '';
+    }
+
+    if ($include_amount) {
+        $amount = bottle_customizer_side_has_customization($customization, $side)
+            ? bottle_customizer_format_surcharge(bottle_customizer_side_surcharge($side))
+            : bottle_customizer_format_surcharge(0);
+        $parts[] = $amount;
+    }
+    return implode(', ', $parts);
+}
+
+/**
  * Render the customization preview for a side (front/back).
  */
 function bottle_customizer_render_side_preview_html($customization, $side) {
@@ -907,6 +992,36 @@ function bottle_customizer_render_side_preview_html($customization, $side) {
 
     return '<span class="bc-text">—</span>';
 }
+
+/**
+ * Adjust line-item price to include the back-side surcharge when applicable.
+ */
+function bottle_customizer_adjust_cart_prices($cart) {
+    if (is_admin() && !defined('DOING_AJAX')) {
+        return;
+    }
+    if (did_action('woocommerce_before_calculate_totals') >= 2) {
+        return;
+    }
+
+    foreach ($cart->get_cart() as $cart_item) {
+        if (empty($cart_item['bottle_customization'])) {
+            continue;
+        }
+        $c = $cart_item['bottle_customization'];
+        $surcharge = bottle_customizer_total_surcharge($c);
+        if ($surcharge > 0) {
+            $product = $cart_item['data'];
+            $base_price = (float) $product->get_regular_price();
+            // Use sale price if available.
+            if ($product->get_sale_price() !== '') {
+                $base_price = (float) $product->get_sale_price();
+            }
+            $product->set_price($base_price + $surcharge);
+        }
+    }
+}
+add_action('woocommerce_before_calculate_totals', 'bottle_customizer_adjust_cart_prices', 20, 1);
 
 /**
  * Display customization data in cart
@@ -1002,8 +1117,16 @@ function bottle_customizer_cart_item_data($item_data, $cart_item = array()) {
 
         // --- Personalized Options Dropdown (skip on checkout) ---
         $is_checkout = function_exists('is_checkout') && is_checkout();
-        $has_front = !empty($customization['front_text']) || !empty($customization['front_monogram']) || !empty($customization['front_graphic']);
-        $has_back = !empty($customization['back_text']) || !empty($customization['back_monogram']) || !empty($customization['back_graphic']);
+        $has_front = bottle_customizer_side_has_customization($customization, 'front');
+        $has_back  = bottle_customizer_side_has_customization($customization, 'back');
+        $front_has_visual_preview = !empty($customization['front_monogram']) || !empty($customization['front_graphic']);
+        $back_has_visual_preview  = !empty($customization['back_monogram']) || !empty($customization['back_graphic']);
+
+        // Build descriptive summary for each side.
+        $front_summary = bottle_customizer_build_side_summary($customization, 'front', false);
+        $back_summary  = bottle_customizer_build_side_summary($customization, 'back', false);
+        $front_amount_display = bottle_customizer_format_surcharge(bottle_customizer_side_surcharge('front'));
+        $back_amount_display  = bottle_customizer_format_surcharge(bottle_customizer_side_surcharge('back'));
 
         if (!$is_checkout && ($has_front || $has_back)) {
             ob_start();
@@ -1014,19 +1137,27 @@ function bottle_customizer_cart_item_data($item_data, $cart_item = array()) {
                     <div class="bc-rows">
                         <?php if ($has_front): ?>
                             <div class="bc-row">
-                                <span class="bc-label"><?php esc_html_e('Front:', 'bottle-customizer'); ?></span>
-                                <div class="bc-value">
-                                    <?php echo bottle_customizer_render_side_preview_html($customization, 'front'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                                </div>
+                                <?php $front_label = $front_summary . ($front_has_visual_preview ? '' : ', ' . $front_amount_display); ?>
+                                <span class="bc-label"><?php echo esc_html__('Front:', 'bottle-customizer') . ' ' . esc_html($front_label); ?></span>
+                                <?php if ($front_has_visual_preview): ?>
+                                    <div class="bc-value">
+                                        <?php echo bottle_customizer_render_side_preview_html($customization, 'front'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                        <span class="bc-side-amount"><?php echo esc_html($front_amount_display); ?></span>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         <?php endif; ?>
 
                         <?php if ($has_back): ?>
                             <div class="bc-row">
-                                <span class="bc-label"><?php esc_html_e('Back:', 'bottle-customizer'); ?></span>
-                                <div class="bc-value">
-                                    <?php echo bottle_customizer_render_side_preview_html($customization, 'back'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                                </div>
+                                <?php $back_label = $back_summary . ($back_has_visual_preview ? '' : ', ' . $back_amount_display); ?>
+                                <span class="bc-label"><?php echo esc_html__('Back:', 'bottle-customizer') . ' ' . esc_html($back_label); ?></span>
+                                <?php if ($back_has_visual_preview): ?>
+                                    <div class="bc-value">
+                                        <?php echo bottle_customizer_render_side_preview_html($customization, 'back'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                        <span class="bc-side-amount"><?php echo esc_html($back_amount_display); ?></span>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -1143,25 +1274,15 @@ function bottle_customizer_order_item_meta($item_id, $item, $order = null, $plai
         }
         
         // Front
-        if (!empty($customization['front_text']) || !empty($customization['front_monogram']) || !empty($customization['front_graphic'])) {
-            echo '<p>Front: ';
-            $front = array();
-            if (!empty($customization['front_text'])) $front[] = 'Text: ' . $customization['front_text'];
-            if (!empty($customization['front_monogram'])) $front[] = 'Monogram: ' . $customization['front_monogram'];
-            if (!empty($customization['front_graphic'])) $front[] = 'Graphic';
-            echo esc_html(implode(', ', $front));
-            echo '</p>';
+        if (bottle_customizer_side_has_customization($customization, 'front')) {
+            $front_summary = bottle_customizer_build_side_summary($customization, 'front');
+            echo '<p><strong>' . esc_html__('Front:', 'bottle-customizer') . '</strong> ' . esc_html($front_summary) . '</p>';
         }
         
         // Back
-        if (!empty($customization['back_text']) || !empty($customization['back_monogram']) || !empty($customization['back_graphic'])) {
-            echo '<p>Back: ';
-            $back = array();
-            if (!empty($customization['back_text'])) $back[] = 'Text: ' . $customization['back_text'];
-            if (!empty($customization['back_monogram'])) $back[] = 'Monogram: ' . $customization['back_monogram'];
-            if (!empty($customization['back_graphic'])) $back[] = 'Graphic';
-            echo esc_html(implode(', ', $back));
-            echo '</p>';
+        if (bottle_customizer_side_has_customization($customization, 'back')) {
+            $back_summary = bottle_customizer_build_side_summary($customization, 'back');
+            echo '<p><strong>' . esc_html__('Back:', 'bottle-customizer') . '</strong> ' . esc_html($back_summary) . '</p>';
         }
         
         // Preview images

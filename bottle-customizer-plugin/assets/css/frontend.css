@@ -291,7 +291,8 @@ details[open] .bc-dropdown-summary::before {
 
 .bc-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
     gap: 12px;
 }
 
@@ -311,6 +312,20 @@ details[open] .bc-dropdown-summary::before {
     display: flex;
     align-items: center;
     justify-content: flex-start;
+}
+
+/* Keep Front/Back summary on first line and place visual preview on next line. */
+.bottle-customizer-options .bc-row .bc-value {
+    flex: 0 0 100%;
+    margin-top: 2px;
+}
+
+.bc-side-amount {
+    margin-left: 8px;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: #666;
+    white-space: nowrap;
 }
 
 .bc-monogram {
