@@ -1,11 +1,12 @@
 import React from 'react';
+import { t } from '../i18n';
 
 const MiniNav = ({ setView, activeView, activeTab }) => {
     const allNavItems = [
-        { id: 'upload', label: 'UPLOAD', icon: 'UI/icons/upload.svg' },
-        { id: 'text', label: 'TEXT', icon: 'UI/icons/text.png' },
-        { id: 'monogram', label: 'MONOGRAM', icon: 'UI/icons/monogram.svg' },
-        { id: 'gallery', label: 'GALLERY', icon: 'UI/icons/gallery.svg' },
+        { id: 'upload', label: t('miniNav.upload'), icon: 'UI/icons/upload.svg' },
+        { id: 'text', label: t('miniNav.text'), icon: 'UI/icons/text.png' },
+        { id: 'monogram', label: t('miniNav.monogram'), icon: 'UI/icons/monogram.svg' },
+        { id: 'gallery', label: t('miniNav.gallery'), icon: 'UI/icons/gallery.svg' },
     ];
 
     const navItems = activeTab === 'FRONT'

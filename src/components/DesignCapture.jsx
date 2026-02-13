@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { monogramStyles, getMonogramFontSize, shouldDisplayMonogram, convertToCircleGlyphs, getCircleFontFamily, usesCircleGlyphs, convertToNGramGlyphs, getNGramFontFamily, usesNGramGlyphs } from '../data/monogramConfig';
+import { getMetallicGradientCSS, cssUrl } from '../utils/metallicStyle';
 
 const DesignCapture = ({
     side, // 'FRONT' or 'BACK'
@@ -7,15 +8,15 @@ const DesignCapture = ({
     selectedColor,
     selectedFont,
     selectedMonogram,
-    fonts
+    fonts,
+    monogramScale = 1 // Scale factor for monogram font size (< 1 to shrink for capture)
 }) => {
     const config = customization[side];
     const textInput = config.text;
     const monogramInput = config.monogram;
     const graphicInput = config.graphic;
-    const metallicGradient = selectedColor === 'white'
-        ? 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)'
-        : 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)';
+    const monogramCaptureFontSize = `${Math.round(180 * monogramScale)}px`;
+    const metallicGradient = getMetallicGradientCSS(selectedColor);
     const graphicMaskSrc = graphicInput
         ? (graphicInput.isUpload ? graphicInput.maskSrc : graphicInput.src)
         : null;
@@ -229,8 +230,8 @@ const DesignCapture = ({
                             style={{
                                 width: '100%',
                                 height: '100%',
-                                maskImage: `url(${graphicMaskSrc})`,
-                                WebkitMaskImage: `url(${graphicMaskSrc})`,
+                                maskImage: cssUrl(graphicMaskSrc),
+                                WebkitMaskImage: cssUrl(graphicMaskSrc),
                                 maskSize: 'contain',
                                 WebkitMaskSize: 'contain',
                                 maskPosition: 'center',
@@ -273,7 +274,7 @@ const DesignCapture = ({
                             style={{
                                 fontFamily: getCircleFontFamily(monogramInput.length),
                                 color: '#333333',
-                                fontSize: '180px', // Fixed large size for capture
+                                fontSize: monogramCaptureFontSize, // Scaled capture size
                                 lineHeight: 1,
                             }}
                         >
@@ -285,7 +286,7 @@ const DesignCapture = ({
                                 ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
                                 fontFamily: getNGramFontFamily(monogramInput.length),
                                 color: '#333333',
-                                fontSize: '180px',
+                                fontSize: monogramCaptureFontSize,
                                 lineHeight: 1,
                             }}
                         >
@@ -296,7 +297,7 @@ const DesignCapture = ({
                             style={{
                                 ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
                                 color: '#333333',
-                                fontSize: '180px',
+                                fontSize: monogramCaptureFontSize,
                                 lineHeight: 1,
                                 display: 'flex',
                                 alignItems: 'center',
@@ -312,7 +313,7 @@ const DesignCapture = ({
                             style={{
                                 ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
                                 color: '#333333',
-                                fontSize: '180px',
+                                fontSize: monogramCaptureFontSize,
                                 lineHeight: 1,
                             }}
                         >

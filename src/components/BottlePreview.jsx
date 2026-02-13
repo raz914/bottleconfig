@@ -1,6 +1,8 @@
 import React, { useMemo, useRef, useState, useEffect, useLayoutEffect } from 'react';
 import { monogramStyles, getMonogramFontSize, shouldDisplayMonogram, convertToCircleGlyphs, getCircleFontFamily, usesCircleGlyphs, convertToNGramGlyphs, getNGramFontFamily, usesNGramGlyphs } from '../data/monogramConfig';
 import { DESKTOP_POSITIONS, MOBILE_POSITIONS, GRAPHIC_MAX_SIZE } from '../data/capturePositions';
+import { getMetallicGradientCSS, cssUrl } from '../utils/metallicStyle';
+import { t } from '../i18n';
 
 const BottlePreview = ({
     side, // 'FRONT' or 'BACK'
@@ -12,11 +14,24 @@ const BottlePreview = ({
     isMobile,
     isImageLoading,
     setIsImageLoading,
-    view // 'main', 'text', 'monogram', 'capture' etc.
+    view, // 'main', 'text', 'monogram', 'capture' etc.
+    monogramScale = 1 // Scale factor for monogram font size (< 1 to shrink for capture)
 }) => {
 
     const isCapture = view === 'capture';
     const isVertical = side === 'BACK' && customization.BACK?.isVertical;
+
+    // Helper to apply monogramScale to CSS font-size strings (e.g. '5em' -> '4em' with scale 0.8)
+    const scaleMonogramSize = (cssSize) => {
+        if (monogramScale === 1 || !cssSize) return cssSize;
+        // Simple em/px values like '5em' or '180px'
+        const match = cssSize.match(/^([\d.]+)(em|px|rem|cqi)$/i);
+        if (match) {
+            return `${(parseFloat(match[1]) * monogramScale).toFixed(2)}${match[2]}`;
+        }
+        // For complex expressions like max(...), wrap with calc and scale
+        return `calc(${cssSize} * ${monogramScale})`;
+    };
 
     // Helper to get position with vertical text handling
     const getPositions = (positionsObj) => {
@@ -32,7 +47,7 @@ const BottlePreview = ({
     const SIDE_CONFIG = {
         FRONT: {
             text: "top-[30%] md:top-[32.4%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[62%] md:bottom-[62%]",
-            monogram: "top-[25.2%] md:top-[32.4%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[60%] md:bottom-[61%]",
+            monogram: "top-[25.2%] md:top-[29%] left-[33%] md:left-[33%] right-[33%] md:right-[33%] bottom-[57%] md:bottom-[58%]",
             graphic: "top-[26%] md:top-[33%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[61%] md:bottom-[62%]",
             boundary: "top-[31%] md:top-[32.5%] left-[35%] md:left-[35%] right-[34%] md:right-[34%] bottom-[63%] md:bottom-[61%]",
             zoom: "scale-[1.7] translate-y-[25%] md:scale-[2.5] md:translate-y-[25%]"
@@ -41,11 +56,11 @@ const BottlePreview = ({
             text: (side === 'BACK' && customization.BACK?.isVertical)
                 ? "top-[38%] md:top-[40%] left-[38%] md:left-[36%] right-[38%] md:right-[36%] bottom-[25%] md:bottom-[25%]" // Vertical text: Taller box
                 : "top-[38%] md:top-[39%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
-            monogram: "top-[37%] md:top-[33%] left-[36%] md:left-[36%] right-[36%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
+            monogram: "top-[30%] md:top-[28%] left-[26%] md:left-[26%] right-[26%] md:right-[26%] bottom-[24%] md:bottom-[26%]",
             graphic: "top-[33%] md:top-[33%] left-[20%] md:left-[36%] right-[20%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
             boundary: (side === 'BACK' && customization.BACK?.isVertical)
                 ? "top-[38%] md:top-[39%] left-[36%] md:left-[35.5%] right-[36%] md:right-[36%] bottom-[21%] md:bottom-[25%]"
-                : "top-[39.5%] md:top-[40.5%] left-[36%] md:left-[35.5%] right-[36%] md:right-[36%] bottom-[31%] md:bottom-[31%]",
+                : "top-[39.5%] md:top-[40.5%] left-[36%] md:left-[35.5%] right-[36%] md:right-[35%] bottom-[31%] md:bottom-[31%]",
             zoom: "scale-[1.4] translate-y-[1%] md:scale-[2.5] md:translate-y-[-4%]"
         }
     };
@@ -134,7 +149,7 @@ const BottlePreview = ({
     // Graphic size - uses shared config from capturePositions.js
     const sizeConfig = isMobile ? GRAPHIC_MAX_SIZE.mobile : GRAPHIC_MAX_SIZE.desktop;
     const graphicMaxSize = `${sizeConfig[side] * 100}%`;
-    const metallicGradient = 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)';
+    const metallicGradient = getMetallicGradientCSS(selectedColor);
     const metalMaskSrc = (graphicInput && (!graphicInput.isUpload || graphicInput.maskSrc)) ? loadedGraphicSrc : null;
 
     // =========================================================================
@@ -203,6 +218,40 @@ const BottlePreview = ({
         return Math.max(1, (side === 'FRONT' ? 0.18 : 0.54) * textBoxSize.width);
     }, [textBoxSize.width, side]);
 
+    // Vertical text can clip for short strings because cqi max allows very large
+    // glyphs. Apply short-string caps in preview so 1-2 chars don't crop.
+    const verticalFittedFontSizePx = useMemo(() => {
+        const isVerticalText = side === 'BACK' && config?.isVertical;
+        if (!isVerticalText || !textInput || !textBoxSize.height) return null;
+
+        const cqi = textBoxSize.height / 100;
+        const len = Math.max(1, textInput.length);
+        const cqiBasedSize = Math.max(8, Math.min((150 / len) * cqi, 54 * cqi));
+
+        const maxLineLen = Math.max(
+            1,
+            ...String(textInput)
+                .split('\n')
+                .map(line => Math.max(1, line.length))
+        );
+
+        const lineHeight = 1.2;
+        if (maxLineLen > 3) return cqiBasedSize;
+
+        const heightSafety = isMobile ? 0.9 : 0.92;
+        const shortTextHeightCap = (textBoxSize.height * heightSafety) / (maxLineLen * lineHeight);
+        let fitted = Math.min(cqiBasedSize, shortTextHeightCap);
+
+        // For 1-2 chars, width is often the limiting axis in vertical-rl.
+        if (maxLineLen <= 2 && textBoxSize.width) {
+            const widthSafety = isMobile ? 0.86 : 0.9;
+            const shortTextWidthCap = (textBoxSize.width * widthSafety) / lineHeight;
+            fitted = Math.min(fitted, shortTextWidthCap);
+        }
+
+        return Math.max(8, fitted);
+    }, [side, config?.isVertical, textInput, textBoxSize.height, textBoxSize.width, isMobile]);
+
     // Fit based on actual DOM measurements (most accurate across fonts/devices).
     useLayoutEffect(() => {
         const isVerticalText = side === 'BACK' && config?.isVertical;
@@ -254,7 +303,7 @@ const BottlePreview = ({
             <div className={containerClass} style={containerStyle}>
                 <img
                     src={`bottle/${side === 'FRONT' ? 'front' : 'back'}/${selectedColor}${side === 'BACK' ? 'back' : ''}.webp`}
-                    alt={`Yeti Bottle ${side}`}
+                    alt={t('bottlePreview.alt', { side })}
                     loading="eager"
                     className={`w-full h-full object-contain mix-blend-multiply drop-shadow-2xl transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
                     onLoad={handleImageLoad}
@@ -311,10 +360,10 @@ const BottlePreview = ({
                             style={{
                                 ...fonts.find(f => f.name === selectedFont)?.style,
                                 // Horizontal: never wrap; shrink-to-fit inside the boundary.
-                                // Vertical: keep existing behavior for now.
+                                // Vertical: cqi-based sizing with centered column block.
                                 fontSize: (side === 'BACK' && config.isVertical)
-                                    ? (side === 'FRONT'
-                                        ? `max(4px, min(${100 / Math.max(1, textInput.length)}cqi, 18cqi))`
+                                    ? (verticalFittedFontSizePx
+                                        ? `${verticalFittedFontSizePx}px`
                                         : `max(8px, min(${150 / Math.max(1, textInput.length)}cqi, 54cqi))`)
                                     : (fittedFontSizePx ? `${fittedFontSizePx}px` : (side === 'FRONT'
                                         ? `max(4px, min(${100 / Math.max(1, textInput.length)}cqi, 18cqi))`
@@ -329,9 +378,16 @@ const BottlePreview = ({
                                 verticalAlign: 'middle',
                                 textRendering: 'geometricPrecision',
                                 boxSizing: 'border-box',
-                                width: '100%',
+                                // Vertical: let the span shrink-wrap its columns so the
+                                // flex parent can center it; use full height for inline flow.
+                                // Horizontal: full width so text fills the boundary.
+                                width: (side === 'BACK' && config.isVertical) ? 'fit-content' : '100%',
+                                height: (side === 'BACK' && config.isVertical) ? '100%' : undefined,
+                                maxWidth: '100%',
+                                display: (side === 'BACK' && config.isVertical) ? 'inline-block' : 'block',
+                                marginInline: (side === 'BACK' && config.isVertical) ? 'auto' : undefined,
                                 // Silver Gradient Style
-                                background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                background: metallicGradient,
                                 WebkitBackgroundClip: 'text',
                                 backgroundClip: 'text',
                                 color: 'transparent',
@@ -371,8 +427,8 @@ const BottlePreview = ({
                                     <div
                                         className="w-full h-full transition-opacity duration-200"
                                         style={{
-                                            maskImage: `url(${metalMaskSrc})`,
-                                            WebkitMaskImage: `url(${metalMaskSrc})`,
+                                            maskImage: cssUrl(metalMaskSrc),
+                                            WebkitMaskImage: cssUrl(metalMaskSrc),
                                             maskSize: 'contain',
                                             WebkitMaskSize: 'contain',
                                             maskPosition: 'center',
@@ -389,7 +445,7 @@ const BottlePreview = ({
                                 ) : (
                                     <img
                                         src={graphicInput.src}
-                                        alt={graphicInput.name || 'Uploaded image'}
+                                        alt={graphicInput.name || t('bottlePreview.uploadedImageAlt')}
                                         className="w-full h-full object-contain transition-opacity duration-200"
                                         style={{
                                             filter: 'grayscale(100%) contrast(1.2) brightness(1.2)',
@@ -415,9 +471,9 @@ const BottlePreview = ({
                                 className="text-center whitespace-nowrap block"
                                 style={{
                                     fontFamily: getCircleFontFamily(monogramInput.length),
-                                    fontSize: getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile),
+                                    fontSize: scaleMonogramSize(getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile)),
                                     lineHeight: 1.4,
-                                    background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                    background: metallicGradient,
                                     WebkitBackgroundClip: 'text',
                                     backgroundClip: 'text',
                                     color: 'transparent',
@@ -432,9 +488,9 @@ const BottlePreview = ({
                                 style={{
                                     ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
                                     fontFamily: getNGramFontFamily(monogramInput.length),
-                                    fontSize: getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile),
+                                    fontSize: scaleMonogramSize(getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile)),
                                     lineHeight: 1.4,
-                                    background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                    background: metallicGradient,
                                     WebkitBackgroundClip: 'text',
                                     backgroundClip: 'text',
                                     color: 'transparent',
@@ -448,11 +504,11 @@ const BottlePreview = ({
                                 className="text-center whitespace-nowrap block"
                                 style={{
                                     ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
-                                    fontSize: getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile),
+                                    fontSize: scaleMonogramSize(getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile)),
                                     display: 'inline-flex',
                                     alignItems: 'center',
                                     lineHeight: 1.4,
-                                    background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                    background: metallicGradient,
                                     WebkitBackgroundClip: 'text',
                                     backgroundClip: 'text',
                                     color: 'transparent',
@@ -468,14 +524,14 @@ const BottlePreview = ({
                                 className="text-center whitespace-nowrap block"
                                 style={{
                                     ...monogramStyles.find(m => m.name === selectedMonogram)?.style,
-                                    fontSize: getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile),
+                                    fontSize: scaleMonogramSize(getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile)),
                                     lineHeight: selectedMonogram === 'Vine' ? 2.4 : 1.4,
                                     // Override Vine's marginLeft and use symmetric padding instead for centering
                                     marginLeft: selectedMonogram === 'Vine' ? 0 : undefined,
                                     paddingLeft: selectedMonogram === 'Vine' ? '0.6em' : undefined,
                                     paddingTop: selectedMonogram === 'Vine' ? '0.3em' : undefined,
                                     paddingBottom: selectedMonogram === 'Vine' ? '0.3em' : undefined,
-                                    background: 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)',
+                                    background: metallicGradient,
                                     WebkitBackgroundClip: 'text',
                                     backgroundClip: 'text',
                                     color: 'transparent',

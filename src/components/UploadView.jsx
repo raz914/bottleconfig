@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import UploadConfirmationModal from './UploadConfirmationModal';
 import MiniNav from './MiniNav';
+import { getMetallicGradientCSS, cssUrl } from '../utils/metallicStyle';
+import { t } from '../i18n';
 
 // Set up the worker for PDF.js
 // - Dev: use Vite-served worker URL
@@ -245,7 +247,7 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
                     src = await renderPdfFirstPage(file);
                 } catch (err) {
                     console.error("PDF Render error:", err);
-                    setUploadError("Failed to render PDF preview. File may be corrupted or password protected.");
+                    setUploadError(t('upload.errorPdf'));
                     setIsLoading(false);
                     return;
                 }
@@ -259,7 +261,7 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
             img.onload = () => {
                 const ratio = (img.naturalWidth || img.width) / (img.naturalHeight || img.height);
                 if (ratio < MIN_RATIO || ratio > MAX_RATIO) {
-                    setUploadError(`Image aspect ratio (${ratio.toFixed(2)}) is outside the allowed range. Please use an image closer to square (between 2:3 and 3:2).`);
+                    setUploadError(t('upload.errorAspectRatio', { ratio: ratio.toFixed(2) }));
                     setIsLoading(false);
                     if (fileInputRef.current) fileInputRef.current.value = '';
                     return;
@@ -286,14 +288,14 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
                 setShowModal(true);
             };
             img.onerror = () => {
-                setUploadError('Failed to load image. Please check the file.');
+                setUploadError(t('upload.errorLoadImage'));
                 setIsLoading(false);
             };
             img.src = src;
 
         } catch (error) {
             console.error(error);
-            setUploadError('Error processing file.');
+            setUploadError(t('upload.errorProcessing'));
             setIsLoading(false);
         }
     };
@@ -344,12 +346,9 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    const getSideName = () => activeTab === 'FRONT' ? 'FRONT' : 'BACK';
-    const sideName = getSideName();
+    const sideName = activeTab === 'FRONT' ? t('tab.front') : t('tab.back');
 
-    const metallicGradient = selectedColor === 'white'
-        ? 'linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)'
-        : 'linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)';
+    const metallicGradient = getMetallicGradientCSS(selectedColor);
 
     return (
         <div className="w-full h-full flex flex-col p-4 md:p-8 overflow-y-auto pb-32">
@@ -383,7 +382,7 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-red-700 uppercase tracking-wide mb-1">Upload Failed</p>
+                        <p className="text-xs font-bold text-red-700 uppercase tracking-wide mb-1">{t('upload.uploadFailed')}</p>
                         <p className="text-xs text-red-600">{uploadError}</p>
                     </div>
                 </div>
@@ -393,7 +392,7 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
             {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-12">
                     <div className="w-12 h-12 border-4 border-gray-200 border-t-[#002C5F] rounded-full animate-spin mb-4"></div>
-                    <span className="text-sm font-bold text-gray-500 uppercase tracking-widest">Processing...</span>
+                    <span className="text-sm font-bold text-gray-500 uppercase tracking-widest">{t('upload.processing')}</span>
                 </div>
             ) : graphicInput ? (
                 // PREVIEW STATE (Keeping it simple for now, but cleaner)
@@ -403,8 +402,8 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
                             <div
                                 className="w-full h-full"
                                 style={{
-                                    maskImage: `url(${graphicInput.maskSrc})`,
-                                    WebkitMaskImage: `url(${graphicInput.maskSrc})`,
+                                    maskImage: cssUrl(graphicInput.maskSrc),
+                                    WebkitMaskImage: cssUrl(graphicInput.maskSrc),
                                     maskSize: 'contain',
                                     WebkitMaskSize: 'contain',
                                     maskPosition: 'center',
@@ -419,7 +418,7 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
                         ) : (
                             <img
                                 src={graphicInput.src}
-                                alt="Preview"
+                                alt={t('upload.previewAlt')}
                                 className="max-w-full max-h-full object-contain"
                                 style={{ filter: 'grayscale(100%) contrast(1.2) brightness(1.2)' }}
                             />
@@ -429,7 +428,7 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
                     {/* Scale Slider */}
                     <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 w-full">
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">SIZE</span>
+                            <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">{t('upload.sizeLabel')}</span>
                             <span className="text-xs font-bold text-gray-500">{Math.round((graphicInput.scale || 0.5) * 100)}%</span>
                         </div>
                         <input
@@ -447,10 +446,10 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
                         onClick={handleRemove}
                         className="text-xs font-bold text-red-500 underline hover:text-red-700 uppercase tracking-wider mb-2"
                     >
-                        Remove Image
+                        {t('upload.removeImage')}
                     </button>
                     <p className="text-[10px] text-gray-400 text-center">
-                        Review your placement on the bottle preview to the left.
+                        {t('upload.placementHint')}
                     </p>
                 </div>
             ) : (
@@ -461,11 +460,11 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
                         onClick={() => fileInputRef.current.click()}
                         className="w-full py-4 bg-white border-2 border-[#002C5F] text-[#002C5F] font-bold text-sm tracking-widest uppercase rounded hover:bg-gray-50 transition-colors mb-6 shadow-sm"
                     >
-                        UPLOAD DESIGN
+                        {t('upload.uploadDesign')}
                     </button>
 
                     <p className="text-center text-xs text-gray-700 font-semibold mb-8 uppercase tracking-wide">
-                        Accepted file types: PNG, JPG,SVG and PDF
+                        {t('upload.acceptedTypes')}
                     </p>
 
                     {/* Icons Grid */}
@@ -480,7 +479,7 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
                                 </svg>
                             </div>
                             <span className="text-[10px] leading-tight text-gray-800 font-medium">
-                                Image must be 300 px<br />(W or H)
+                                {t('upload.iconImageSize').split('\n').map((line, i) => <span key={i}>{line}{i === 0 && <br />}</span>)}
                             </span>
                         </div>
 
@@ -493,7 +492,7 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
                                 </div>
                             </div>
                             <span className="text-[10px] leading-tight text-gray-800 font-medium">
-                                No trademark infringement
+                                {t('upload.iconNoTrademark')}
                             </span>
                         </div>
 
@@ -506,7 +505,7 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
                                 </div>
                             </div>
                             <span className="text-[10px] leading-tight text-gray-800 font-medium">
-                                No copyright infringement
+                                {t('upload.iconNoCopyright')}
                             </span>
                         </div>
 
@@ -522,7 +521,7 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
                                 </div>
                             </div>
                             <span className="text-[10px] leading-tight text-gray-800 font-medium">
-                                No photos
+                                {t('upload.iconNoPhotos')}
                             </span>
                         </div>
                     </div>
@@ -531,22 +530,22 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
 
                     {/* Instructions */}
                     <div className="mb-4 space-y-4">
-                        <h4 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4 text-center">INSTRUCTIONS</h4>
+                        <h4 className="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4 text-center">{t('upload.instructionsHeading')}</h4>
 
                         <p className="text-xs text-gray-700 font-medium leading-relaxed text-left">
-                            Orders containing offensive, inappropriate, or copyrighted content may be cancelled without further notice.
+                            {t('upload.instruction1')}
                         </p>
 
                         <p className="text-xs text-gray-700 font-medium leading-relaxed text-left">
-                            Please verify your preview carefully: check for any unwanted lines or spots and crop them out.
+                            {t('upload.instruction2')}
                         </p>
 
                         <p className="text-xs text-gray-700 font-medium leading-relaxed text-left">
-                            For best results, commence with a sketch on white paper using a thick dark marker. Keep it simple and take a photo in a well-lit area without shadows.
+                            {t('upload.instruction3')}
                         </p>
 
                         <p className="text-xs text-gray-700 font-medium leading-relaxed text-left">
-                            Photographs will be converted to black and white, and results may vary. Proceed with high-contrast images for optimal engraving quality.
+                            {t('upload.instruction4')}
                         </p>
                     </div>
 

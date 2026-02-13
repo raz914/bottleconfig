@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { t } from '../i18n';
 
 const ColorSelector = ({ colors, selectedColor, setSelectedColor, isMobile }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -44,7 +45,7 @@ const ColorSelector = ({ colors, selectedColor, setSelectedColor, isMobile }) =>
 
                         <div className="p-8 pt-10">
                             <h3 className="text-xl font-bold text-[#002C5F] leading-tight mb-2 tracking-wide uppercase">
-                                RAMBLER® 16 OZ TRAVEL BOTTLE
+                                {t('product.heading')}
                             </h3>
 
                             <hr className="mb-6 opacity-20" />
@@ -52,7 +53,7 @@ const ColorSelector = ({ colors, selectedColor, setSelectedColor, isMobile }) =>
                             <div className="space-y-6">
                                 <div>
                                     <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">
-                                        COLOR: <span className="text-black ml-1">{currentColor?.name}</span>
+                                        {t('product.colorLabelShort')} <span className="text-black ml-1">{currentColor?.name}</span>
                                     </p>
 
                                     <div className="flex flex-wrap gap-4">
@@ -64,7 +65,7 @@ const ColorSelector = ({ colors, selectedColor, setSelectedColor, isMobile }) =>
                                                     ring-2 ring-offset-4 transition-all duration-200
                                                     ${selectedColor === color.id ? 'ring-[#002C5F]' : 'ring-transparent'}
                                                 `}
-                                                aria-label={`Select ${color.name} color`}
+                                                aria-label={t('color.selectAria', { color: color.name })}
                                             >
                                                 {selectedColor === color.id && (
                                                     <div className="absolute inset-0 rounded-full border-2 border-white pointer-events-none" />
@@ -78,7 +79,7 @@ const ColorSelector = ({ colors, selectedColor, setSelectedColor, isMobile }) =>
                                     onClick={() => setIsOpen(false)}
                                     className="w-full bg-black text-white font-bold py-4 rounded-lg tracking-widest uppercase transition-all active:scale-[0.98] shadow-lg"
                                 >
-                                    UPDATE
+                                    {t('color.update')}
                                 </button>
                             </div>
                         </div>

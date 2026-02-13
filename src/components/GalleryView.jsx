@@ -1,11 +1,21 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { galleryCategories, galleryIcons } from '../data/galleryData';
 import MiniNav from './MiniNav';
+import { t } from '../i18n';
 
-const GalleryView = ({ setView, setGraphic, selectedGraphic, activeTab }) => {
+const GalleryView = ({ setView, setGraphic, selectedGraphic, activeTab, initialCategory }) => {
     const [view, setViewInternal] = useState('categories'); // 'categories' | 'icons'
     const [activeCategory, setActiveCategory] = useState(null);
     const contentRef = useRef(null);
+
+    useEffect(() => {
+        if (!initialCategory || !galleryIcons[initialCategory]?.length) return;
+        setActiveCategory(initialCategory);
+        setViewInternal('icons');
+        if (contentRef.current) {
+            contentRef.current.scrollTop = 0;
+        }
+    }, [initialCategory]);
 
     const handleCategoryClick = (category) => {
         setActiveCategory(category);
@@ -33,6 +43,9 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic, activeTab }) => {
         }
     };
 
+    /** Translate a gallery category name via i18n key */
+    const catName = (cat) => t(`gallery.cat.${cat.id}`) || cat.name;
+
     return (
         <div className="flex flex-col h-full w-full">
             <MiniNav setView={setView} activeView="gallery" activeTab={activeTab} />
@@ -45,14 +58,14 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic, activeTab }) => {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                {view === 'categories' ? 'BACK' : 'BACK TO CATEGORIES'}
+                {view === 'categories' ? t('gallery.back') : t('gallery.backToCategories')}
             </button>
 
             {/* Selected Graphic Controls */}
             {selectedGraphic && !selectedGraphic.isUpload && (
                 <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">SELECTED: {selectedGraphic.name}</span>
+                        <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">{t('gallery.selectedLabel', { name: selectedGraphic.name })}</span>
                         <span className="text-xs font-bold text-gray-500">{Math.round((selectedGraphic.scale || 1) * 100)}%</span>
                     </div>
                     <input
@@ -82,14 +95,14 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic, activeTab }) => {
                                     {/* Category Preview Icon */}
                                     <img
                                         src={galleryIcons[cat.id]?.[0]?.src}
-                                        alt={cat.name}
+                                        alt={catName(cat)}
                                         className="w-12 h-12 md:w-16 md:h-16 object-contain group-hover:scale-105 transition-transform"
                                     />
                                 </button>
                                 <span className={`font-bold text-gray-600 uppercase tracking-wider text-center leading-tight
-                                    ${cat.name.length > 8 ? 'text-[10px]' : 'text-xs'}
+                                    ${catName(cat).length > 8 ? 'text-[10px]' : 'text-xs'}
                                 `}>
-                                    {cat.name}
+                                    {catName(cat)}
                                 </span>
                             </div>
                         ))}
@@ -100,7 +113,7 @@ const GalleryView = ({ setView, setGraphic, selectedGraphic, activeTab }) => {
                 {view === 'icons' && activeCategory && (
                     <div>
                         <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">
-                            {galleryCategories.find(c => c.id === activeCategory)?.name}
+                            {catName(galleryCategories.find(c => c.id === activeCategory))}
                         </h3>
                         <div className="grid grid-cols-3 gap-3">
                             {galleryIcons[activeCategory]?.map((icon) => (

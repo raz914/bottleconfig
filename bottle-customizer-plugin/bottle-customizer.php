@@ -131,7 +131,7 @@ add_action('plugins_loaded', 'bottle_customizer_check_woocommerce');
 /**
  * Allow <details> and <summary> tags in wp_kses_post so the cart dropdown renders correctly.
  */
-function bottle_customizer_allow_details_summary_tags($allowed_tags, $context) {
+function bottle_customizer_allow_details_summary_tags($allowed_tags, $context = '') {
     if ($context === 'post') {
         $allowed_tags['details'] = array(
             'class' => true,
@@ -326,12 +326,19 @@ function bottle_customizer_enqueue_assets() {
             'after'
         );
 
+        // Build variation data for the frontend (empty array for simple products).
+        $variations_data = array();
+        if ($product && is_a($product, 'WC_Product_Variable')) {
+            $variations_data = $product->get_available_variations();
+        }
+
         // Pass data to JavaScript
         wp_localize_script('bottle-customizer-frontend', 'bottleCustomizerData', array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('bottle_customizer_nonce'),
             'configuratorUrl' => BOTTLE_CUSTOMIZER_PLUGIN_URL . 'configurator/index.html',
             'productId' => $product_id,
+            'variations' => $variations_data,
         ));
     }
 }
@@ -411,7 +418,7 @@ add_action('wp_footer', 'bottle_customizer_render_modal', 5);
 /**
  * Disable WooCommerce "added to cart" notices for customizer flow.
  */
-function bottle_customizer_disable_add_to_cart_notice($message, $products = array(), $show_qty = false) {
+function bottle_customizer_disable_add_to_cart_notice($message = '', $products = array(), $show_qty = false) {
     return '';
 }
 
@@ -904,9 +911,12 @@ function bottle_customizer_render_side_preview_html($customization, $side) {
 /**
  * Display customization data in cart
  */
-function bottle_customizer_cart_item_data($item_data, $cart_item) {
-    if (isset($cart_item['bottle_customization'])) {
-        $customization = $cart_item['bottle_customization'];
+function bottle_customizer_cart_item_data($item_data, $cart_item = array()) {
+    if (!is_array($cart_item) || !isset($cart_item['bottle_customization'])) {
+        return $item_data;
+    }
+
+    $customization = $cart_item['bottle_customization'];
         
         // Override displayed variation color (e.g. "Kleur" / "Color") with configurator chosen color.
         $chosen_color_slug = !empty($customization['color']) ? (string) $customization['color'] : '';
@@ -999,7 +1009,7 @@ function bottle_customizer_cart_item_data($item_data, $cart_item) {
             ob_start();
             ?>
             <details class="bottle-customizer-options" open>
-                <summary class="bc-dropdown-summary"><?php esc_html_e('Personalized Options', 'bottle-customizer'); ?></summary>
+                <summary class="bc-dropdown-summary"><?php esc_html_e('Gepersonaliseerde opties', 'bottle-customizer'); ?></summary>
                 <div class="bc-dropdown-content">
                     <div class="bc-rows">
                         <?php if ($has_front): ?>
@@ -1033,9 +1043,6 @@ function bottle_customizer_cart_item_data($item_data, $cart_item) {
             );
         }
 
-
-    }
-    
     return $item_data;
 }
 add_filter('woocommerce_get_item_data', 'bottle_customizer_cart_item_data', 10, 2);
@@ -1043,7 +1050,7 @@ add_filter('woocommerce_get_item_data', 'bottle_customizer_cart_item_data', 10, 
 /**
  * Override displayed order item meta (e.g. variation attribute "Color"/"Kleur") with configurator chosen color.
  */
-function bottle_customizer_override_order_item_meta($formatted_meta, $item) {
+function bottle_customizer_override_order_item_meta($formatted_meta, $item = null) {
     if (!is_object($item) || !method_exists($item, 'get_meta')) {
         return $formatted_meta;
     }
@@ -1110,10 +1117,14 @@ function bottle_customizer_cart_item_thumbnail($thumbnail, $cart_item, $cart_ite
 /**
  * Save customization data to order item meta
  */
-function bottle_customizer_add_order_item_meta($item, $cart_item_key, $values, $order) {
-    if (isset($values['bottle_customization'])) {
-        $item->add_meta_data('_bottle_customization', $values['bottle_customization'], true);
+function bottle_customizer_add_order_item_meta($item, $cart_item_key = '', $values = array(), $order = null) {
+    if (!is_array($values) || !isset($values['bottle_customization'])) {
+        return;
     }
+    if (!is_object($item) || !method_exists($item, 'add_meta_data')) {
+        return;
+    }
+    $item->add_meta_data('_bottle_customization', $values['bottle_customization'], true);
 }
 add_action('woocommerce_checkout_create_order_line_item', 'bottle_customizer_add_order_item_meta', 10, 4);
 
@@ -1172,7 +1183,7 @@ add_action('woocommerce_order_item_meta_end', 'bottle_customizer_order_item_meta
 /**
  * Ensure each customized item is treated as unique in cart
  */
-function bottle_customizer_add_cart_item_data($cart_item_data, $product_id, $variation_id) {
+function bottle_customizer_add_cart_item_data($cart_item_data, $product_id = 0, $variation_id = 0) {
     if (isset($cart_item_data['bottle_customization'])) {
         $cart_item_data['unique_key'] = md5(microtime() . rand());
     }
@@ -1242,7 +1253,7 @@ function bottle_customizer_get_custom_image_url($customization) {
 /**
  * Filter: Swap Cart Item Thumbnail with Custom Image(s)
  */
-function bottle_customizer_cart_thumbnail($product_image, $cart_item, $cart_item_key) {
+function bottle_customizer_cart_thumbnail($product_image, $cart_item = array(), $cart_item_key = '') {
     // Show custom thumbnail on both cart and checkout pages.
     if (isset($cart_item['bottle_customization'])) {
         $c = $cart_item['bottle_customization'];
@@ -1267,8 +1278,18 @@ add_filter('woocommerce_cart_item_thumbnail', 'bottle_customizer_cart_thumbnail'
 
 /**
  * Filter: Swap Order Item Thumbnail (Checkout/Emails) with Custom Image(s)
+ *
+ * In email context we skip the replacement so the large custom back image
+ * does not appear; the two smaller front/back previews rendered by
+ * bottle_customizer_order_item_meta() are kept.
  */
-function bottle_customizer_order_thumbnail($product_image, $item, $visible) {
+function bottle_customizer_order_thumbnail($product_image, $item = null, $visible = true) {
+    // Skip in emails – the smaller previews are shown via order_item_meta instead.
+    // Return empty string so neither the custom back image nor the default product image appears.
+    if (doing_action('woocommerce_email_order_details') || did_action('woocommerce_email_header')) {
+        return '';
+    }
+
     if (is_a($item, 'WC_Order_Item_Product')) {
         $c = $item->get_meta('_bottle_customization');
         if ($c && is_array($c)) {
@@ -1293,7 +1314,7 @@ add_filter('woocommerce_order_item_thumbnail', 'bottle_customizer_order_thumbnai
  * Render expected delivery note per-item in the mini-cart (drawer) for customized items.
  * Hooked to run after each cart item in the mini-cart widget.
  */
-function bottle_customizer_mini_cart_item_delivery_note($cart_item, $cart_item_key) {
+function bottle_customizer_mini_cart_item_delivery_note($cart_item = array(), $cart_item_key = '') {
     // Only show for customized items.
     if (empty($cart_item['bottle_customization'])) {
         return;

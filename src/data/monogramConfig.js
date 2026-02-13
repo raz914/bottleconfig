@@ -30,54 +30,54 @@ export const monogramStyles = [
         name: 'ITC Modern',
         style: { fontFamily: 'ITC Modern', fontSize: '1.8em' },
         maxLength: 1,
-        frontSize: '1em',
-        backSize: '5em',
-        frontSizeMobile: '0.7em',
-        backSizeMobile: '3.5em'
+        frontSize: '1.1em',
+        backSize: '8.2em',
+        frontSizeMobile: '0.84em',
+        backSizeMobile: '3.8em'
     },
     {
         name: 'Nexa Script',
         style: { fontFamily: 'Nexa Script', fontSize: '1.8em' },
         maxLength: 1,
-        frontSize: '1em',
-        backSize: '5em',
-        frontSizeMobile: '0.7em',
-        backSizeMobile: '3.5em'
+        frontSize: '1.2em',
+        backSize: '7em',
+        frontSizeMobile: '0.84em',
+        backSizeMobile: '4.2em'
     },
     {
         name: 'Roman',
         style: { fontFamily: 'Roman', fontSize: '1.2em' },
         middleLarger: true,
-        frontSize: '0.8em',
-        backSize: '2.2em',
-        frontSizeMobile: '0.55em',
-        backSizeMobile: '1.5em'
+        frontSize: '0.96em',
+        backSize: '4.64em',
+        frontSizeMobile: '0.66em',
+        backSizeMobile: '2.4em'
     },
     {
         name: 'rJ#',
-        style: { fontFamily: 'Two Character Circle', fontSize: '1.2em' },  // Default, will switch dynamically
-        frontSize: '1em',
-        backSize: '5em',
-        frontSizeMobile: '0.6em',
-        backSizeMobile: '3.5em',
+        style: { fontFamily: 'Two Character Circle', fontSize: '1.2em' , marginLeft: '0.1em'},  // Default, will switch dynamically
+        frontSize: '1.2em',
+        backSize: '7.4em',
+        frontSizeMobile: '0.72em',
+        backSizeMobile: '3.6em',
         useCircleGlyphs: true  // Flag to use special glyph rendering (switches between 2-char and 3-char fonts)
     },
     {
         name: 'N-Gram',
         style: { fontFamily: 'Two Character N-Gram', fontSize: '1.2em', marginLeft: '0.1em' },  // Default, will switch dynamically
-        frontSize: '1em',
-        backSize: '4em',
-        frontSizeMobile: '0.6em',
-        backSizeMobile: '2.7em',
+        frontSize: '1.2em',
+        backSize: '6.6em',
+        frontSizeMobile: '0.72em',
+        backSizeMobile: '3.7em',
         useNGramGlyphs: true  // Flag to use N-Gram glyph rendering (switches between 2-char and 3-char fonts)
     },
     {
         name: 'Vine',
         style: { fontFamily: 'Vine', fontSize: '1.2em', letterSpacing: '.55em', marginLeft: '0.6em' },
-        frontSize: '0.8em',
-        backSize: '1.5em',
-        frontSizeMobile: '0.5em',
-        backSizeMobile: '1em'
+        frontSize: '0.96em',
+        backSize: '2.8em',
+        frontSizeMobile: '0.6em',
+        backSizeMobile: '1.3em'
     },
     // {
     //     name: 'Proxima Nova',
@@ -196,8 +196,8 @@ export const getMonogramFontSize = (monogramName, activeTab, inputLength, isMobi
 
     // Default dynamic sizing for mobile and desktop
     const defaultSize = isMobile
-        ? `max(4px, min(${150 / Math.max(1, inputLength)}cqi, 14cqi))`
-        : `max(4px, min(${150 / Math.max(1, inputLength)}cqi, 17cqi))`;
+        ? `max(4px, min(${150 / Math.max(1, inputLength)}cqi, 17cqi))`
+        : `max(4px, min(${150 / Math.max(1, inputLength)}cqi, 20cqi))`;
 
     if (!monogram) return defaultSize;
 

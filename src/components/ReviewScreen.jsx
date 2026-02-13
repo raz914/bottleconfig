@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import ConfirmationModal from './ConfirmationModal';
+import { t } from '../i18n';
 
 const ReviewScreen = ({
     onClose,
@@ -33,7 +34,7 @@ const ReviewScreen = ({
                 setIsAddingToCart(false);
             } else if (payload.status === 'error') {
                 setIsAddingToCart(false);
-                setErrorMessage(payload.message || 'Failed to add to cart. Please try again.');
+                setErrorMessage(payload.message || t('review.errorDefault'));
             }
         };
 
@@ -120,7 +121,7 @@ const ReviewScreen = ({
             {isAddingToCart && (
                 <div className="fixed inset-0 z-[100] bg-white/90 flex flex-col items-center justify-center">
                     <div className="w-12 h-12 border-4 border-gray-300 border-t-[#002C5F] rounded-full animate-spin mb-4"></div>
-                    <p className="text-lg font-semibold text-[#002C5F]">Adding to cart...</p>
+                    <p className="text-lg font-semibold text-[#002C5F]">{t('review.addingToCart')}</p>
                 </div>
             )}
 
@@ -129,13 +130,13 @@ const ReviewScreen = ({
                 <div className="max-w-[1920px] mx-auto px-4 md:px-6 h-14 md:h-16 flex items-center justify-between">
                     <img
                         src="logo.png"
-                        alt="Logo"
+                        alt={t('review.logoAlt')}
                         className="h-8 md:h-10 w-auto object-contain"
                     />
                     <button
                         onClick={onClose}
                         className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                        aria-label="Close Review"
+                        aria-label={t('review.closeAria')}
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[#002C5F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -149,10 +150,10 @@ const ReviewScreen = ({
                 {/* Page Heading */}
                 <div className="text-center mb-4 md:mb-8 max-w-2xl mx-auto">
                     <h1 className="text-xl md:text-2xl font-bold text-[#002C5F] uppercase tracking-wider mb-3">
-                        Review Your Design
+                        {t('review.heading')}
                     </h1>
                     <p className="text-sm md:text-base text-gray-800 font-medium leading-relaxed px-4">
-                        Please allow 7 business days for personalization and 2-3 days for delivery. Delivery dates cannot be guaranteed. ALL PURCHASES ARE FINAL.
+                        {t('review.deliveryNotice')}
                     </p>
                 </div>
 
@@ -162,16 +163,16 @@ const ReviewScreen = ({
                     <div className="flex flex-col items-center bg-[#f9fafb] p-4 rounded-lg ">
                         <div className="relative w-full max-w-[240px] md:max-w-[300px] aspect-[3/5] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible mb-4">
                             {frontImage ? (
-                                <img src={frontImage} alt="Front Preview" className="w-full h-full object-contain drop-shadow-xl mix-blend-multiply" />
+                                <img src={frontImage} alt={t('review.frontPreviewAlt')} className="w-full h-full object-contain drop-shadow-xl mix-blend-multiply" />
                             ) : (
-                                <div className="text-gray-400 text-sm">No Preview Available</div>
+                                <div className="text-gray-400 text-sm">{t('review.noPreview')}</div>
                             )}
                         </div>
                         <button
                             onClick={() => handleEdit('FRONT')}
                             className="group flex items-center space-x-2 bg-white px-6 py-3 rounded-full shadow-sm border border-gray-100 uppercase font-bold text-[#002C5F] text-xs md:text-sm tracking-wider hover:shadow-md transition-all"
                         >
-                            <span>Edit Front</span>
+                            <span>{t('review.editFront')}</span>
                             <div className="w-6 h-6 rounded-full border border-[#002C5F] flex items-center justify-center group-hover:bg-[#002C5F] group-hover:text-white transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
@@ -184,16 +185,16 @@ const ReviewScreen = ({
                     <div className="flex flex-col items-center bg-[#f9fafb] p-4 rounded-lg ">
                         <div className="relative w-full max-w-[240px] md:max-w-[300px] aspect-[3/5] flex items-center justify-center bg-[#f9fafb] rounded-md overflow-visible mb-4">
                             {backImage ? (
-                                <img src={backImage} alt="Back Preview" className="w-full h-full object-contain drop-shadow-xl mix-blend-multiply" />
+                                <img src={backImage} alt={t('review.backPreviewAlt')} className="w-full h-full object-contain drop-shadow-xl mix-blend-multiply" />
                             ) : (
-                                <div className="text-gray-400 text-sm">No Preview Available</div>
+                                <div className="text-gray-400 text-sm">{t('review.noPreview')}</div>
                             )}
                         </div>
                         <button
                             onClick={() => handleEdit('BACK')}
                             className="group flex items-center space-x-2 bg-white px-6 py-3 rounded-full shadow-sm border border-gray-100 uppercase font-bold text-[#002C5F] text-xs md:text-sm tracking-wider hover:shadow-md transition-all"
                         >
-                            <span>Edit Back</span>
+                            <span>{t('review.editBack')}</span>
                             <div className="w-6 h-6 rounded-full border border-[#002C5F] flex items-center justify-center group-hover:bg-[#002C5F] group-hover:text-white transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
@@ -207,32 +208,32 @@ const ReviewScreen = ({
 
             {/* Footer Actions */}
             <footer className="bg-white border-t border-gray-200 p-3 md:p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 flex-shrink-0">
-                <div className="max-w-6xl mx-auto flex flex-col items-center justify-between gap-3">
-                    <div className="text-center w-full">
+                <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+                    <div className="text-center md:text-left w-full md:w-auto">
                         {errorMessage ? (
                             <p className="text-sm font-medium text-red-600">
                                 {errorMessage}
                             </p>
                         ) : (
                             <p className="text-sm font-medium text-gray-500">
-                                Please review your spelling and design. Custom products cannot be returned.
+                                {t('review.footerNotice')}
                             </p>
                         )}
                     </div>
-                    <div className="w-full flex space-x-3 px-4 md:px-0">
+                    <div className="w-full md:w-auto flex space-x-3 px-4 md:px-0">
                         <button
                             onClick={onClose}
                             disabled={isAddingToCart}
                             className={`flex-1 px-6 py-4 rounded-lg text-sm bg-white border-2 border-gray-200 text-gray-500 font-bold uppercase tracking-widest transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:border-[#002C5F] hover:text-[#002C5F]'}`}
                         >
-                            Back
+                            {t('review.backButton')}
                         </button>
                         <button
                             onClick={() => setShowConfirmationModal(true)}
                             disabled={isAddingToCart}
                             className={`flex-1 px-6 py-4 rounded-lg text-[12px] md:text-sm bg-black text-white font-bold uppercase tracking-widest transition-colors ${isAddingToCart ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'}`}
                         >
-                            {isAddingToCart ? 'Adding...' : 'Add to Cart'}
+                            {isAddingToCart ? t('review.adding') : t('review.addToCart')}
                         </button>
                     </div>
                 </div>

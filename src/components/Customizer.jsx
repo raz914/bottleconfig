@@ -12,6 +12,7 @@ import BottlePreview from './BottlePreview';
 import DesignCapture from './DesignCapture';
 import { monogramStyles, getMonogramFontSize, shouldDisplayMonogram, convertToCircleGlyphs, getCircleFontFamily, usesCircleGlyphs, convertToNGramGlyphs, getNGramFontFamily, usesNGramGlyphs } from '../data/monogramConfig';
 import { isIOSDevice, captureBottleSnapshotCanvas, captureDesignSnapshotCanvas } from '../utils/canvasCapture';
+import { t } from '../i18n';
 
 const Customizer = () => {
     const [activeTab, setActiveTab] = useState('FRONT');
@@ -23,6 +24,7 @@ const Customizer = () => {
 
     const [selectedColor, setSelectedColor] = useState('black');
     const [view, setView] = useState('main'); // 'main' | 'text' | 'monogram'
+    const [galleryInitialCategory, setGalleryInitialCategory] = useState(null);
     const [isMobile, setIsMobile] = useState(false);
     const [isImageLoading, setIsImageLoading] = useState(false);
     const [initialLoadComplete, setInitialLoadComplete] = useState(false);
@@ -138,6 +140,9 @@ const Customizer = () => {
         // { name: 'Dancing Script', css: 'font-cursive', style: { fontFamily: 'Dancing Script, "Noto Emoji", cursive' } },
         // { name: 'Yellowtail', css: 'font-cursive', style: { fontFamily: 'Yellowtail, "Noto Emoji", cursive' } },
     ];
+
+    // Monogram scale for capture/review images (keeps editor full-size, shrinks captures by 20%)
+    const CAPTURE_MONOGRAM_SCALE = 0.7;
 
     const [showReview, setShowReview] = useState(false);
     const [isPreparingReview, setIsPreparingReview] = useState(false);
@@ -390,7 +395,8 @@ const Customizer = () => {
                     selectedColor,
                     selectedFont,
                     selectedMonogramBySide.FRONT,
-                    fonts
+                    fonts,
+                    CAPTURE_MONOGRAM_SCALE
                 );
 
                 backImg = await captureBottleSnapshotCanvas(
@@ -399,7 +405,8 @@ const Customizer = () => {
                     selectedColor,
                     selectedFont,
                     selectedMonogramBySide.BACK,
-                    fonts
+                    fonts,
+                    CAPTURE_MONOGRAM_SCALE
                 );
 
                 // Design captures
@@ -409,7 +416,8 @@ const Customizer = () => {
                     selectedColor,
                     selectedFont,
                     selectedMonogramBySide.FRONT,
-                    fonts
+                    fonts,
+                    CAPTURE_MONOGRAM_SCALE
                 );
 
                 backDesignImg = await captureDesignSnapshotCanvas(
@@ -418,7 +426,8 @@ const Customizer = () => {
                     selectedColor,
                     selectedFont,
                     selectedMonogramBySide.BACK,
-                    fonts
+                    fonts,
+                    CAPTURE_MONOGRAM_SCALE
                 );
             } else {
                 // Non-iOS: Use html-to-image (works well on Android/Desktop)
@@ -483,12 +492,20 @@ const Customizer = () => {
     };
 
     const hasContent = textInput || monogramInput || graphicInput;
+    const openGallery = () => {
+        setGalleryInitialCategory(null);
+        setView('gallery');
+    };
+    const openGalleryCategory = (categoryId) => {
+        setGalleryInitialCategory(categoryId);
+        setView('gallery');
+    };
 
     const colors = [
-        { id: 'black', name: 'BLACK', bg: 'bg-black', text: 'text-white' },
-        { id: 'white', name: 'WHITE', bg: 'bg-white', text: 'text-black', border: 'border-gray-200' },
-        { id: 'aqua', name: 'BLUE', bg: 'bg-[#2ea5d1]', text: 'text-white' },
-        { id: 'red', name: 'RED', bg: 'bg-[#C8102E]', text: 'text-white' },
+        { id: 'black', name: t('color.black'), bg: 'bg-black', text: 'text-white' },
+        { id: 'white', name: t('color.white'), bg: 'bg-white', text: 'text-black', border: 'border-gray-200' },
+        { id: 'aqua', name: t('color.blue'), bg: 'bg-[#2ea5d1]', text: 'text-white' },
+        { id: 'red', name: t('color.red'), bg: 'bg-[#C8102E]', text: 'text-white' },
     ];
 
     return (
@@ -513,7 +530,7 @@ const Customizer = () => {
                                         : 'text-gray-400 hover:text-gray-600'
                                     }`}
                             >
-                                {tab}
+                                {tab === 'FRONT' ? t('tab.front') : t('tab.back')}
                             </button>
                         ))}
                     </nav>
@@ -550,7 +567,7 @@ const Customizer = () => {
                         {/* Product Info - Hidden when editing */}
                         <div className={`text-center space-y-1 md:space-y-2 hidden md:block transition-opacity duration-300 md:mb-12 md:-mt-8 ${view !== 'main' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                             <h2 className="text-xs md:text-sm font-bold text-[#002C5F] tracking-wider uppercase">
-                                RAMBLER® 16 OZ TRAVEL BOTTLE
+                                {t('product.heading')}
                             </h2>
 
                             {/* Color Picker */}
@@ -563,13 +580,13 @@ const Customizer = () => {
                                      ring-2 ring-offset-2 transition-all duration-200
                                      ${selectedColor === color.id ? 'ring-[#002C5F]' : 'ring-transparent hover:ring-gray-300'}
                                  `}
-                                        aria-label={`Select ${color.name} color`}
+                                        aria-label={t('color.selectAria', { color: color.name })}
                                     />
                                 ))}
                             </div>
 
                             <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
-                                PRODUCT COLOR: <span className="text-black">{colors.find(c => c.id === selectedColor)?.name}</span>
+                                {t('product.colorLabel')} <span className="text-black">{colors.find(c => c.id === selectedColor)?.name}</span>
                             </p>
                         </div>
                     </div>
@@ -594,7 +611,14 @@ const Customizer = () => {
 
                 {/* Right Panel - Customization Options */}
                 <div className={`w-full md:w-[35%] p-4 md:p-12 flex flex-col items-center justify-start flex-1 md:mb-0 md:overflow-y-auto md:pb-32 min-h-[60vh] md:min-h-0 pb-24 bg-[#f3f4f6] ${view !== 'main' ? 'md:pb-36' : ''}`}>
-                    {view === 'main' && <MainView setView={setView} activeTab={activeTab} />}
+                    {view === 'main' && (
+                        <MainView
+                            setView={setView}
+                            activeTab={activeTab}
+                            openGallery={openGallery}
+                            openGalleryCategory={openGalleryCategory}
+                        />
+                    )}
 
                     {view === 'text' && (
                         <TextView
@@ -628,6 +652,7 @@ const Customizer = () => {
                             setGraphic={setGraphic}
                             selectedGraphic={graphicInput}
                             activeTab={activeTab}
+                            initialCategory={galleryInitialCategory}
                         />
                     )}
 
@@ -669,6 +694,7 @@ const Customizer = () => {
                             fonts={fonts}
                             isMobile={false} // Force Desktop Mode
                             view="capture" // Special view mode to force sizes
+                            monogramScale={CAPTURE_MONOGRAM_SCALE}
                         />
                     </div>
                     <div ref={backCaptureRef}>
@@ -681,6 +707,7 @@ const Customizer = () => {
                             fonts={fonts}
                             isMobile={false} // Force Desktop Mode
                             view="capture"
+                            monogramScale={CAPTURE_MONOGRAM_SCALE}
                         />
                     </div>
 
@@ -693,6 +720,7 @@ const Customizer = () => {
                             selectedFont={selectedFont}
                             selectedMonogram={selectedMonogramBySide.FRONT}
                             fonts={fonts}
+                            monogramScale={CAPTURE_MONOGRAM_SCALE}
                         />
                     </div>
                     <div ref={backDesignCaptureRef}>
@@ -703,6 +731,7 @@ const Customizer = () => {
                             selectedFont={selectedFont}
                             selectedMonogram={selectedMonogramBySide.BACK}
                             fonts={fonts}
+                            monogramScale={CAPTURE_MONOGRAM_SCALE}
                         />
                     </div>
                 </div>
@@ -712,7 +741,7 @@ const Customizer = () => {
             {isPreparingReview && (
                 <div className="fixed inset-0 z-[60] bg-white/95 flex flex-col items-center justify-center">
                     <div className="w-14 h-14 border-4 border-gray-300 border-t-[#002C5F] rounded-full animate-spin mb-4"></div>
-                    <p className="text-lg font-semibold text-[#002C5F]">Preparing your design...</p>
+                    <p className="text-lg font-semibold text-[#002C5F]">{t('loader.preparingDesign')}</p>
                 </div>
             )}
 

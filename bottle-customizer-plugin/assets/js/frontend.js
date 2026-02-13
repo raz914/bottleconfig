@@ -200,6 +200,11 @@
         var button = $('#bottle-customizer-btn');
         if (!button) return;
 
+        // Log product variations when available (target product pages only)
+        if (window.bottleCustomizerData && window.bottleCustomizerData.variations) {
+            console.log('[BottleCustomizer] Product variations', window.bottleCustomizerData.variations);
+        }
+
         var modal = $('#bottle-customizer-modal');
         var iframe = $('#bottle-customizer-iframe');
         if (modal && modal.parentElement !== document.body) {

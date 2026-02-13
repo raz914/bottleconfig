@@ -254,7 +254,7 @@ body.bottle-customizer-open {
     cursor: pointer;
     font-weight: 600;
     position: relative;
-    padding-left: 20px;
+    padding-right: 20px;
     font-size: 0.9em;
     color: #333;
     user-select: none;
@@ -267,7 +267,7 @@ body.bottle-customizer-open {
 .bc-dropdown-summary::before {
     content: '▶';
     position: absolute;
-    left: 0;
+    right: 0;
     top: 2px;
     font-size: 0.8em;
     transition: transform 0.2s;
@@ -436,7 +436,7 @@ details[open] .bc-dropdown-summary::before {
 
 /* FKCart drawer: make the product thumbnail larger than the default 60x60. */
 #fkcart-modal .fkcart-image-wrapper {
-    width: 100px !important;
+    width: 60px !important;
     height: auto !important;
     flex: 0 0 auto !important;
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import MiniNav from './MiniNav';
+import { t } from '../i18n';
 
 const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSelectedFont, activeTab, isVertical, setIsVertical }) => {
     const MAX_CHARS_PER_LINE = 20;
@@ -18,7 +19,7 @@ const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSe
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                BACK
+                {t('text.back')}
             </button>
 
             {/* Text Input */}
@@ -35,7 +36,7 @@ const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSe
 
                         setTextInput(lines.join('\n'));
                     }}
-                    placeholder="TYPE TEXT HERE"
+                    placeholder={t('text.placeholder')}
                     maxLength={activeTab === 'FRONT' ? MAX_FRONT_TOTAL : 150}
                     rows={1}
                     wrap="off"
@@ -63,7 +64,7 @@ const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSe
             {activeTab === 'BACK' && (
                 <div className="mb-6 flex flex-col items-start w-full px-1">
                     <span className="text-sm font-bold text-gray-800 mb-2">
-                        Orientation: <span className="font-normal">{isVertical ? 'Vertical' : 'Horizontal'}</span>
+                        {t('text.orientationLabel')} <span className="font-normal">{isVertical ? t('text.vertical') : t('text.horizontal')}</span>
                     </span>
                     <div className="flex space-x-3">
                         {/* Vertical Button */}
@@ -75,7 +76,7 @@ const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSe
                                     : 'border border-gray-300 hover:border-gray-400'
                                 }
                             `}
-                            aria-label="Vertical Text"
+                            aria-label={t('text.verticalAria')}
                         >
                             <span className="text-xs font-medium text-gray-800 transform rotate-90 leading-none">Aaa</span>
                         </button>
@@ -89,7 +90,7 @@ const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSe
                                     : 'border border-gray-300 hover:border-gray-400'
                                 }
                             `}
-                            aria-label="Horizontal Text"
+                            aria-label={t('text.horizontalAria')}
                         >
                             <span className="text-xs font-medium text-gray-800 leading-none">Aaa</span>
                         </button>

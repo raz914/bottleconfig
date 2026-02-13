@@ -16,6 +16,7 @@ import {
     getMonogramFontSize
 } from '../data/monogramConfig';
 import { DESKTOP_POSITIONS, MOBILE_POSITIONS, GRAPHIC_MAX_SIZE } from '../data/capturePositions';
+import { getMetallicCanvasStops } from './metallicStyle';
 
 // =============================================================================
 // iOS Detection
@@ -170,12 +171,9 @@ const drawImageContain = (ctx, img, dx, dy, dw, dh) => {
 };
 
 /**
- * Create metallic gradient matching BottlePreview.jsx CSS gradients
- * Matches:
- * - White bottle: linear-gradient(90deg, #b8b7b7ff 0%, #9e9e9e 50%, #656565 100%)
- * - Colored bottles: linear-gradient(90deg, #e6e5e5ff 0%, #9e9e9e 50%, #656565 100%)
- * 
- * Enhanced with brightness(1.1) simulation for lighter appearance
+ * Create metallic gradient matching CSS gradients from metallicStyle.js
+ * Uses pre-brightened canvas colour stops so the result visually matches
+ * the CSS gradient + brightness(1.1) filter used in React components.
  * 
  * @param {CanvasRenderingContext2D} ctx
  * @param {object} bounds - {x, y, width, height}
@@ -191,21 +189,11 @@ const createMetallicGradient = (ctx, bounds, selectedColor) => {
         bounds.y + bounds.height / 2
     );
 
-    if (selectedColor === 'white') {
-        // Slightly darker gradient for white bottle, lightened for brightness(1.1)
-        // Original: #b8b7b7ff, #9e9e9e, #656565
-        // Brightened by ~10%: 
-        gradient.addColorStop(0, '#cac9c9');      // was #b8b7b7ff
-        gradient.addColorStop(0.5, '#aeaeae');    // was #9e9e9e
-        gradient.addColorStop(1, '#717171');      // was #656565
-    } else {
-        // Lighter gradient for colored bottles, lightened for brightness(1.1)
-        // Original: #e6e5e5ff, #9e9e9e, #656565
-        // Brightened by ~10%:
-        gradient.addColorStop(0, '#f5f4f4');      // was #e6e5e5ff
-        gradient.addColorStop(0.5, '#aeaeae');    // was #9e9e9e
-        gradient.addColorStop(1, '#717171');      // was #656565
-    }
+    // Use shared metallic tokens (pre-brightened ~10 % for canvas)
+    const stops = getMetallicCanvasStops(selectedColor);
+    gradient.addColorStop(0, stops.start);
+    gradient.addColorStop(0.5, stops.mid);
+    gradient.addColorStop(1, stops.end);
 
     return gradient;
 };
@@ -318,7 +306,25 @@ const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, 
         // Vertical text (writing-mode: vertical-rl in CSS)
         // For vertical, use height as the "inline-size" for cqi calculation
         // and allow wrapping into new columns when needed (matches existing DOM behavior).
-        const fontSize = calculateCqiFontSize(text, bounds.height, side);
+        const baseFontSize = calculateCqiFontSize(text, bounds.height, side);
+        const maxLineLen = Math.max(
+            1,
+            ...String(text)
+                .split('\n')
+                .map(line => Math.max(1, line.length))
+        );
+        const shortTextHeightCap = (bounds.height * 0.92) / (maxLineLen * lineHeight);
+        let fitted = maxLineLen <= 3
+            ? Math.min(baseFontSize, shortTextHeightCap)
+            : baseFontSize;
+
+        // For 1-2 chars, limit by available width as well to avoid cropping.
+        if (maxLineLen <= 2) {
+            const shortTextWidthCap = (bounds.width * 0.9) / lineHeight;
+            fitted = Math.min(fitted, shortTextWidthCap);
+        }
+
+        const fontSize = Math.max(8 * RESOLUTION_SCALE, fitted);
         ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
 
         ctx.translate(centerX, centerY);
@@ -335,15 +341,11 @@ const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, 
             0, bounds.width / 2,    // maps to original left edge
             0, -bounds.width / 2    // maps to original right edge
         );
-        if (selectedColor === 'white') {
-            gradient.addColorStop(0, '#cac9c9');
-            gradient.addColorStop(0.5, '#aeaeae');
-            gradient.addColorStop(1, '#717171');
-        } else {
-            gradient.addColorStop(0, '#f5f4f4');
-            gradient.addColorStop(0.5, '#aeaeae');
-            gradient.addColorStop(1, '#717171');
-        }
+        // Use shared metallic tokens (pre-brightened ~10 % for canvas)
+        const stops = getMetallicCanvasStops(selectedColor);
+        gradient.addColorStop(0, stops.start);
+        gradient.addColorStop(0.5, stops.mid);
+        gradient.addColorStop(1, stops.end);
         ctx.fillStyle = gradient;
 
         // Multiline/wrapping behavior (match DOM more closely):
@@ -493,7 +495,7 @@ const parseCssFontSize = (cssValue, boundsWidth, baseFontSize = BASE_FONT_SIZE) 
  * @param {string} selectedColor 
  * @param {string} side - 'FRONT' or 'BACK'
  */
-const drawMonogramOnCanvas = (ctx, monogramInput, selectedMonogram, bounds, selectedColor, side) => {
+const drawMonogramOnCanvas = (ctx, monogramInput, selectedMonogram, bounds, selectedColor, side, monogramScale = 1) => {
     if (!monogramInput || !shouldDisplayMonogram(selectedMonogram, monogramInput.length)) return;
 
     ctx.save();
@@ -516,7 +518,7 @@ const drawMonogramOnCanvas = (ctx, monogramInput, selectedMonogram, bounds, sele
     // Get font size from monogramConfig (same as BottlePreview uses)
     // isMobile = false for capture mode
     const cssFontSize = getMonogramFontSize(selectedMonogram, side, monogramInput.length, false);
-    const fontSize = parseCssFontSize(cssFontSize, bounds.width);
+    const fontSize = parseCssFontSize(cssFontSize, bounds.width) * monogramScale;
 
     if (usesCircleGlyphs(selectedMonogram)) {
         displayText = convertToCircleGlyphs(monogramInput, selectedMonogram);
@@ -694,7 +696,8 @@ export const captureBottleSnapshotCanvas = async (
     selectedColor,
     selectedFont,
     selectedMonogram,
-    fonts
+    fonts,
+    monogramScale = 1
 ) => {
     const canvas = document.createElement('canvas');
     canvas.width = BOTTLE_CANVAS_WIDTH;
@@ -746,7 +749,7 @@ export const captureBottleSnapshotCanvas = async (
     // Draw monogram
     if (monogramInput) {
         const monogramBounds = getPixelBounds(positions.monogram, BOTTLE_CANVAS_WIDTH, BOTTLE_CANVAS_HEIGHT);
-        drawMonogramOnCanvas(ctx, monogramInput, selectedMonogram, monogramBounds, selectedColor, side);
+        drawMonogramOnCanvas(ctx, monogramInput, selectedMonogram, monogramBounds, selectedColor, side, monogramScale);
     }
 
     // Draw graphic
@@ -776,7 +779,8 @@ export const captureDesignSnapshotCanvas = async (
     selectedColor,
     selectedFont,
     selectedMonogram,
-    fonts
+    fonts,
+    monogramScale = 1
 ) => {
     const config = customization[side];
     const textInput = config?.text || '';
@@ -823,7 +827,7 @@ export const captureDesignSnapshotCanvas = async (
     // Draw monogram
     if (monogramInput && shouldDisplayMonogram(selectedMonogram, monogramInput.length)) {
         // For design capture, we use a fixed dark color
-        drawMonogramOnCanvas(ctx, monogramInput, selectedMonogram, bounds, 'white', side); // 'white' bottle gives dark text
+        drawMonogramOnCanvas(ctx, monogramInput, selectedMonogram, bounds, 'white', side, monogramScale); // 'white' bottle gives dark text
     }
 
     // Draw graphic

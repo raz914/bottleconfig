@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { t } from '../i18n';
 
 const ConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
     const [agreed, setAgreed] = useState(false);
@@ -21,28 +22,16 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
                 {/* Content */}
                 <div className="p-6 md:p-8 flex flex-col h-full overflow-hidden">
                     <h2 className="text-xl font-bold text-[#007db5] text-center uppercase tracking-wider mb-6">
-                        Confirm This
+                        {t('confirm.heading')}
                     </h2>
 
                     <div className="flex-1 overflow-y-auto pr-2 mb-6 text-sm text-gray-600 leading-relaxed space-y-4 custom-scrollbar">
-                        <p>
-                            The submitted image and/or text is not unlawful, harmful, threatening, tortious, defamatory, vulgar, obscene, libelous, invasive of another's privacy, hateful, or racially, ethnically, or otherwise objectionable, does not infringe upon any patent, trademark, copyright, trade secret, or other proprietary rights of any third party (this includes but is not limited to sports teams and licensed university logos or slogans), and does not otherwise violate any of the rights or other categories listed in our FAQs. All personalized orders are subject to review. If any of the above conditions are violated, the entire order will be canceled.
-                        </p>
-                        <p>
-                            Once you submit your order, you cannot edit or modify it. Any changes to the imprint of your order must be made before the order ships.
-                        </p>
-                        <p>
-                            Personalized items are non-refundable and cannot be canceled after you place your order. All sales of personalized products are final.
-                        </p>
-                        <p>
-                            We do not offer personalization of our stainless steel drinkware or Yonder bottles.
-                        </p>
-                        <p>
-                            If you need assistance ordering custom drinkware, for example, if you want to place an order for products with a trademarked or copyrighted image for which you have permission, or if you have any questions, please contact our Outfitter team before placing your order.
-                        </p>
-                        <p>
-                            For company logos, please visit our Corporate Sales page for information and quotes.
-                        </p>
+                        <p>{t('confirm.body1')}</p>
+                        <p>{t('confirm.body2')}</p>
+                        <p>{t('confirm.body3')}</p>
+                        <p>{t('confirm.body4')}</p>
+                        <p>{t('confirm.body5')}</p>
+                        <p>{t('confirm.body6')}</p>
                     </div>
 
                     {/* Agreement Checkbox */}
@@ -56,7 +45,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
                             />
                         </div>
                         <span className="text-sm font-semibold text-gray-800 group-hover:text-black transition-colors">
-                            I agree to these terms and conditions
+                            {t('confirm.agreeLabel')}
                         </span>
                     </label>
 
@@ -66,7 +55,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
                             onClick={onClose}
                             className="flex-1 py-3 bg-[#007db5] text-white font-bold uppercase tracking-widest text-xs hover:bg-[#006da0] transition-colors rounded shadow-md"
                         >
-                            Cancel
+                            {t('confirm.cancel')}
                         </button>
                         <button
                             onClick={onConfirm}
@@ -76,7 +65,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm }) => {
                                     : 'bg-[#9CA3AF] text-white cursor-not-allowed'
                                 }`}
                         >
-                            Accept
+                            {t('confirm.accept')}
                         </button>
                     </div>
                 </div>

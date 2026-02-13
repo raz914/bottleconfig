@@ -1,11 +1,12 @@
 import React from 'react';
+import { t } from '../i18n';
 
 const BottomBar = ({ onRemove, onReview, isDisabled, isPreparing }) => {
     const reviewDisabled = isDisabled || isPreparing;
 
     return (
         <div className="fixed bottom-0 left-0 right-0 bg-[#f3f4f6] border-t border-gray-200 p-4 md:p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50">
-            <div className="max-w-md md:max-w-none mx-auto md:mx-0 md:ml-auto flex space-x-3 w-full md:w-auto px-4 md:pr-8">
+            <div className="max-w-md md:max-w-none mx-auto md:mx-0 md:ml-auto md:w-[35%] flex space-x-3 w-full px-4 md:px-12">
                 <button
                     onClick={onRemove}
                     disabled={isDisabled || isPreparing}
@@ -15,7 +16,7 @@ const BottomBar = ({ onRemove, onReview, isDisabled, isPreparing }) => {
                             : 'bg-white border-2 border-gray-200 text-gray-500 hover:border-red-500 hover:text-red-500'
                         }`}
                 >
-                    REMOVE
+                    {t('bottomBar.remove')}
                 </button>
                 <button
                     onClick={onReview}
@@ -26,7 +27,7 @@ const BottomBar = ({ onRemove, onReview, isDisabled, isPreparing }) => {
                             : 'bg-black text-white hover:bg-gray-800'
                         }`}
                 >
-                    {isPreparing ? 'PREPARING...' : 'REVIEW'}
+                    {isPreparing ? t('bottomBar.preparing') : t('bottomBar.review')}
                 </button>
             </div>
         </div>
