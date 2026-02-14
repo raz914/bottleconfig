@@ -547,7 +547,7 @@ const Customizer = () => {
             {/* Main Content */}
             <main className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden relative">
                 {/* Left Panel - Bottle Preview */}
-                <div id="bottle-canvas" className="w-full md:w-[65%] flex items-center justify-center bg-[#f3f4f6] relative py-6 md:py-0 overflow-hidden min-h-[200px] md:min-h-0">
+                <div id="bottle-canvas" className="w-full md:w-[65%] flex items-center justify-center bg-[#f3f4f6] relative pt-2 md:py-0 overflow-hidden min-h-[200px] md:min-h-0">
                     <div ref={bottlePreviewRef} className="flex flex-col items-center md:mb-[100px]">
 
                         {/* Using Clean Component for Preview */}

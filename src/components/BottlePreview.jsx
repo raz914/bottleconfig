@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState, useEffect, useLayoutEffect } from 'react';
 import { monogramStyles, getMonogramFontSize, shouldDisplayMonogram, convertToCircleGlyphs, getCircleFontFamily, usesCircleGlyphs, convertToNGramGlyphs, getNGramFontFamily, usesNGramGlyphs } from '../data/monogramConfig';
 import { DESKTOP_POSITIONS, MOBILE_POSITIONS, GRAPHIC_MAX_SIZE } from '../data/capturePositions';
-import { getMetallicGradientCSS, cssUrl } from '../utils/metallicStyle';
+import { getMetallicGradientCSS, getMetallicTextFilterCSS, cssUrl } from '../utils/metallicStyle';
 import { t } from '../i18n';
 
 const BottlePreview = ({
@@ -150,6 +150,7 @@ const BottlePreview = ({
     const sizeConfig = isMobile ? GRAPHIC_MAX_SIZE.mobile : GRAPHIC_MAX_SIZE.desktop;
     const graphicMaxSize = `${sizeConfig[side] * 100}%`;
     const metallicGradient = getMetallicGradientCSS(selectedColor);
+    const metallicTextFilter = getMetallicTextFilterCSS(selectedColor);
     const metalMaskSrc = (graphicInput && (!graphicInput.isUpload || graphicInput.maskSrc)) ? loadedGraphicSrc : null;
 
     // =========================================================================
@@ -218,8 +219,10 @@ const BottlePreview = ({
         return Math.max(1, (side === 'FRONT' ? 0.18 : 0.54) * textBoxSize.width);
     }, [textBoxSize.width, side]);
 
-    // Vertical text can clip for short strings because cqi max allows very large
-    // glyphs. Apply short-string caps in preview so 1-2 chars don't crop.
+    // Uniform vertical text scale — applied to the cqi-based size so all
+    // character counts shrink consistently without abrupt jumps.
+    const VERTICAL_SCALE = 0.5;
+
     const verticalFittedFontSizePx = useMemo(() => {
         const isVerticalText = side === 'BACK' && config?.isVertical;
         if (!isVerticalText || !textInput || !textBoxSize.height) return null;
@@ -228,29 +231,8 @@ const BottlePreview = ({
         const len = Math.max(1, textInput.length);
         const cqiBasedSize = Math.max(8, Math.min((150 / len) * cqi, 54 * cqi));
 
-        const maxLineLen = Math.max(
-            1,
-            ...String(textInput)
-                .split('\n')
-                .map(line => Math.max(1, line.length))
-        );
-
-        const lineHeight = 1.2;
-        if (maxLineLen > 3) return cqiBasedSize;
-
-        const heightSafety = isMobile ? 0.9 : 0.92;
-        const shortTextHeightCap = (textBoxSize.height * heightSafety) / (maxLineLen * lineHeight);
-        let fitted = Math.min(cqiBasedSize, shortTextHeightCap);
-
-        // For 1-2 chars, width is often the limiting axis in vertical-rl.
-        if (maxLineLen <= 2 && textBoxSize.width) {
-            const widthSafety = isMobile ? 0.86 : 0.9;
-            const shortTextWidthCap = (textBoxSize.width * widthSafety) / lineHeight;
-            fitted = Math.min(fitted, shortTextWidthCap);
-        }
-
-        return Math.max(8, fitted);
-    }, [side, config?.isVertical, textInput, textBoxSize.height, textBoxSize.width, isMobile]);
+        return Math.max(8, cqiBasedSize * VERTICAL_SCALE);
+    }, [side, config?.isVertical, textInput, textBoxSize.height]);
 
     // Fit based on actual DOM measurements (most accurate across fonts/devices).
     useLayoutEffect(() => {
@@ -369,10 +351,10 @@ const BottlePreview = ({
                                         ? `max(4px, min(${100 / Math.max(1, textInput.length)}cqi, 18cqi))`
                                         : `max(8px, min(${150 / Math.max(1, textInput.length)}cqi, 54cqi))`)),
                                 letterSpacing: '0.5px',
-                                // No auto line breaks unless user types Enter
-                                ...(side === 'BACK' && config.isVertical
-                                    ? { wordBreak: 'break-word', whiteSpace: 'pre-wrap' }
-                                    : { wordBreak: 'normal', overflowWrap: 'normal', whiteSpace: 'pre' }),
+                                // No auto line breaks — new columns only from explicit Enter.
+                                wordBreak: 'normal',
+                                overflowWrap: 'normal',
+                                whiteSpace: 'pre',
                                 lineHeight: 1.2,
                                 fontVariantEmoji: 'text',
                                 verticalAlign: 'middle',
@@ -391,7 +373,7 @@ const BottlePreview = ({
                                 WebkitBackgroundClip: 'text',
                                 backgroundClip: 'text',
                                 color: 'transparent',
-                                filter: 'contrast(1.1) brightness(1.1) drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
+                                filter: metallicTextFilter,
                                 WebkitTextFillColor: 'transparent',
                             }}
                         >

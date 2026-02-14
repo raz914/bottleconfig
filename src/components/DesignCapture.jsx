@@ -196,9 +196,10 @@ const DesignCapture = ({
                                 ? `max(16px, min(${100 / Math.max(1, textInput.length)}cqi, 72px))`
                                 : (fittedFontSizePx ? `${fittedFontSizePx}px` : `max(16px, min(${100 / Math.max(1, textInput.length)}cqi, 72px))`),
                             letterSpacing: '0.5px',
-                            ...(side === 'BACK' && config.isVertical
-                                ? { wordBreak: 'break-word', whiteSpace: 'pre-wrap' }
-                                : { wordBreak: 'normal', overflowWrap: 'normal', whiteSpace: 'pre' }),
+                            // No auto line breaks — new columns only from explicit Enter.
+                            wordBreak: 'normal',
+                            overflowWrap: 'normal',
+                            whiteSpace: 'pre',
                             lineHeight: 1.2,
                             fontVariantEmoji: 'text',
                             textAlign: 'center',

@@ -162,8 +162,8 @@ const translations = {
     // =========================================================================
     nl: {
         // -- Tabs / Navigation ------------------------------------------------
-        'tab.front': 'VOORKANT',
-        'tab.back': 'ACHTERKANT',
+        'tab.front': 'VOOR',
+        'tab.back': 'ACHTER',
 
         // -- Product info -----------------------------------------------------
         'product.heading': 'RAMBLER® 16 OZ REISFLES',

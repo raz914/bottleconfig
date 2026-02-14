@@ -16,7 +16,7 @@ import {
     getMonogramFontSize
 } from '../data/monogramConfig';
 import { DESKTOP_POSITIONS, MOBILE_POSITIONS, GRAPHIC_MAX_SIZE } from '../data/capturePositions';
-import { getMetallicCanvasStops } from './metallicStyle';
+import { getMetallicCanvasStops, shouldUseMetallicTextShadow } from './metallicStyle';
 
 // =============================================================================
 // iOS Detection
@@ -247,11 +247,18 @@ const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, 
 
     ctx.save();
 
-    // Add drop shadow to match CSS filter
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-    ctx.shadowBlur = 2 * RESOLUTION_SCALE;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 1 * RESOLUTION_SCALE;
+    // Match live text rendering: no text shadow on white bottle.
+    if (shouldUseMetallicTextShadow(selectedColor)) {
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = 2 * RESOLUTION_SCALE;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 1 * RESOLUTION_SCALE;
+    } else {
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+    }
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -306,25 +313,10 @@ const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, 
         // Vertical text (writing-mode: vertical-rl in CSS)
         // For vertical, use height as the "inline-size" for cqi calculation
         // and allow wrapping into new columns when needed (matches existing DOM behavior).
+        // Uniform vertical scale — matches BottlePreview.jsx VERTICAL_SCALE
+        const VERTICAL_SCALE = 0.7;
         const baseFontSize = calculateCqiFontSize(text, bounds.height, side);
-        const maxLineLen = Math.max(
-            1,
-            ...String(text)
-                .split('\n')
-                .map(line => Math.max(1, line.length))
-        );
-        const shortTextHeightCap = (bounds.height * 0.92) / (maxLineLen * lineHeight);
-        let fitted = maxLineLen <= 3
-            ? Math.min(baseFontSize, shortTextHeightCap)
-            : baseFontSize;
-
-        // For 1-2 chars, limit by available width as well to avoid cropping.
-        if (maxLineLen <= 2) {
-            const shortTextWidthCap = (bounds.width * 0.9) / lineHeight;
-            fitted = Math.min(fitted, shortTextWidthCap);
-        }
-
-        const fontSize = Math.max(8 * RESOLUTION_SCALE, fitted);
+        const fontSize = Math.max(8 * RESOLUTION_SCALE, baseFontSize * VERTICAL_SCALE);
         ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
 
         ctx.translate(centerX, centerY);
@@ -348,47 +340,16 @@ const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, 
         gradient.addColorStop(1, stops.end);
         ctx.fillStyle = gradient;
 
-        // Multiline/wrapping behavior (match DOM more closely):
-        // Instead of drawing per-character (which loses kerning and can look like "random gaps"),
-        // we draw whole string runs per column using `fillText`, and wrap into new columns when
-        // the measured width exceeds the available vertical space.
+        // Manual line breaks only — columns come from explicit newlines,
+        // matching the DOM behaviour (whiteSpace: 'pre').
         //
         // In rotated coords (+90deg):
         // - text advances along +X, which maps to DOWN in the original canvas
         // - increasing Y maps to LEFT in the original canvas (new columns move left)
         const colAdvance = fontSize * 1.05; // distance between columns
-        const maxRun = bounds.height;
 
-        const columns = [];
-        let current = '';
-
-        const pushCurrent = () => {
-            const trimmed = current.replace(/^\s+/, ''); // avoid leading spaces per column
-            if (trimmed) columns.push(trimmed);
-            current = '';
-        };
-
-        for (const ch of String(text)) {
-            if (ch === '\n') {
-                pushCurrent();
-                continue;
-            }
-
-            // Skip leading whitespace in a new column
-            if (!current && (ch === ' ' || ch === '\t')) continue;
-
-            const next = current + ch;
-            const w = ctx.measureText(next).width;
-            if (current && w > maxRun) {
-                pushCurrent();
-                // don't start a column with whitespace
-                if (ch === ' ' || ch === '\t') continue;
-                current = ch;
-            } else {
-                current = next;
-            }
-        }
-        pushCurrent();
+        // Columns are derived from user-typed newlines only (no auto-wrap).
+        const columns = rawLines.map(l => l.trimStart()).filter(l => l.length > 0);
         if (!columns.length) columns.push('');
 
         // Center columns within the available width.

@@ -16,9 +16,9 @@
 // The CSS filter `brightness(1.1)` is applied separately in the components,
 // so these are the "base" colours before that filter lightens them on screen.
 // ---------------------------------------------------------------------------
-// #a8a7a7ff 0%, #8e8e8e 50%, #555555 100%
+//#a0a0a0 0%,#a4a3a3  50%,#a5a5a5 100%
 const CSS_STOPS = {
-    white: { start: '#a8a7a7', mid: '#8e8e8e', end: '#555555' },
+    white: { start: '#a0a0a0', mid: '#a4a3a3', end: '#a5a5a5' },
     other: { start: '#e6e5e5ff', mid: '#9e9e9e', end: '#656565' },
 };
 
@@ -31,6 +31,25 @@ export const getMetallicGradientCSS = (selectedColor) => {
     const s = selectedColor === 'white' ? CSS_STOPS.white : CSS_STOPS.other;
     return `linear-gradient(90deg, ${s.start} 0%, ${s.mid} 50%, ${s.end} 100%)`;
 };
+
+/**
+ * Metallic text filter for live preview text rendering.
+ * White bottle: no drop shadow.
+ * Other colors: keep subtle drop shadow for contrast.
+ * @param {string} selectedColor
+ * @returns {string}
+ */
+export const getMetallicTextFilterCSS = (selectedColor) =>
+    selectedColor === 'white'
+        ? 'contrast(1.4) brightness(1.15)'
+        : 'contrast(1.1) brightness(1.1) drop-shadow(0 1px 1px rgba(0,0,0,0.3))';
+
+/**
+ * Whether metallic text should use shadow in canvas export.
+ * @param {string} selectedColor
+ * @returns {boolean}
+ */
+export const shouldUseMetallicTextShadow = (selectedColor) => selectedColor !== 'white';
 
 // ---------------------------------------------------------------------------
 // Canvas colour-stop values (pre-brightened ≈ +10 %)

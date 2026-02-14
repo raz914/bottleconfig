@@ -42,7 +42,7 @@ export const MOBILE_POSITIONS = {
 export const GRAPHIC_MAX_SIZE = {
     mobile: {
         FRONT: 0.38,  // ~20% larger (was 0.32)
-        BACK: 0.54,   // ~20% larger (was 0.45)
+        BACK: 0.42,   // ~20% larger (was 0.45)
     },
     test: {
         FRONT: 0.24,  // ~20% larger (was 0.20)
@@ -50,6 +50,6 @@ export const GRAPHIC_MAX_SIZE = {
     },
     desktop: {
         FRONT: 0.78,  // ~20% larger (was 0.65)
-        BACK: 0.90,   // ~20% larger (was 0.75)
+        BACK: 0.75,   // ~20% larger (was 0.75)
     }
 };
