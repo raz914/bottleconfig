@@ -17,6 +17,7 @@ import { t } from '../i18n';
 
 const MAX_CAPTURE_PIXEL_RATIO = 4;
 const FALLBACK_CAPTURE_PIXEL_RATIO = 3;
+const MAX_FRONT_TEXT_LINES = 2;
 
 const Customizer = () => {
     const [activeTab, setActiveTab] = useState('FRONT');
@@ -174,13 +175,18 @@ const Customizer = () => {
     const graphicInput = customization[activeTab].graphic;
 
     const setTextInput = (val) => {
+        const normalized = String(val ?? '').replace(/\r\n/g, '\n');
+        const finalText = activeTab === 'FRONT'
+            ? normalized.split('\n').slice(0, MAX_FRONT_TEXT_LINES).join('\n')
+            : normalized;
+
         setCustomization(prev => ({
             ...prev,
             [activeTab]: {
                 ...prev[activeTab],
-                text: val,
-                monogram: val ? '' : prev[activeTab].monogram, // Clear monogram if text is added
-                graphic: val ? null : prev[activeTab].graphic // Clear graphic if text is added
+                text: finalText,
+                monogram: finalText ? '' : prev[activeTab].monogram, // Clear monogram if text is added
+                graphic: finalText ? null : prev[activeTab].graphic // Clear graphic if text is added
             }
         }));
     }

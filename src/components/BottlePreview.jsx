@@ -216,8 +216,9 @@ const BottlePreview = ({
 
     const maxFontSizePx = useMemo(() => {
         if (!textBoxSize.width) return null;
-        return Math.max(1, (side === 'FRONT' ? 0.12 : 0.54) * textBoxSize.width);
-    }, [textBoxSize.width, side]);
+        const frontMaxRatio = isCapture ? 0.29 : 0.12;  //front line size razi
+        return Math.max(1, (side === 'FRONT' ? frontMaxRatio : 0.54) * textBoxSize.width);
+    }, [textBoxSize.width, side, isCapture]);
 
     // Uniform vertical text scale — applied to the cqi-based size so all
     // character counts shrink consistently without abrupt jumps.

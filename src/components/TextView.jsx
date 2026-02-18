@@ -4,7 +4,7 @@ import { t } from '../i18n';
 
 const TextView = ({ setView, textInput, setTextInput, fonts, selectedFont, setSelectedFont, activeTab, isVertical, setIsVertical }) => {
     const MAX_CHARS_PER_LINE = 20;
-    const MAX_FRONT_LINES = 4;
+    const MAX_FRONT_LINES = 2;
     const MAX_FRONT_TOTAL = (MAX_CHARS_PER_LINE * MAX_FRONT_LINES) + (MAX_FRONT_LINES - 1); // include newlines
 
     return (

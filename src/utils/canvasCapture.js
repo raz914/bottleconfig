@@ -242,7 +242,18 @@ const calculateCqiFontSize = (text, boundsWidth, side) => {
  * @param {string} side - 'FRONT' or 'BACK' (for font size calculation)
  * @param {boolean} isVertical - whether text is vertical (BACK side option)
  */
-const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, selectedColor, side, isVertical = false) => {
+const drawTextOnCanvas = (
+    ctx,
+    text,
+    bounds,
+    fontFamily,
+    fontWeight,
+    fontStyle,
+    selectedColor,
+    side,
+    isVertical = false,
+    frontMaxRatio = 0.12
+) => {
     if (!text) return;
 
     ctx.save();
@@ -283,7 +294,7 @@ const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, 
 
     const fitFontSizeHorizontal = () => {
         const hardMinPx = 1 * RESOLUTION_SCALE;
-        const maxPx = Math.max(hardMinPx, (side === 'FRONT' ? 0.12 : 0.54) * bounds.width);
+        const maxPx = Math.max(hardMinPx, (side === 'FRONT' ? frontMaxRatio : 0.54) * bounds.width);
 
         const fits = (sizePx) => {
             const maxLineWidth = Math.max(0, ...rawLines.map(l => measureLine(l, sizePx)));
@@ -704,7 +715,18 @@ export const captureBottleSnapshotCanvas = async (
         const fontFamily = getFontFamily(selectedFont, fonts);
         const fontWeight = getFontWeight(selectedFont, fonts);
         const fontStyle = getFontStyle(selectedFont, fonts);
-        drawTextOnCanvas(ctx, textInput, textBounds, fontFamily, fontWeight, fontStyle, selectedColor, side, isVertical);
+        drawTextOnCanvas(
+            ctx,
+            textInput,
+            textBounds,
+            fontFamily,
+            fontWeight,
+            fontStyle,
+            selectedColor,
+            side,
+            isVertical,
+            0.29
+        );
     }
 
     // Draw monogram
