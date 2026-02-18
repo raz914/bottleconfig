@@ -80,7 +80,7 @@ const loadImage = (src) => {
 // =============================================================================
 
 // Resolution multiplier for high-quality capture (e.g., Retina)
-const RESOLUTION_SCALE = 3;
+const RESOLUTION_SCALE = 4;
 
 // Canvas dimensions for bottle snapshot
 const BOTTLE_CANVAS_WIDTH = 300 * RESOLUTION_SCALE;
@@ -283,7 +283,7 @@ const drawTextOnCanvas = (ctx, text, bounds, fontFamily, fontWeight, fontStyle, 
 
     const fitFontSizeHorizontal = () => {
         const hardMinPx = 1 * RESOLUTION_SCALE;
-        const maxPx = Math.max(hardMinPx, (side === 'FRONT' ? 0.18 : 0.54) * bounds.width);
+        const maxPx = Math.max(hardMinPx, (side === 'FRONT' ? 0.12 : 0.54) * bounds.width);
 
         const fits = (sizePx) => {
             const maxLineWidth = Math.max(0, ...rawLines.map(l => measureLine(l, sizePx)));

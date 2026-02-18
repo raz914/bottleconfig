@@ -546,6 +546,7 @@ function bottle_customizer_add_to_cart() {
     
     $front_design_url = '';
     $back_design_url = '';
+    $preview_pdf_url = '';
 
     if (!empty($customization_data['frontDesignImage'])) {
         $front_design_url = bottle_customizer_save_temp_image($customization_data['frontDesignImage'], 'front-design');
@@ -553,6 +554,10 @@ function bottle_customizer_add_to_cart() {
 
     if (!empty($customization_data['backDesignImage'])) {
         $back_design_url = bottle_customizer_save_temp_image($customization_data['backDesignImage'], 'back-design');
+    }
+
+    if (!empty($customization_data['previewPdf'])) {
+        $preview_pdf_url = bottle_customizer_save_temp_image($customization_data['previewPdf'], 'preview');
     }
 
     // Prepare cart item data
@@ -575,6 +580,7 @@ function bottle_customizer_add_to_cart() {
             'back_image_url' => $back_image_url,
             'front_design_url' => $front_design_url,
             'back_design_url' => $back_design_url,
+            'preview_pdf_url' => $preview_pdf_url,
         ),
         'unique_key' => md5(microtime() . rand()), // Make each customization unique
     );
@@ -731,19 +737,27 @@ add_action('wp_ajax_bottle_customizer_add_to_cart', 'bottle_customizer_add_to_ca
 add_action('wp_ajax_nopriv_bottle_customizer_add_to_cart', 'bottle_customizer_add_to_cart');
 
 /**
- * Save base64 image to temporary directory
+ * Save base64 media (images + generated preview PDF) to temporary directory.
  */
 function bottle_customizer_save_temp_image($base64_image, $prefix) {
     $base64_image = (string) $base64_image;
 
     // Detect mime + strip data URI prefix if present.
     $ext = 'png';
-    if (preg_match('/^data:image\/(\w+);base64,/', $base64_image, $m)) {
-        $mime_ext = strtolower((string) $m[1]);
-        if (in_array($mime_ext, array('png', 'jpg', 'jpeg', 'webp'), true)) {
-            $ext = $mime_ext === 'jpeg' ? 'jpg' : $mime_ext;
+    if (preg_match('/^data:([a-z0-9.+\/-]+);base64,/i', $base64_image, $m)) {
+        $mime = strtolower((string) $m[1]);
+        if ($mime === 'image/png') {
+            $ext = 'png';
+        } elseif ($mime === 'image/jpeg' || $mime === 'image/jpg') {
+            $ext = 'jpg';
+        } elseif ($mime === 'image/webp') {
+            $ext = 'webp';
+        } elseif ($mime === 'application/pdf') {
+            $ext = 'pdf';
+        } else {
+            return '';
         }
-        $base64_image = preg_replace('/^data:image\/\w+;base64,/', '', $base64_image);
+        $base64_image = preg_replace('/^data:[a-z0-9.+\/-]+;base64,/i', '', $base64_image);
     }
 
     $base64_image = preg_replace('/\s+/', '', $base64_image);
@@ -1292,6 +1306,9 @@ function bottle_customizer_order_item_meta($item_id, $item, $order = null, $plai
         if (!empty($customization['back_image_url'])) {
             echo '<p><img src="' . esc_url($customization['back_image_url']) . '" alt="Back View" style="max-width: 150px;"></p>';
         }
+        if (!empty($customization['preview_pdf_url'])) {
+            echo '<p><a href="' . esc_url($customization['preview_pdf_url']) . '" target="_blank" rel="noopener noreferrer">' . esc_html__('Download preview PDF', 'bottle-customizer') . '</a></p>';
+        }
         
         echo '</div>';
     }
@@ -1313,7 +1330,7 @@ function bottle_customizer_add_cart_item_data($cart_item_data, $product_id = 0, 
 add_filter('woocommerce_add_cart_item_data', 'bottle_customizer_add_cart_item_data', 10, 3);
 
 /**
- * Clean up old temporary images (scheduled task)
+ * Clean up old temporary media files (scheduled task)
  */
 function bottle_customizer_cleanup_temp_images() {
     $upload_dir = wp_upload_dir();
@@ -1326,7 +1343,8 @@ function bottle_customizer_cleanup_temp_images() {
     $files = array_merge(
         glob($temp_dir . '*.png') ?: array(),
         glob($temp_dir . '*.jpg') ?: array(),
-        glob($temp_dir . '*.webp') ?: array()
+        glob($temp_dir . '*.webp') ?: array(),
+        glob($temp_dir . '*.pdf') ?: array()
     );
     $now = time();
     

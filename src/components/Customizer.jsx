@@ -12,7 +12,11 @@ import BottlePreview from './BottlePreview';
 import DesignCapture from './DesignCapture';
 import { monogramStyles, getMonogramFontSize, shouldDisplayMonogram, convertToCircleGlyphs, getCircleFontFamily, usesCircleGlyphs, convertToNGramGlyphs, getNGramFontFamily, usesNGramGlyphs } from '../data/monogramConfig';
 import { isIOSDevice, captureBottleSnapshotCanvas, captureDesignSnapshotCanvas } from '../utils/canvasCapture';
+import { createPreviewPdfDataUrl, downloadDataUrl } from '../utils/previewPdf';
 import { t } from '../i18n';
+
+const MAX_CAPTURE_PIXEL_RATIO = 4;
+const FALLBACK_CAPTURE_PIXEL_RATIO = 3;
 
 const Customizer = () => {
     const [activeTab, setActiveTab] = useState('FRONT');
@@ -49,7 +53,9 @@ const Customizer = () => {
         window.takeSnapshot = async () => {
             if (bottlePreviewRef.current) {
                 try {
-                    const dataUrl = await toPng(bottlePreviewRef.current, { cacheBust: true });
+                    const dataUrl = await captureNodeWithFallback(bottlePreviewRef.current, {
+                        label: 'single preview'
+                    });
 
                     const link = document.createElement('a');
                     link.download = `bottle-snapshot-${Date.now()}.png`;
@@ -150,7 +156,8 @@ const Customizer = () => {
         front: null,
         back: null,
         frontDesign: null,
-        backDesign: null
+        backDesign: null,
+        previewPdf: null
     });
 
     const requestParentClose = () => {
@@ -255,6 +262,145 @@ const Customizer = () => {
         });
     };
 
+    const captureNodeWithFallback = async (
+        node,
+        {
+            label = 'capture',
+            backgroundColor
+        } = {}
+    ) => {
+        if (!node) return null;
+
+        const ratios = [MAX_CAPTURE_PIXEL_RATIO, FALLBACK_CAPTURE_PIXEL_RATIO];
+        let lastError = null;
+
+        for (const pixelRatio of ratios) {
+            try {
+                return await toPng(node, {
+                    cacheBust: true,
+                    skipAutoScale: true,
+                    pixelRatio,
+                    backgroundColor
+                });
+            } catch (error) {
+                lastError = error;
+                console.warn(`[Customizer] ${label} capture failed at ${pixelRatio}x`, error);
+            }
+        }
+
+        throw lastError || new Error(`[Customizer] ${label} capture failed`);
+    };
+
+    const hasFrontDesignContent = !!(customization.FRONT.text || customization.FRONT.monogram || customization.FRONT.graphic);
+    const hasBackDesignContent = !!(customization.BACK.text || customization.BACK.monogram || customization.BACK.graphic);
+
+    const captureReviewAssets = async ({ includeDesign = true } = {}) => {
+        let frontImg = null;
+        let backImg = null;
+        let frontDesignImg = null;
+        let backDesignImg = null;
+
+        const useCanvasCapture = isIOSDevice() || forceCanvasCapture;
+
+        if (useCanvasCapture) {
+            console.log(`[Customizer] Using canvas capture (iOS: ${isIOSDevice()}, forced: ${forceCanvasCapture})`);
+
+            if (document.fonts && document.fonts.ready) {
+                await document.fonts.ready;
+            }
+
+            frontImg = await captureBottleSnapshotCanvas(
+                'FRONT',
+                customization,
+                selectedColor,
+                selectedFont,
+                selectedMonogramBySide.FRONT,
+                fonts,
+                CAPTURE_MONOGRAM_SCALE
+            );
+
+            backImg = await captureBottleSnapshotCanvas(
+                'BACK',
+                customization,
+                selectedColor,
+                selectedFont,
+                selectedMonogramBySide.BACK,
+                fonts,
+                CAPTURE_MONOGRAM_SCALE
+            );
+
+            if (includeDesign && hasFrontDesignContent) {
+                frontDesignImg = await captureDesignSnapshotCanvas(
+                    'FRONT',
+                    customization,
+                    selectedColor,
+                    selectedFont,
+                    selectedMonogramBySide.FRONT,
+                    fonts,
+                    CAPTURE_MONOGRAM_SCALE
+                );
+            }
+
+            if (includeDesign && hasBackDesignContent) {
+                backDesignImg = await captureDesignSnapshotCanvas(
+                    'BACK',
+                    customization,
+                    selectedColor,
+                    selectedFont,
+                    selectedMonogramBySide.BACK,
+                    fonts,
+                    CAPTURE_MONOGRAM_SCALE
+                );
+            }
+        } else {
+            console.log('[Customizer] Using html-to-image capture');
+
+            await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+            const refsToWait = [frontCaptureRef, backCaptureRef];
+            if (includeDesign) {
+                refsToWait.push(frontDesignCaptureRef, backDesignCaptureRef);
+            }
+
+            await Promise.all(refsToWait.map(waitForImagesToLoad));
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            if (frontCaptureRef.current) {
+                frontImg = await captureNodeWithFallback(frontCaptureRef.current, { label: 'front bottle' });
+            }
+
+            if (backCaptureRef.current) {
+                backImg = await captureNodeWithFallback(backCaptureRef.current, { label: 'back bottle' });
+            }
+
+            if (includeDesign && frontDesignCaptureRef.current && hasFrontDesignContent) {
+                frontDesignImg = await captureNodeWithFallback(frontDesignCaptureRef.current, {
+                    label: 'front design',
+                    backgroundColor: null
+                });
+            }
+
+            if (includeDesign && backDesignCaptureRef.current && hasBackDesignContent) {
+                backDesignImg = await captureNodeWithFallback(backDesignCaptureRef.current, {
+                    label: 'back design',
+                    backgroundColor: null
+                });
+            }
+        }
+
+        return { frontImg, backImg, frontDesignImg, backDesignImg };
+    };
+
+    const createPreviewPdf = async (frontImg, backImg) => {
+        if (!frontImg || !backImg) return null;
+        try {
+            return await createPreviewPdfDataUrl(frontImg, backImg);
+        } catch (error) {
+            console.warn('[Customizer] Failed to create preview PDF', error);
+            return null;
+        }
+    };
+
     // Expose canvas snapshot function for testing iOS capture path on desktop
     useEffect(() => {
         window.takeSnapshotCanvas = async (side = 'FRONT') => {
@@ -316,7 +462,9 @@ const Customizer = () => {
                 // Capture with html-to-image
                 let htmlToImageUrl = null;
                 if (ref.current) {
-                    htmlToImageUrl = await toPng(ref.current, { cacheBust: true, skipAutoScale: true });
+                    htmlToImageUrl = await captureNodeWithFallback(ref.current, {
+                        label: `${sideUpper} comparison`
+                    });
                 }
 
                 // Capture with canvas
@@ -366,118 +514,46 @@ const Customizer = () => {
         };
     }, [customization, selectedColor, selectedFont, selectedMonogramBySide]);
 
+    useEffect(() => {
+        window.takePreviewPdf = async () => {
+            try {
+                const { frontImg, backImg } = await captureReviewAssets({ includeDesign: false });
+                const pdfDataUrl = await createPreviewPdf(frontImg, backImg);
+
+                if (!pdfDataUrl) {
+                    console.warn('[takePreviewPdf] Could not generate preview PDF.');
+                    return null;
+                }
+
+                const filename = `bottle-preview-${Date.now()}.pdf`;
+                downloadDataUrl(pdfDataUrl, filename);
+                console.log(`[takePreviewPdf] Saved ${filename}`);
+                return pdfDataUrl;
+            } catch (error) {
+                console.error('[takePreviewPdf] Failed:', error);
+                return null;
+            }
+        };
+
+        return () => {
+            delete window.takePreviewPdf;
+        };
+    });
+
     const handleReview = async () => {
         try {
             setIsPreparingReview(true); // Show full-screen loader
             setIsImageLoading(true);
 
-            let frontImg = null;
-            let backImg = null;
-            let frontDesignImg = null;
-            let backDesignImg = null;
-
-            // Check if we're on iOS OR force canvas capture is enabled - use canvas compositor instead of html-to-image
-            const useCanvasCapture = isIOSDevice() || forceCanvasCapture;
-
-            if (useCanvasCapture) {
-                // iOS or forced: Use canvas compositor for reliable snapshot generation
-                console.log(`[Customizer] Using canvas capture (iOS: ${isIOSDevice()}, forced: ${forceCanvasCapture})`);
-
-                // Wait for fonts to be ready
-                if (document.fonts && document.fonts.ready) {
-                    await document.fonts.ready;
-                }
-
-                // Capture using canvas compositor
-                frontImg = await captureBottleSnapshotCanvas(
-                    'FRONT',
-                    customization,
-                    selectedColor,
-                    selectedFont,
-                    selectedMonogramBySide.FRONT,
-                    fonts,
-                    CAPTURE_MONOGRAM_SCALE
-                );
-
-                backImg = await captureBottleSnapshotCanvas(
-                    'BACK',
-                    customization,
-                    selectedColor,
-                    selectedFont,
-                    selectedMonogramBySide.BACK,
-                    fonts,
-                    CAPTURE_MONOGRAM_SCALE
-                );
-
-                // Design captures
-                frontDesignImg = await captureDesignSnapshotCanvas(
-                    'FRONT',
-                    customization,
-                    selectedColor,
-                    selectedFont,
-                    selectedMonogramBySide.FRONT,
-                    fonts,
-                    CAPTURE_MONOGRAM_SCALE
-                );
-
-                backDesignImg = await captureDesignSnapshotCanvas(
-                    'BACK',
-                    customization,
-                    selectedColor,
-                    selectedFont,
-                    selectedMonogramBySide.BACK,
-                    fonts,
-                    CAPTURE_MONOGRAM_SCALE
-                );
-            } else {
-                // Non-iOS: Use html-to-image (works well on Android/Desktop)
-                console.log('[Customizer] Using html-to-image capture');
-
-                // Wait a frame for React to render the hidden components
-                await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-
-                // Wait for images to load in hidden capture areas
-                await Promise.all([
-                    waitForImagesToLoad(frontCaptureRef),
-                    waitForImagesToLoad(backCaptureRef),
-                    waitForImagesToLoad(frontDesignCaptureRef),
-                    waitForImagesToLoad(backDesignCaptureRef)
-                ]);
-
-                // Small additional delay to ensure paint
-                await new Promise(resolve => setTimeout(resolve, 100));
-
-                // Capture Front
-                if (frontCaptureRef.current) {
-                    frontImg = await toPng(frontCaptureRef.current, { cacheBust: true, skipAutoScale: true });
-                }
-
-                // Capture Back
-                if (backCaptureRef.current) {
-                    backImg = await toPng(backCaptureRef.current, { cacheBust: true, skipAutoScale: true });
-                }
-
-                // Capture Front Design (Isolated)
-                if (frontDesignCaptureRef.current) {
-                    // Only capture if there is content
-                    if (customization.FRONT.text || customization.FRONT.monogram || customization.FRONT.graphic) {
-                        frontDesignImg = await toPng(frontDesignCaptureRef.current, { cacheBust: true, backgroundColor: null });
-                    }
-                }
-
-                // Capture Back Design (Isolated)
-                if (backDesignCaptureRef.current) {
-                    if (customization.BACK.text || customization.BACK.monogram || customization.BACK.graphic) {
-                        backDesignImg = await toPng(backDesignCaptureRef.current, { cacheBust: true, backgroundColor: null });
-                    }
-                }
-            }
+            const { frontImg, backImg, frontDesignImg, backDesignImg } = await captureReviewAssets({ includeDesign: true });
+            const previewPdf = await createPreviewPdf(frontImg, backImg);
 
             setCapturedImages({
                 front: frontImg,
                 back: backImg,
                 frontDesign: frontDesignImg,
-                backDesign: backDesignImg
+                backDesign: backDesignImg,
+                previewPdf
             });
             setIsImageLoading(false);
             setIsPreparingReview(false);
@@ -524,13 +600,16 @@ const Customizer = () => {
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
-                                className={`relative h-full px-1 text-xs md:text-sm font-bold tracking-widest uppercase transition-colors
+                                className={`relative h-full flex flex-col items-center justify-center px-1 min-h-[3.5rem] text-xs md:text-sm font-bold tracking-widest uppercase transition-colors
                   ${activeTab === tab
                                         ? 'text-black border-b-4 border-brand-blue'
                                         : 'text-gray-400 hover:text-gray-600'
                                     }`}
                             >
-                                {tab === 'FRONT' ? t('tab.front') : t('tab.back')}
+                                <span>{tab === 'FRONT' ? t('tab.front') : t('tab.back')}</span>
+                                <span className={`text-[10px] md:text-xs font-normal tracking-normal normal-case mt-0.5 ${activeTab === tab ? 'text-brand-blue' : 'text-gray-400 opacity-90'}`}>
+                                    {tab === 'FRONT' ? t('tab.frontPrice') : t('tab.backPrice')}
+                                </span>
                             </button>
                         ))}
                     </nav>
@@ -770,6 +849,7 @@ const Customizer = () => {
                     backImage={capturedImages.back}
                     frontDesignImage={capturedImages.frontDesign}
                     backDesignImage={capturedImages.backDesign}
+                    previewPdf={capturedImages.previewPdf}
                 />
             )}
         </div>

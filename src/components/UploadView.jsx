@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import UploadConfirmationModal from './UploadConfirmationModal';
 import MiniNav from './MiniNav';
-import { getMetallicGradientCSS, cssUrl } from '../utils/metallicStyle';
+import { getMetallicGradientCSS, getMetallicBlendMode, cssUrl } from '../utils/metallicStyle';
 import { t } from '../i18n';
 
 // Set up the worker for PDF.js
@@ -411,6 +411,7 @@ const UploadView = ({ setView, setGraphic, graphicInput, activeTab, selectedColo
                                     maskRepeat: 'no-repeat',
                                     WebkitMaskRepeat: 'no-repeat',
                                     background: metallicGradient,
+                                    backgroundBlendMode: getMetallicBlendMode(),
                                     filter: 'contrast(1.1) brightness(1.1)',
                                     opacity: 0.95
                                 }}

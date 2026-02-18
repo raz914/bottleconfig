@@ -13,6 +13,7 @@ const ReviewScreen = ({
     backImage,   // Received from parent (snapshot)
     frontDesignImage,
     backDesignImage,
+    previewPdf,
     setActiveTab,
     setView
 }) => {
@@ -74,6 +75,7 @@ const ReviewScreen = ({
             backImage: backImage || '',   // Base64 snapshot
             frontDesignImage: frontDesignImage || '', // Base64 isolated design
             backDesignImage: backDesignImage || '',   // Base64 isolated design
+            previewPdf: previewPdf || '', // Base64 2-page PDF (front/back)
         };
 
         console.log("Adding to Cart - Customization Data:", customizationData);
@@ -98,7 +100,7 @@ const ReviewScreen = ({
             onRequestClose();
         }
 
-    }, [customization, selectedColor, selectedFont, selectedMonogramBySide, frontImage, backImage, frontDesignImage, backDesignImage, onRequestClose]);
+    }, [customization, selectedColor, selectedFont, selectedMonogramBySide, frontImage, backImage, frontDesignImage, backDesignImage, previewPdf, onRequestClose]);
 
 
     const handleEdit = (side) => {

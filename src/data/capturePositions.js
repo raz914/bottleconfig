@@ -5,7 +5,7 @@
 // Desktop positioning values (used for capture mode on desktop)
 export const DESKTOP_POSITIONS = {
     FRONT: {
-        text: { top: '32.4%', left: '36%', right: '36%', bottom: '62%' },
+        text: { top: '33%', left: '36%', right: '36%', bottom: '62%' },
         monogram: { top: '29%', left: '33%', right: '33%', bottom: '58%' },
         graphic: { top: '33%', left: '36%', right: '36%', bottom: '62%' },
         boundary: { top: '32.5%', left: '35%', right: '34%', bottom: '61%' },
@@ -23,7 +23,7 @@ export const DESKTOP_POSITIONS = {
 // Mobile positioning values (used for capture mode on iOS/mobile)
 export const MOBILE_POSITIONS = {
     FRONT: {
-        text: { top: '32.4%', left: '36%', right: '36%', bottom: '62%' },
+        text: { top: '33.2%', left: '36%', right: '36%', bottom: '62%' },
         monogram: { top: '28%', left: '33%', right: '33%', bottom: '57%' },
         graphic: { top: '27.5%', left: '36%', right: '36%', bottom: '56.6%' },
         boundary: { top: '32.5%', left: '35%', right: '34%', bottom: '61%' },

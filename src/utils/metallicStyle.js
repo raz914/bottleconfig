@@ -12,37 +12,83 @@
  */
 
 // ---------------------------------------------------------------------------
-// CSS gradient values (used with background + background-clip: text / mask)
-// The CSS filter `brightness(1.1)` is applied separately in the components,
-// so these are the "base" colours before that filter lightens them on screen.
+// 1. Digital Simulation: SHARP Brushed Steel Texture (CSS Pattern)
+// Uses vector-based lines instead of noise to ensure 100% sharpness (no blur).
+// Horizontal grain (0deg) – fine 1px lines to mimic Yeti brushed steel.
 // ---------------------------------------------------------------------------
-//#a0a0a0 0%,#a4a3a3  50%,#a5a5a5 100%
-const CSS_STOPS = {
-    white: { start: '#a0a0a0', mid: '#a4a3a3', end: '#a5a5a5' },
-    other: { start: '#e6e5e5ff', mid: '#9e9e9e', end: '#656565' },
-};
+const STEEL_TEXTURE_CSS = `repeating-linear-gradient(0deg, 
+    transparent 0px, 
+    transparent 1px, 
+    rgba(0,0,0,0.08) 1px, 
+    rgba(0,0,0,0.08) 2px,
+    transparent 2px,
+    transparent 4px,
+    rgba(0,0,0,0.05) 4px,
+    rgba(0,0,0,0.05) 5px
+)`;
+
+// ---------------------------------------------------------------------------
+// 2. Anisotropic Reflection Gradient (Physics-Based Cylinder)
+// "Bright – Little bit Darker – Dark – Brighter"
+// Simulates continuous Fresnel falloff on a cylindrical brushed surface.
+// ---------------------------------------------------------------------------
+const ANISOTROPIC_STEEL_GRADIENT = `linear-gradient(105deg, 
+    #e8e9eb 0%,    /* Specular Main (Left Light) */
+    #ffffff 20%,   /* Peak Highlight */
+    #b0b2b8 40%,   /* Smooth Falloff */
+    #5e6066 55%,   /* Core Shadow (Darkest at 55%) */
+    #999999 75%,   /* Lightening (Start of Right Highlight) */
+    #d9d9d9 100%   /* Broad Fresnel Rim (35-40% Width) */
+)`;
+
+// ---------------------------------------------------------------------------
+// 3. White Bottle Gradient (Darker Base for Multiply)
+// Darker tones that will "stain" the white bottle when multiplied.
+// ---------------------------------------------------------------------------
+const WHITE_BOTTLE_STEEL_GRADIENT = `linear-gradient(105deg, 
+    #999999 0%,    /* Mid-Grey Start */
+    #cccccc 25%,   /* Muted Highlight */
+    #777777 40%,   /* Darker Transition */
+    #444444 55%,   /* Deep Core Shadow (At 55%) */
+    #888888 75%,   /* Lightening */
+    #bfbfbf 100%   /* Broad Bright Rim (Matches Left but darker) */
+)`;
 
 /**
- * Return a CSS linear-gradient string for the metallic engraving effect.
+ * Return a CSS gradient string for the metallic engraving effect (brushed steel).
  * @param {string} selectedColor - Bottle colour id ('white', 'black', etc.)
- * @returns {string} CSS linear-gradient value
+ * @returns {string} CSS background value (multiple layers)
  */
 export const getMetallicGradientCSS = (selectedColor) => {
-    const s = selectedColor === 'white' ? CSS_STOPS.white : CSS_STOPS.other;
-    return `linear-gradient(90deg, ${s.start} 0%, ${s.mid} 50%, ${s.end} 100%)`;
+    if (selectedColor === 'white') {
+        return `
+            linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 25%, transparent 100%),
+            ${STEEL_TEXTURE_CSS},
+            ${WHITE_BOTTLE_STEEL_GRADIENT}
+        `;
+    }
+    return `
+        ${STEEL_TEXTURE_CSS},
+        ${ANISOTROPIC_STEEL_GRADIENT}
+    `;
 };
 
 /**
- * Metallic text filter for live preview text rendering.
- * White bottle: no drop shadow.
- * Other colors: keep subtle drop shadow for contrast.
+ * Metallic text filter for live preview.
+ * White: inner-shadow style drop-shadow + contrast. Others: brightness only.
  * @param {string} selectedColor
  * @returns {string}
  */
 export const getMetallicTextFilterCSS = (selectedColor) =>
     selectedColor === 'white'
-        ? 'contrast(1.4) brightness(1.15)'
-        : 'contrast(1.1) brightness(1.1) drop-shadow(0 1px 1px rgba(0,0,0,0.3))';
+        ? 'drop-shadow(0 1px 1px rgba(51,51,51,0.4)) contrast(1.1)'
+        : 'brightness(1.05)';
+
+/**
+ * Blend mode for layered metallic gradient (multiply so texture etches into metal).
+ * @returns {string}
+ */
+export const getMetallicBlendMode = () => 'multiply, normal';
 
 /**
  * Whether metallic text should use shadow in canvas export.

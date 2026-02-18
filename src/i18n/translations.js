@@ -16,6 +16,8 @@ const translations = {
         // -- Tabs / Navigation ------------------------------------------------
         'tab.front': 'FRONT',
         'tab.back': 'BACK',
+        'tab.frontPrice': 'Free',
+        'tab.backPrice': '+€6.00',
 
         // -- Product info -----------------------------------------------------
         'product.heading': 'RAMBLER® 16 OZ TRAVEL BOTTLE',
@@ -164,6 +166,8 @@ const translations = {
         // -- Tabs / Navigation ------------------------------------------------
         'tab.front': 'VOOR',
         'tab.back': 'ACHTER',
+        'tab.frontPrice': 'Gratis',
+        'tab.backPrice': '+€6.00',
 
         // -- Product info -----------------------------------------------------
         'product.heading': 'RAMBLER® 16 OZ REISFLES',

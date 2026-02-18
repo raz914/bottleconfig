@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState, useEffect, useLayoutEffect } from 'react';
 import { monogramStyles, getMonogramFontSize, shouldDisplayMonogram, convertToCircleGlyphs, getCircleFontFamily, usesCircleGlyphs, convertToNGramGlyphs, getNGramFontFamily, usesNGramGlyphs } from '../data/monogramConfig';
 import { DESKTOP_POSITIONS, MOBILE_POSITIONS, GRAPHIC_MAX_SIZE } from '../data/capturePositions';
-import { getMetallicGradientCSS, getMetallicTextFilterCSS, cssUrl } from '../utils/metallicStyle';
+import { getMetallicGradientCSS, getMetallicTextFilterCSS, getMetallicBlendMode, cssUrl } from '../utils/metallicStyle';
 import { t } from '../i18n';
 
 const BottlePreview = ({
@@ -216,7 +216,7 @@ const BottlePreview = ({
 
     const maxFontSizePx = useMemo(() => {
         if (!textBoxSize.width) return null;
-        return Math.max(1, (side === 'FRONT' ? 0.18 : 0.54) * textBoxSize.width);
+        return Math.max(1, (side === 'FRONT' ? 0.12 : 0.54) * textBoxSize.width);
     }, [textBoxSize.width, side]);
 
     // Uniform vertical text scale — applied to the cqi-based size so all
@@ -370,6 +370,7 @@ const BottlePreview = ({
                                 marginInline: (side === 'BACK' && config.isVertical) ? 'auto' : undefined,
                                 // Silver Gradient Style
                                 background: metallicGradient,
+                                backgroundBlendMode: getMetallicBlendMode(),
                                 WebkitBackgroundClip: 'text',
                                 backgroundClip: 'text',
                                 color: 'transparent',
@@ -418,6 +419,7 @@ const BottlePreview = ({
                                             maskRepeat: 'no-repeat',
                                             WebkitMaskRepeat: 'no-repeat',
                                             background: metallicGradient,
+                                            backgroundBlendMode: getMetallicBlendMode(),
                                             filter: 'contrast(1.1) brightness(1.1) drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
                                             opacity: 0.95,
                                             maxHeight: graphicMaxSize,
@@ -456,6 +458,7 @@ const BottlePreview = ({
                                     fontSize: scaleMonogramSize(getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile)),
                                     lineHeight: 1.4,
                                     background: metallicGradient,
+                                    backgroundBlendMode: getMetallicBlendMode(),
                                     WebkitBackgroundClip: 'text',
                                     backgroundClip: 'text',
                                     color: 'transparent',
@@ -473,6 +476,7 @@ const BottlePreview = ({
                                     fontSize: scaleMonogramSize(getMonogramFontSize(selectedMonogram, side, monogramInput.length, isCapture ? false : isMobile)),
                                     lineHeight: 1.4,
                                     background: metallicGradient,
+                                    backgroundBlendMode: getMetallicBlendMode(),
                                     WebkitBackgroundClip: 'text',
                                     backgroundClip: 'text',
                                     color: 'transparent',
@@ -491,6 +495,7 @@ const BottlePreview = ({
                                     alignItems: 'center',
                                     lineHeight: 1.4,
                                     background: metallicGradient,
+                                    backgroundBlendMode: getMetallicBlendMode(),
                                     WebkitBackgroundClip: 'text',
                                     backgroundClip: 'text',
                                     color: 'transparent',
@@ -514,6 +519,7 @@ const BottlePreview = ({
                                     paddingTop: selectedMonogram === 'Vine' ? '0.3em' : undefined,
                                     paddingBottom: selectedMonogram === 'Vine' ? '0.3em' : undefined,
                                     background: metallicGradient,
+                                    backgroundBlendMode: getMetallicBlendMode(),
                                     WebkitBackgroundClip: 'text',
                                     backgroundClip: 'text',
                                     color: 'transparent',

@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { monogramStyles, getMonogramFontSize, shouldDisplayMonogram, convertToCircleGlyphs, getCircleFontFamily, usesCircleGlyphs, convertToNGramGlyphs, getNGramFontFamily, usesNGramGlyphs } from '../data/monogramConfig';
-import { getMetallicGradientCSS, cssUrl } from '../utils/metallicStyle';
+import { getMetallicGradientCSS, getMetallicBlendMode, cssUrl } from '../utils/metallicStyle';
 
 const DesignCapture = ({
     side, // 'FRONT' or 'BACK'
@@ -240,6 +240,7 @@ const DesignCapture = ({
                                 maskRepeat: 'no-repeat',
                                 WebkitMaskRepeat: 'no-repeat',
                                 background: metallicGradient,
+                                backgroundBlendMode: getMetallicBlendMode(),
                                 filter: 'contrast(1.1) brightness(1.1) drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
                                 opacity: 0.95,
                             }}
