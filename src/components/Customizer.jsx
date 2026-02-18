@@ -20,7 +20,7 @@ const FALLBACK_CAPTURE_PIXEL_RATIO = 3;
 const MAX_FRONT_TEXT_LINES = 2;
 
 const Customizer = () => {
-    const [activeTab, setActiveTab] = useState('FRONT');
+    const [activeTab, setActiveTab] = useState('BACK');
     const bottlePreviewRef = useRef(null);
     const frontCaptureRef = useRef(null);
     const backCaptureRef = useRef(null);
